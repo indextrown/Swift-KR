@@ -1,0 +1,4 @@
+interface:
+  display_name: '문서 한글화'
+  short_description: '외부 기술 문서를 완전한 한국어 Rspress 문서로 추가합니다.'
+  default_prompt: '$poppang-docs-localization 스킬로 이 원문을 누락 없이 한국어 Rspress 페이지로 추가해줘.'

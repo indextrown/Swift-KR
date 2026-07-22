@@ -1,0 +1,78 @@
+[
+  {
+    "type": "file",
+    "name": "readme",
+    "label": "시작하기"
+  },
+  {
+    "type": "section-header",
+    "label": "Essentials"
+  },
+  "testing",
+  "navigation",
+  "what-is-navigation",
+  "tree-based-navigation",
+  "stack-based-navigation",
+  "sharing-state",
+  "performance",
+  "faq",
+  {
+    "type": "section-header",
+    "label": "Tutorials"
+  },
+  "tutorials",
+  {
+    "type": "section-header",
+    "label": "State management"
+  },
+  "reducer",
+  "scope",
+  "effect",
+  "store",
+  {
+    "type": "section-header",
+    "label": "Testing"
+  },
+  "test-store",
+  {
+    "type": "section-header",
+    "label": "Integrations"
+  },
+  "swift-concurrency",
+  "swiftui-integration",
+  "bindings",
+  "observation-backport",
+  "uikit-integration",
+  {
+    "type": "section-header",
+    "label": "Migration guides"
+  },
+  "migration-guides",
+  {
+    "type": "section-header",
+    "label": "Dependencies"
+  },
+  {
+    "type": "file",
+    "name": "tca-dependencies",
+    "label": "TCA Dependencies 사용법"
+  },
+  {
+    "type": "dir",
+    "name": "dependencies",
+    "label": "Dependencies",
+    "collapsible": true,
+    "collapsed": true
+  },
+  {
+    "type": "section-header",
+    "label": "CasePaths"
+  },
+  {
+    "type": "dir",
+    "name": "case-paths",
+    "label": "CasePaths",
+    "collapsible": true,
+    "collapsed": true
+  }
+]

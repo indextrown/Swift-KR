@@ -1,0 +1,4 @@
+interface:
+  display_name: '공식 문서 최신화'
+  short_description: '공식 저장소 문서 변경을 한국어 문서에 정확히 반영'
+  default_prompt: 'Use $official-docs-sync to check official documentation diffs and update our Korean docs.'
