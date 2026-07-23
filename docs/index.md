@@ -8,21 +8,20 @@ hero:
   tagline: Swift 생태계의 라이브러리와 설계 패턴을 한국어로 읽어보세요.
   actions:
     - theme: brand
-      text: TCA 문서 읽기
-      link: /guide/tca/readme
+      text: 디자인 패턴 읽기
+      link: /guide/design-patterns/dependency-injection
     - theme: alt
       text: GitHub에서 보기
       link: https://github.com/indextrown/Swift-KR
 features:
-  - title: The Composable Architecture
-    details: Swift 앱을 상태, 액션, reducer, effect로 구성하고 테스트하는 TCA 공식 문서를 한국어로 제공합니다.
-    icon: 🧩
-    link: /guide/tca/readme
-  - title: 공식 원문 기반
-    details: 모든 문서에서 원문과 공식 저장소를 함께 안내합니다.
-    icon: 🔗
   - title: 디자인 패턴
     details: 의존성 주입을 시작으로 Swift 코드에 적용하는 설계 원칙과 디자인 패턴을 설명합니다.
     icon: 📚
     link: /guide/design-patterns/dependency-injection
+  - title: Swift 라이브러리
+    details: Swift 생태계에서 널리 사용하는 라이브러리의 핵심 개념과 사용법을 정리합니다.
+    icon: 📦
+  - title: 공식 자료 기반
+    details: 공식 문서와 원전 자료를 바탕으로 개념과 코드 예제를 설명합니다.
+    icon: 🔗
 ---
