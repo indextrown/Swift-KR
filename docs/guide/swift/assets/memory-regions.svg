@@ -54,12 +54,12 @@
       <rect x="72" y="366" width="142" height="140" rx="13" fill="#f8fafc" />
       <path d="M 85 366 H 201 Q 214 366 214 379 V 493 Q 214 506 201 506 H 85" fill="none" stroke="#64748b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6" />
       <path d="M 85 366 Q 72 366 72 379 V 493 Q 72 506 85 506" fill="none" stroke="#475569" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="87" y="395" class="node-title mono">showProfile()</text>
+      <text x="87" y="395" class="node-title mono" style="font-size: 13.3px;">showProfile()</text>
       
       <line x1="86" y1="413" x2="200" y2="413" stroke="#e2e8f0" />
-      <text x="88" y="441" class="row-label">명령</text>
-      <text x="198" y="441" text-anchor="end" class="row-value">실행 코드</text>
-      <text x="87" y="492" class="node-footer">컴파일된 명령</text>
+      <text x="88" y="441" class="row-label" style="font-size: 14px;">명령</text>
+      <text x="198" y="441" text-anchor="end" class="row-value" style="font-size: 14px;">실행 코드</text>
+      <text x="87" y="492" class="node-footer" style="font-size: 13px;">컴파일된 명령</text>
     </g>
   </g>
   <g id="column-data" aria-label="데이터">
@@ -69,12 +69,12 @@
       <rect x="255" y="370" width="160" height="132" rx="13" fill="#ffffff" />
       <path d="M 268 370 H 402 Q 415 370 415 383 V 489 Q 415 502 402 502 H 268" fill="none" stroke="#94a3b8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M 268 370 Q 255 370 255 383 V 489 Q 255 502 268 502" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="270" y="399" class="node-title">전역·정적 값</text>
+      <text x="270" y="399" class="node-title" style="font-size: 16px;">전역·정적 값</text>
       
       <line x1="269" y1="417" x2="401" y2="417" stroke="#e2e8f0" />
-      <text x="271" y="445" class="row-label">launchCount</text>
-      <text x="399" y="445" text-anchor="end" class="row-value">1</text>
-      <text x="270" y="488" class="node-footer">앱 실행 동안 유지</text>
+      <text x="271" y="445" class="row-label" style="font-size: 14px;">launchCount</text>
+      <text x="399" y="445" text-anchor="end" class="row-value" style="font-size: 14px;">1</text>
+      <text x="270" y="488" class="node-footer" style="font-size: 13px;">앱 실행 동안 유지</text>
     </g>
   </g>
   <g id="column-heap" aria-label="힙">
@@ -84,17 +84,17 @@
       <rect x="502" y="349" width="330" height="174" rx="13" fill="#ffffff" />
       <path d="M 515 349 H 819 Q 832 349 832 362 V 510 Q 832 523 819 523 H 515" fill="none" stroke="#111827" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M 515 349 Q 502 349 502 362 V 510 Q 502 523 515 523" fill="none" stroke="#1473e6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="517" y="378" class="node-title">Profile 인스턴스</text>
+      <text x="517" y="378" class="node-title" style="font-size: 16px;">Profile 인스턴스</text>
       <g>
-        <rect x="764" y="362" width="54" height="24" rx="12" fill="#dbeafe" />
-        <text x="791" y="379" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #1473e6;">RC 1</text>
+        <rect x="771.36" y="362" width="46.64" height="24" rx="12" fill="#dbeafe" />
+        <text x="794.6800000000001" y="379" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #1473e6;">RC 1</text>
       </g>
       <line x1="516" y1="396" x2="818" y2="396" stroke="#e2e8f0" />
-      <text x="518" y="424" class="row-label">name</text>
-      <text x="816" y="424" text-anchor="end" class="row-value">홍길동</text>
-      <text x="518" y="458" class="row-label">주소</text>
-      <text x="816" y="458" text-anchor="end" class="row-value mono muted-text">0xA120</text>
-      <text x="517" y="509" class="node-footer">클래스 인스턴스 저장</text>
+      <text x="518" y="424" class="row-label" style="font-size: 14px;">name</text>
+      <text x="816" y="424" text-anchor="end" class="row-value" style="font-size: 14px;">홍길동</text>
+      <text x="518" y="458" class="row-label" style="font-size: 14px;">주소</text>
+      <text x="816" y="458" text-anchor="end" class="row-value mono muted-text" style="font-size: 14px;">0xA120</text>
+      <text x="517" y="509" class="node-footer" style="font-size: 13px;">클래스 인스턴스 저장</text>
     </g>
   </g>
   <g id="column-stack" aria-label="스택">
@@ -104,14 +104,14 @@
       <rect x="924" y="466" width="310" height="176" rx="13" fill="#ffffff" />
       <path d="M 937 466 H 1221 Q 1234 466 1234 479 V 629 Q 1234 642 1221 642 H 937" fill="none" stroke="#64748b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M 937 466 Q 924 466 924 479 V 629 Q 924 642 937 642" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="939" y="495" class="node-title mono">showProfile()</text>
+      <text x="939" y="495" class="node-title mono" style="font-size: 16px;">showProfile()</text>
       
       <line x1="938" y1="513" x2="1220" y2="513" stroke="#e2e8f0" />
-      <text x="940" y="541" class="row-label">profile</text>
-      <text x="1218" y="541" text-anchor="end" class="row-value mono strong-text">0xA120</text>
-      <text x="940" y="575" class="row-label">localID</text>
-      <text x="1218" y="575" text-anchor="end" class="row-value">42</text>
-      <text x="939" y="628" class="node-footer">함수가 끝나면 프레임 제거</text>
+      <text x="940" y="541" class="row-label" style="font-size: 14px;">profile</text>
+      <text x="1218" y="541" text-anchor="end" class="row-value mono strong-text" style="font-size: 14px;">0xA120</text>
+      <text x="940" y="575" class="row-label" style="font-size: 14px;">localID</text>
+      <text x="1218" y="575" text-anchor="end" class="row-value" style="font-size: 14px;">42</text>
+      <text x="939" y="628" class="node-footer" style="font-size: 13px;">함수가 끝나면 프레임 제거</text>
     </g>
   </g>
 

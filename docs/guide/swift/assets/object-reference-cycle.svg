@@ -54,12 +54,12 @@
       <rect x="72" y="390" width="137" height="132" rx="13" fill="#f8fafc" />
       <path d="M 85 390 H 196 Q 209 390 209 403 V 509 Q 209 522 196 522 H 85" fill="none" stroke="#64748b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6" />
       <path d="M 85 390 Q 72 390 72 403 V 509 Q 72 522 85 522" fill="none" stroke="#475569" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="87" y="419" class="node-title mono">connect()</text>
+      <text x="87" y="419" class="node-title mono" style="font-size: 16px;">connect()</text>
       
       <line x1="86" y1="437" x2="195" y2="437" stroke="#e2e8f0" />
-      <text x="88" y="465" class="row-label">대입</text>
-      <text x="193" y="465" text-anchor="end" class="row-value">서로 연결</text>
-      <text x="87" y="508" class="node-footer">두 프로퍼티 설정</text>
+      <text x="88" y="465" class="row-label" style="font-size: 14px;">대입</text>
+      <text x="193" y="465" text-anchor="end" class="row-value" style="font-size: 14px;">서로 연결</text>
+      <text x="87" y="508" class="node-footer" style="font-size: 13px;">두 프로퍼티 설정</text>
     </g>
   </g>
   <g id="column-data" aria-label="데이터">
@@ -69,11 +69,11 @@
       <rect x="250" y="400" width="145" height="112" rx="13" fill="#ffffff" />
       <path d="M 263 400 H 382 Q 395 400 395 413 V 499 Q 395 512 382 512 H 263" fill="none" stroke="#94a3b8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M 263 400 Q 250 400 250 413 V 499 Q 250 512 263 512" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="265" y="429" class="node-title">전역·정적 값</text>
+      <text x="265" y="429" class="node-title" style="font-size: 16px;">전역·정적 값</text>
       
       <line x1="264" y1="447" x2="381" y2="447" stroke="#e2e8f0" />
-      <text x="266" y="475" class="row-label">이 예제</text>
-      <text x="379" y="475" text-anchor="end" class="row-value muted-text">없음</text>
+      <text x="266" y="475" class="row-label" style="font-size: 14px;">이 예제</text>
+      <text x="379" y="475" text-anchor="end" class="row-value muted-text" style="font-size: 14px;">없음</text>
       
     </g>
   </g>
@@ -84,29 +84,29 @@
       <rect x="498" y="280" width="408" height="152" rx="13" fill="#ffffff" />
       <path d="M 511 280 H 893 Q 906 280 906 293 V 419 Q 906 432 893 432 H 511" fill="none" stroke="#111827" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M 511 280 Q 498 280 498 293 V 419 Q 498 432 511 432" fill="none" stroke="#1473e6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="513" y="309" class="node-title mono">ProfileViewModel</text>
+      <text x="513" y="309" class="node-title mono" style="font-size: 16px;">ProfileViewModel</text>
       <g>
-        <rect x="838" y="293" width="54" height="24" rx="12" fill="#fee2e2" />
-        <text x="865" y="310" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #dc2626;">RC 1</text>
+        <rect x="845.36" y="293" width="46.64" height="24" rx="12" fill="#fee2e2" />
+        <text x="868.6800000000001" y="310" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #dc2626;">RC 1</text>
       </g>
       <line x1="512" y1="327" x2="892" y2="327" stroke="#e2e8f0" />
-      <text x="514" y="355" class="row-label">coordinator</text>
-      <text x="890" y="355" text-anchor="end" class="row-value mono strong-text">0xB240</text>
-      <text x="513" y="418" class="node-footer">Coordinator를 강하게 소유</text>
+      <text x="514" y="355" class="row-label" style="font-size: 14px;">coordinator</text>
+      <text x="890" y="355" text-anchor="end" class="row-value mono strong-text" style="font-size: 14px;">0xB240</text>
+      <text x="513" y="418" class="node-footer" style="font-size: 13px;">Coordinator를 강하게 소유</text>
     </g>
     <g id="node-cycle-coordinator">
       <rect x="498" y="480" width="408" height="152" rx="13" fill="#ffffff" />
       <path d="M 511 480 H 893 Q 906 480 906 493 V 619 Q 906 632 893 632 H 511" fill="none" stroke="#111827" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M 511 480 Q 498 480 498 493 V 619 Q 498 632 511 632" fill="none" stroke="#1473e6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="513" y="509" class="node-title mono">ProfileCoordinator</text>
+      <text x="513" y="509" class="node-title mono" style="font-size: 16px;">ProfileCoordinator</text>
       <g>
-        <rect x="838" y="493" width="54" height="24" rx="12" fill="#fee2e2" />
-        <text x="865" y="510" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #dc2626;">RC 1</text>
+        <rect x="845.36" y="493" width="46.64" height="24" rx="12" fill="#fee2e2" />
+        <text x="868.6800000000001" y="510" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #dc2626;">RC 1</text>
       </g>
       <line x1="512" y1="527" x2="892" y2="527" stroke="#e2e8f0" />
-      <text x="514" y="555" class="row-label">viewModel</text>
-      <text x="890" y="555" text-anchor="end" class="row-value mono strong-text">0xA120</text>
-      <text x="513" y="618" class="node-footer">ViewModel을 강하게 소유</text>
+      <text x="514" y="555" class="row-label" style="font-size: 14px;">viewModel</text>
+      <text x="890" y="555" text-anchor="end" class="row-value mono strong-text" style="font-size: 14px;">0xA120</text>
+      <text x="513" y="618" class="node-footer" style="font-size: 13px;">ViewModel을 강하게 소유</text>
     </g>
   </g>
   <g id="column-stack" aria-label="스택">
@@ -116,17 +116,17 @@
       <rect x="1012" y="506" width="294" height="176" rx="13" fill="#f8fafc" />
       <path d="M 1025 506 H 1293 Q 1306 506 1306 519 V 669 Q 1306 682 1293 682 H 1025" fill="none" stroke="#94a3b8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6" />
       <path d="M 1025 506 Q 1012 506 1012 519 V 669 Q 1012 682 1025 682" fill="none" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="1027" y="535" class="node-title">외부 변수</text>
+      <text x="1027" y="535" class="node-title" style="font-size: 16px;">외부 변수</text>
       <g>
-        <rect x="1246" y="519" width="46" height="24" rx="12" fill="#e2e8f0" />
-        <text x="1269" y="536" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #475569;">해제됨</text>
+        <rect x="1236" y="519" width="56" height="24" rx="12" fill="#e2e8f0" />
+        <text x="1264" y="536" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #475569;">해제됨</text>
       </g>
       <line x1="1026" y1="553" x2="1292" y2="553" stroke="#e2e8f0" />
-      <text x="1028" y="581" class="row-label">viewModel</text>
-      <text x="1290" y="581" text-anchor="end" class="row-value mono muted-text">nil</text>
-      <text x="1028" y="615" class="row-label">coordinator</text>
-      <text x="1290" y="615" text-anchor="end" class="row-value mono muted-text">nil</text>
-      <text x="1027" y="668" class="node-footer">밖에서는 다시 접근할 수 없음</text>
+      <text x="1028" y="581" class="row-label" style="font-size: 14px;">viewModel</text>
+      <text x="1290" y="581" text-anchor="end" class="row-value mono muted-text" style="font-size: 14px;">nil</text>
+      <text x="1028" y="615" class="row-label" style="font-size: 14px;">coordinator</text>
+      <text x="1290" y="615" text-anchor="end" class="row-value mono muted-text" style="font-size: 14px;">nil</text>
+      <text x="1027" y="668" class="node-footer" style="font-size: 13px;">밖에서는 다시 접근할 수 없음</text>
     </g>
   </g>
 

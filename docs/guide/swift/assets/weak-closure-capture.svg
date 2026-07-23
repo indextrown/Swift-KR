@@ -54,12 +54,12 @@
       <rect x="72" y="385" width="152" height="142" rx="13" fill="#f8fafc" />
       <path d="M 85 385 H 211 Q 224 385 224 398 V 514 Q 224 527 211 527 H 85" fill="none" stroke="#64748b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6" />
       <path d="M 85 385 Q 72 385 72 398 V 514 Q 72 527 85 527" fill="none" stroke="#475569" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="87" y="414" class="node-title mono">[weak self]</text>
+      <text x="87" y="414" class="node-title mono" style="font-size: 16px;">[weak self]</text>
       
       <line x1="86" y1="432" x2="210" y2="432" stroke="#e2e8f0" />
-      <text x="88" y="460" class="row-label">캡처</text>
-      <text x="208" y="460" text-anchor="end" class="row-value weak-text">소유 안 함</text>
-      <text x="87" y="513" class="node-footer">호출 시 Optional</text>
+      <text x="88" y="460" class="row-label" style="font-size: 14px;">캡처</text>
+      <text x="208" y="460" text-anchor="end" class="row-value weak-text" style="font-size: 14px;">소유 안 함</text>
+      <text x="87" y="513" class="node-footer" style="font-size: 13px;">호출 시 Optional</text>
     </g>
   </g>
   <g id="column-data" aria-label="데이터">
@@ -69,11 +69,11 @@
       <rect x="265" y="400" width="145" height="112" rx="13" fill="#ffffff" />
       <path d="M 278 400 H 397 Q 410 400 410 413 V 499 Q 410 512 397 512 H 278" fill="none" stroke="#94a3b8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M 278 400 Q 265 400 265 413 V 499 Q 265 512 278 512" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="280" y="429" class="node-title">전역·정적 값</text>
+      <text x="280" y="429" class="node-title" style="font-size: 16px;">전역·정적 값</text>
       
       <line x1="279" y1="447" x2="396" y2="447" stroke="#e2e8f0" />
-      <text x="281" y="475" class="row-label">이 예제</text>
-      <text x="394" y="475" text-anchor="end" class="row-value muted-text">없음</text>
+      <text x="281" y="475" class="row-label" style="font-size: 14px;">이 예제</text>
+      <text x="394" y="475" text-anchor="end" class="row-value muted-text" style="font-size: 14px;">없음</text>
       
     </g>
   </g>
@@ -84,29 +84,29 @@
       <rect x="511" y="260" width="442" height="152" rx="13" fill="#ffffff" />
       <path d="M 524 260 H 940 Q 953 260 953 273 V 399 Q 953 412 940 412 H 524" fill="none" stroke="#111827" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M 524 260 Q 511 260 511 273 V 399 Q 511 412 524 412" fill="none" stroke="#1473e6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="526" y="289" class="node-title mono">ProfileHeaderViewModel</text>
+      <text x="526" y="289" class="node-title mono" style="font-size: 16px;">ProfileHeaderViewModel</text>
       <g>
-        <rect x="876.5" y="273" width="62.5" height="24" rx="12" fill="#dcfce7" />
-        <text x="907.75" y="290" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #16835b;">외부 소유</text>
+        <rect x="866.92" y="273" width="72.08" height="24" rx="12" fill="#dcfce7" />
+        <text x="902.9599999999999" y="290" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #16835b;">외부 소유</text>
       </g>
       <line x1="525" y1="307" x2="939" y2="307" stroke="#e2e8f0" />
-      <text x="527" y="335" class="row-label">makeTitle</text>
-      <text x="937" y="335" text-anchor="end" class="row-value mono strong-text">0xC360</text>
-      <text x="526" y="398" class="node-footer">저장 프로퍼티가 클로저를 소유</text>
+      <text x="527" y="335" class="row-label" style="font-size: 14px;">makeTitle</text>
+      <text x="937" y="335" text-anchor="end" class="row-value mono strong-text" style="font-size: 14px;">0xC360</text>
+      <text x="526" y="398" class="node-footer" style="font-size: 13px;">저장 프로퍼티가 클로저를 소유</text>
     </g>
     <g id="node-weak-stored-closure">
       <rect x="511" y="500" width="442" height="152" rx="13" fill="#faf7ff" />
       <path d="M 524 500 H 940 Q 953 500 953 513 V 639 Q 953 652 940 652 H 524" fill="none" stroke="#6d28d9" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M 524 500 Q 511 500 511 513 V 639 Q 511 652 524 652" fill="none" stroke="#7c3aed" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="526" y="529" class="node-title">makeTitle 저장 클로저</text>
+      <text x="526" y="529" class="node-title" style="font-size: 16px;">makeTitle 저장 클로저</text>
       <g>
-        <rect x="876.5" y="513" width="62.5" height="24" rx="12" fill="#dcfce7" />
-        <text x="907.75" y="530" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #16835b;">해제 가능</text>
+        <rect x="866.92" y="513" width="72.08" height="24" rx="12" fill="#dcfce7" />
+        <text x="902.9599999999999" y="530" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #16835b;">해제 가능</text>
       </g>
       <line x1="525" y1="547" x2="939" y2="547" stroke="#e2e8f0" />
-      <text x="527" y="575" class="row-label">capture weak self</text>
-      <text x="937" y="575" text-anchor="end" class="row-value mono weak-text">0xA120</text>
-      <text x="526" y="638" class="node-footer">self를 소유하지 않음</text>
+      <text x="527" y="575" class="row-label" style="font-size: 14px;">capture weak self</text>
+      <text x="937" y="575" text-anchor="end" class="row-value mono weak-text" style="font-size: 14px;">0xA120</text>
+      <text x="526" y="638" class="node-footer" style="font-size: 13px;">self를 소유하지 않음</text>
     </g>
   </g>
   <g id="column-stack" aria-label="스택">
@@ -116,22 +116,22 @@
       <rect x="1057" y="532" width="294" height="150" rx="13" fill="#ffffff" />
       <path d="M 1070 532 H 1338 Q 1351 532 1351 545 V 669 Q 1351 682 1338 682 H 1070" fill="none" stroke="#64748b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M 1070 532 Q 1057 532 1057 545 V 669 Q 1057 682 1070 682" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="1072" y="561" class="node-title">ProfileHeader 화면</text>
+      <text x="1072" y="561" class="node-title" style="font-size: 16px;">ProfileHeader 화면</text>
       
       <line x1="1071" y1="579" x2="1337" y2="579" stroke="#e2e8f0" />
-      <text x="1073" y="607" class="row-label">viewModel</text>
-      <text x="1335" y="607" text-anchor="end" class="row-value mono strong-text">0xA120</text>
-      <text x="1072" y="668" class="node-footer">화면이 수명을 소유</text>
+      <text x="1073" y="607" class="row-label" style="font-size: 14px;">viewModel</text>
+      <text x="1335" y="607" text-anchor="end" class="row-value mono strong-text" style="font-size: 14px;">0xA120</text>
+      <text x="1072" y="668" class="node-footer" style="font-size: 13px;">화면이 수명을 소유</text>
     </g>
     <g id="node-weak-closure-result">
       <rect x="1057" y="390" width="294" height="104" rx="13" fill="#fff9ed" />
       <path d="M 1070 390 H 1338 Q 1351 390 1351 403 V 481 Q 1351 494 1338 494 H 1070" fill="none" stroke="#e5a33b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M 1070 390 Q 1057 390 1057 403 V 481 Q 1057 494 1070 494" fill="none" stroke="#e5a33b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="1072" y="419" class="node-title">화면이 닫히면</text>
+      <text x="1072" y="419" class="node-title" style="font-size: 16px;">화면이 닫히면</text>
       
       <line x1="1071" y1="437" x2="1337" y2="437" stroke="#e2e8f0" />
-      <text x="1073" y="465" class="row-label">viewModel = nil</text>
-      <text x="1335" y="465" text-anchor="end" class="row-value safe-text">둘 다 해제</text>
+      <text x="1073" y="465" class="row-label" style="font-size: 14px;">viewModel = nil</text>
+      <text x="1335" y="465" text-anchor="end" class="row-value safe-text" style="font-size: 14px;">둘 다 해제</text>
       
     </g>
   </g>

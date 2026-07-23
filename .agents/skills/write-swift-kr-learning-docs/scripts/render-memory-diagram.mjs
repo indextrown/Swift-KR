@@ -279,6 +279,16 @@ function renderNode(node) {
   const titleClass = node.monospaceTitle ? 'node-title mono' : 'node-title';
   const titleY = node.y + 29;
   const headerBottom = node.y + 47;
+  const tagWidth = node.tag ? tagWidthFor(node.tag) : 0;
+  const titleMaxWidth = node.tag ? node.width - 41 - tagWidth : node.width - 34;
+  const titleFontSize = fitFontSize({
+    text: node.title,
+    maxWidth: titleMaxWidth,
+    baseSize: 16,
+    minSize: 12,
+    monospace: node.monospaceTitle,
+    context: `${node.id}.title`,
+  });
   const tag = node.tag
     ? renderTag(
         node.x + node.width - 14,
@@ -290,8 +300,17 @@ function renderNode(node) {
   const rows = (node.rows ?? [])
     .map((row, index) => renderRow(node, row, index))
     .join('\n');
+  const footerFontSize = node.footer
+    ? fitFontSize({
+        text: node.footer,
+        maxWidth: node.width - 30,
+        baseSize: 13,
+        minSize: 11,
+        context: `${node.id}.footer`,
+      })
+    : 13;
   const footer = node.footer
-    ? `<text x="${node.x + 15}" y="${node.y + node.height - 14}" class="node-footer">${escapeXml(node.footer)}</text>`
+    ? `<text x="${node.x + 15}" y="${node.y + node.height - 14}" class="node-footer" style="font-size: ${formatNumber(footerFontSize)}px;">${escapeXml(node.footer)}</text>`
     : '';
   const opacity = node.kind === 'released' ? ' opacity="0.76"' : '';
   const radius = 13;
@@ -314,7 +333,7 @@ function renderNode(node) {
       <rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="${radius}" fill="${style.fill}" />
       <path d="${outlinePath}" fill="none" stroke="${style.stroke}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"${style.dash ? ` stroke-dasharray="${style.dash}"` : ''} />
       <path d="${accentPath}" fill="none" stroke="${style.accent}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-      <text x="${node.x + 15}" y="${titleY}" class="${titleClass}">${escapeXml(node.title)}</text>
+      <text x="${node.x + 15}" y="${titleY}" class="${titleClass}" style="font-size: ${formatNumber(titleFontSize)}px;">${escapeXml(node.title)}</text>
       ${tag}
       ${(node.rows ?? []).length ? `<line x1="${node.x + 14}" y1="${headerBottom}" x2="${node.x + node.width - 14}" y2="${headerBottom}" stroke="#e2e8f0" />` : ''}
 ${rows}
@@ -325,9 +344,18 @@ ${rows}
 function renderRow(node, row, index) {
   const y = node.y + 75 + index * 34;
   const valueClass = `row-value${row.monospace ? ' mono' : ''} ${toneClass(row.tone)}`;
+  const fontSize = fitPairedFontSize({
+    leftText: row.label,
+    rightText: row.value,
+    maxWidth: node.width - 32,
+    baseSize: 14,
+    minSize: 11,
+    rightMonospace: row.monospace,
+    context: `${node.id}.rows[${index}]`,
+  });
 
-  return `      <text x="${node.x + 16}" y="${y}" class="row-label">${escapeXml(row.label)}</text>
-      <text x="${node.x + node.width - 16}" y="${y}" text-anchor="end" class="${valueClass.trim()}">${escapeXml(row.value)}</text>`;
+  return `      <text x="${node.x + 16}" y="${y}" class="row-label" style="font-size: ${formatNumber(fontSize)}px;">${escapeXml(row.label)}</text>
+      <text x="${node.x + node.width - 16}" y="${y}" text-anchor="end" class="${valueClass.trim()}" style="font-size: ${formatNumber(fontSize)}px;">${escapeXml(row.value)}</text>`;
 }
 
 function renderTag(right, top, text, tone) {
@@ -339,13 +367,96 @@ function renderTag(right, top, text, tone) {
     muted: ['#e2e8f0', '#475569'],
   };
   const [fill, color] = palette[tone] ?? palette.muted;
-  const tagWidth = Math.max(46, Array.from(String(text)).length * 8.5 + 20);
+  const tagWidth = tagWidthFor(text);
   const x = right - tagWidth;
 
   return `<g>
         <rect x="${x}" y="${top}" width="${tagWidth}" height="24" rx="12" fill="${fill}" />
         <text x="${x + tagWidth / 2}" y="${top + 17}" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: ${color};">${escapeXml(text)}</text>
       </g>`;
+}
+
+function tagWidthFor(text) {
+  return Math.max(46, estimateTextWidth(String(text), 12) + 20);
+}
+
+function fitFontSize({
+  text,
+  maxWidth,
+  baseSize,
+  minSize,
+  monospace = false,
+  context,
+}) {
+  const baseWidth = estimateTextWidth(String(text), baseSize, monospace);
+  if (baseWidth <= maxWidth) {
+    return baseSize;
+  }
+
+  const fittedSize = Math.floor(((baseSize * maxWidth) / baseWidth) * 10) / 10;
+  if (fittedSize < minSize) {
+    throw new Error(
+      `Text does not fit ${context}: "${text}" needs ${formatNumber(baseWidth)}px but only ${formatNumber(maxWidth)}px is available.`,
+    );
+  }
+  return fittedSize;
+}
+
+function fitPairedFontSize({
+  leftText,
+  rightText,
+  maxWidth,
+  baseSize,
+  minSize,
+  rightMonospace = false,
+  context,
+}) {
+  const minimumGap = 16;
+  const baseWidth =
+    estimateTextWidth(String(leftText), baseSize) +
+    minimumGap +
+    estimateTextWidth(String(rightText), baseSize, rightMonospace);
+
+  if (baseWidth <= maxWidth) {
+    return baseSize;
+  }
+
+  const fittedSize =
+    Math.floor(
+      ((baseSize * (maxWidth - minimumGap)) / (baseWidth - minimumGap)) * 10,
+    ) / 10;
+  if (fittedSize < minSize) {
+    throw new Error(
+      `Text pair does not fit ${context}: "${leftText}" / "${rightText}" exceeds ${formatNumber(maxWidth)}px.`,
+    );
+  }
+  return fittedSize;
+}
+
+function estimateTextWidth(text, fontSize, monospace = false) {
+  if (monospace) {
+    return Array.from(text).length * fontSize * 0.62;
+  }
+
+  return Array.from(text).reduce((width, character) => {
+    if (/\s/u.test(character)) {
+      return width + fontSize * 0.34;
+    }
+    if (/[\u1100-\u11ff\u2e80-\u9fff\uac00-\ud7af]/u.test(character)) {
+      return width + fontSize;
+    }
+    if (/[A-Z]/u.test(character)) {
+      return width + fontSize * 0.66;
+    }
+    if (/[a-z0-9]/u.test(character)) {
+      return width + fontSize * 0.56;
+    }
+    return width + fontSize * 0.46;
+  }, 0);
+}
+
+function formatNumber(value) {
+  return Number(value.toFixed(1));
 }
 
 function renderConnector(connector, nodeLayouts) {
