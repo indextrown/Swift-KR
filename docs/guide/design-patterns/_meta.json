@@ -3,5 +3,20 @@
     "type": "file",
     "name": "dependency-injection",
     "label": "의존성 주입"
+  },
+  {
+    "type": "file",
+    "name": "strategy",
+    "label": "Strategy 패턴"
+  },
+  {
+    "type": "file",
+    "name": "singleton",
+    "label": "Singleton 패턴"
+  },
+  {
+    "type": "file",
+    "name": "delegation",
+    "label": "Delegation 패턴"
   }
 ]
