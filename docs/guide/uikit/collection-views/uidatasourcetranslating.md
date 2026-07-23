@@ -54,27 +54,27 @@ func originalIndexPath(
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                                              | 하는 일                                                   |
-| ------------------------------------------------ | --------------------------------------------------------- |
-| `presentationIndexPath(forDataSourceIndexPath:)` | IndexPath의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `dataSourceIndexPath(forPresentationIndexPath:)` | IndexPath의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                              | 하는 일                                                    |
+| ------------------------------------------------ | ---------------------------------------------------------- |
+| `presentationIndexPath(forDataSourceIndexPath:)` | 원본 data source 위치와 현재 표시 위치 사이 값을 변환해요. |
+| `dataSourceIndexPath(forPresentationIndexPath:)` | 원본 data source 위치와 현재 표시 위치 사이 값을 변환해요. |
 
 ### section positions 관리하기 (Managing section positions)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                                                    | 하는 일                                                     |
-| ------------------------------------------------------ | ----------------------------------------------------------- |
-| `presentationSectionIndex(forDataSourceSectionIndex:)` | 위치와 영역의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `dataSourceSectionIndex(forPresentationSectionIndex:)` | 위치와 영역의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                                    | 하는 일                                                    |
+| ------------------------------------------------------ | ---------------------------------------------------------- |
+| `presentationSectionIndex(forDataSourceSectionIndex:)` | 원본 data source 위치와 현재 표시 위치 사이 값을 변환해요. |
+| `dataSourceSectionIndex(forPresentationSectionIndex:)` | 원본 data source 위치와 현재 표시 위치 사이 값을 변환해요. |
 
 ### actions 실행하기 (Performing actions)
 
 `UIDataSourceTranslating`에서 Performing actions 책임을 담당하는 API예요.
 
-| API                                  | 하는 일                                                        |
-| ------------------------------------ | -------------------------------------------------------------- |
-| `performUsingPresentationValues(_:)` | 관련 값과 동작의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                  | 하는 일                                                    |
+| ------------------------------------ | ---------------------------------------------------------- |
+| `performUsingPresentationValues(_:)` | 클로저 안에서 원본 대신 현재 표시 위치 값을 사용하게 해요. |
 
 ## 타입 관계를 확인해요
 

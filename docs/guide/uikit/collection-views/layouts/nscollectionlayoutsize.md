@@ -58,18 +58,18 @@ item.edgeSpacing = .init(
 
 `NSCollectionLayoutSize`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                                     | 하는 일                                             |
-| --------------------------------------- | --------------------------------------------------- |
-| `init(widthDimension:heightDimension:)` | 레이아웃에 필요한 값을 받아 새 인스턴스를 만들어요. |
+| API                                     | 하는 일                                            |
+| --------------------------------------- | -------------------------------------------------- |
+| `init(widthDimension:heightDimension:)` | 폭과 높이 dimension을 묶어 layout size를 만들어요. |
 
 ### width and height 확인하기 (Getting the width and height)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API               | 하는 일                                              |
-| ----------------- | ---------------------------------------------------- |
-| `widthDimension`  | 크기의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `heightDimension` | 크기의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API               | 하는 일                             |
+| ----------------- | ----------------------------------- |
+| `widthDimension`  | layout size의 폭 dimension이에요.   |
+| `heightDimension` | layout size의 높이 dimension이에요. |
 
 ## 타입 관계를 확인해요
 

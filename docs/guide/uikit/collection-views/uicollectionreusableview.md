@@ -23,6 +23,14 @@ Apple 공식 문서의 **Collection Views — Cells** 영역에 있는 클래스
 
 UICollectionReusableView는 셀과 헤더·푸터 같은 보조 뷰가 공통으로 따르는 재사용 및 레이아웃 갱신 동작을 정의해요.
 
+## 개요 (Overview)
+
+재사용 뷰라는 이름은 화면의 보이는 영역 밖으로 스크롤됐을 때 Collection View가 뷰를 삭제하지 않고 reuse queue에 넣는 동작에서 나왔어요. Queue에 들어간 뷰는 나중에 꺼내 다른 콘텐츠를 표시하도록 다시 구성할 수 있어요.
+
+### 하위 클래스 구현 시 참고할 점 (Subclassing notes)
+
+이 class는 하위 클래스를 만들어 사용하도록 설계됐어요. class에 정의된 메서드 대부분은 기본 구현이 없거나 최소한의 동작만 제공해요. 반드시 재정의해야 하는 메서드는 없지만, 뷰의 사용 방식이나 layout 변화에 대응해야 할 때 필요한 메서드를 재정의할 수 있어요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
@@ -63,21 +71,21 @@ final class SectionHeaderView: UICollectionReusableView {
 
 `UICollectionReusableView`에서 Reusing cells 책임을 담당하는 API예요.
 
-| API                 | 하는 일                                                |
-| ------------------- | ------------------------------------------------------ |
-| `reuseIdentifier`   | 식별자의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `prepareForReuse()` | 셀을 사용하기 전에 필요한 상태를 준비해요.             |
+| API                 | 하는 일                                    |
+| ------------------- | ------------------------------------------ |
+| `reuseIdentifier`   | 등록과 dequeue에 사용한 재사용 식별자예요. |
+| `prepareForReuse()` | 셀을 사용하기 전에 필요한 상태를 준비해요. |
 
 ### layout changes 관리하기 (Managing layout changes)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                                    | 하는 일                                                  |
-| -------------------------------------- | -------------------------------------------------------- |
-| `preferredLayoutAttributesFitting(_:)` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `apply(_:)`                            | 레이아웃을 현재 화면 상태에 적용해요.                    |
-| `willTransition(from:to:)`             | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `didTransition(from:to:)`              | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                    | 하는 일                                                        |
+| -------------------------------------- | -------------------------------------------------------------- |
+| `preferredLayoutAttributesFitting(_:)` | Auto Layout 측정을 반영한 선호 layout attributes를 반환해요.   |
+| `apply(_:)`                            | 레이아웃을 현재 화면 상태에 적용해요.                          |
+| `willTransition(from:to:)`             | layout 전환이나 update 전후의 임시 상태를 준비하거나 정리해요. |
+| `didTransition(from:to:)`              | layout 전환이나 update 전후의 임시 상태를 준비하거나 정리해요. |
 
 ## 타입 관계를 확인해요
 

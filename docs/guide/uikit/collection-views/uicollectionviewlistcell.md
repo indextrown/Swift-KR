@@ -23,6 +23,29 @@ Apple 공식 문서의 **Collection Views — Cells** 영역에 있는 클래스
 
 UICollectionViewListCell은 목록에 맞는 기본 콘텐츠 구성, 들여쓰기, 구분선, accessory를 제공하는 Collection View 셀이에요.
 
+## 개요 (Overview)
+
+List Cell은 목록에 나타나는 개별 item을 표현해요. 기본 들여쓰기를 지원하며, 시각적인 장식이나 셀과의 사용자 상호작용을 제공하는 `UICellAccessory`를 추가할 수 있어요.
+
+List Cell은 어떤 layout에서도 사용할 수 있어요. List Section이나 List Layout 안에서 사용하면 목록 전용 동작이 추가돼요. 예를 들어 List Cell 사이의 separator 정렬을 지정하거나 각 셀의 leading·trailing 가장자리에 swipe action을 구성할 수 있어요. 개별 List Section은 `list(using:layoutEnvironment:)`으로, 전체 List Layout은 `list(using:)`으로 만들어요.
+
+`defaultContentConfiguration()`을 호출하면 List Cell의 기본 스타일이 미리 적용된 콘텐츠 configuration을 얻을 수 있어요. 이 configuration에 텍스트·이미지 같은 콘텐츠를 지정하고 필요한 프로퍼티를 조정한 뒤, 셀의 현재 `contentConfiguration`에 대입해요. 세부 설정은 `UIListContentConfiguration`에서 확인할 수 있어요.
+
+```swift
+var content = cell.defaultContentConfiguration()
+
+// Configure content.
+content.image = UIImage(systemName: "star")
+content.text = "Favorites"
+
+// Customize appearance.
+content.imageProperties.tintColor = .purple
+
+cell.contentConfiguration = content
+```
+
+기본 configuration 대신 직접 만든 subview를 `contentView`에 추가해 콘텐츠를 구성할 수도 있어요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
@@ -54,29 +77,29 @@ let registration = UICollectionView.CellRegistration<
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API                             | 하는 일                                                       |
-| ------------------------------- | ------------------------------------------------------------- |
-| `defaultContentConfiguration()` | configuration의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                             | 하는 일                                                     |
+| ------------------------------- | ----------------------------------------------------------- |
+| `defaultContentConfiguration()` | 현재 List Cell에 맞는 기본 콘텐츠 configuration을 반환해요. |
 
 ### cell accessories 관리하기 (Managing cell accessories)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API               | 하는 일                                            |
-| ----------------- | -------------------------------------------------- |
-| `accessories`     | 셀의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UICellAccessory` | 셀의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API               | 하는 일                                                                |
+| ----------------- | ---------------------------------------------------------------------- |
+| `accessories`     | List Cell에 표시할 accessory 구성 배열이에요.                          |
+| `UICellAccessory` | disclosure·checkmark·outline 등 List Cell의 표준 accessory 구성이에요. |
 
 ### Customizing layout
 
 `UICollectionViewListCell`에서 Customizing layout 책임을 담당하는 API예요.
 
-| API                    | 하는 일                                                  |
-| ---------------------- | -------------------------------------------------------- |
-| `indentationLevel`     | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `indentationWidth`     | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `indentsAccessories`   | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `separatorLayoutGuide` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                    | 하는 일                                          |
+| ---------------------- | ------------------------------------------------ |
+| `indentationLevel`     | List Cell의 현재 들여쓰기 단계예요.              |
+| `indentationWidth`     | 들여쓰기 한 단계의 폭이에요.                     |
+| `indentsAccessories`   | accessory도 콘텐츠와 함께 들여쓸지 정해요.       |
+| `separatorLayoutGuide` | List Cell separator가 정렬되는 layout guide예요. |
 
 ## 타입 관계를 확인해요
 

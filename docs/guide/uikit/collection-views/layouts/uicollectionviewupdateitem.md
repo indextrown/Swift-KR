@@ -57,10 +57,10 @@ override func prepare(
 
 | API                                 | 하는 일                                              |
 | ----------------------------------- | ---------------------------------------------------- |
-| `indexPathBeforeUpdate`             | 지정한 IndexPath의 현재 위치를 반환해요.             |
-| `indexPathAfterUpdate`              | 지정한 IndexPath의 현재 위치를 반환해요.             |
+| `indexPathBeforeUpdate`             | Collection View update 이전의 IndexPath예요.         |
+| `indexPathAfterUpdate`              | Collection View update 이후의 IndexPath예요.         |
 | `updateAction`                      | item을 최신 값으로 갱신해요.                         |
-| `UICollectionViewUpdateItem.Action` | item의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| `UICollectionViewUpdateItem.Action` | update가 삽입·삭제·이동·reload 중 무엇인지 나타내요. |
 
 ## 타입 관계를 확인해요
 

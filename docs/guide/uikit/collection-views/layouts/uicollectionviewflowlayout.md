@@ -23,6 +23,16 @@ Apple 공식 문서의 **Layouts — Manual layouts** 영역에 있는 클래스
 
 UICollectionViewFlowLayout은 item을 한 줄씩 채워 나가는 격자 배치와 section inset, 간격, 헤더·푸터, 고정 동작을 제공해요.
 
+## 개요 (Overview)
+
+Flow Layout은 Collection View Layout의 한 종류예요. 스크롤 방향에 따라 item을 한 행이나 한 열에 들어갈 수 있는 만큼 배치한 뒤 다음 행이나 열로 이어 가요. 모든 셀의 크기를 같게 만들 수도 있고 서로 다르게 만들 수도 있어요.
+
+Flow Layout은 Collection View의 delegate와 협력해 각 section과 grid의 item, header, footer 크기를 정해요. 이 delegate는 `UICollectionViewDelegateFlowLayout`을 준수해야 해요. delegate를 사용하면 grid item마다 서로 다른 크기를 반환하는 것처럼 layout 정보를 동적으로 조정할 수 있어요. delegate가 값을 제공하지 않으면 Flow Layout은 이 class의 프로퍼티에 설정한 기본값을 사용해요.
+
+Flow Layout은 한 방향의 길이는 고정하고 다른 방향의 길이는 스크롤할 수 있게 콘텐츠를 배치해요. 세로로 스크롤하는 grid에서는 콘텐츠 width가 Collection View width에 맞춰지고, 콘텐츠 height는 section과 item 수에 따라 동적으로 늘어나요. 기본 스크롤 방향은 세로이며 `scrollDirection`으로 바꿀 수 있어요.
+
+각 section은 별도의 header와 footer를 가질 수 있어요. header나 footer를 표시하려면 delegate 메서드에서 0이 아닌 크기를 반환하거나 `headerReferenceSize`, `footerReferenceSize`에 크기를 지정해요. 크기가 `.zero`이면 대응하는 supplementary view는 Collection View에 추가되지 않아요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
@@ -60,44 +70,44 @@ flowLayout.sectionHeadersPinToVisibleBounds = true
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                                | 하는 일                                                        |
-| ---------------------------------- | -------------------------------------------------------------- |
-| `scrollDirection`                  | 관련 값과 동작의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UICollectionView.ScrollDirection` | 관련 값과 동작의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                | 하는 일                                    |
+| ---------------------------------- | ------------------------------------------ |
+| `scrollDirection`                  | Flow Layout의 가로·세로 스크롤 방향이에요. |
+| `UICollectionView.ScrollDirection` | Flow Layout의 주 스크롤 방향을 나타내요.   |
 
 ### item spacing 설정하기 (Configuring item spacing)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                                                | 하는 일                                                  |
-| -------------------------------------------------- | -------------------------------------------------------- |
-| `minimumLineSpacing`                               | 간격의 현재 값이나 설정을 읽고 필요한 경우 변경해요.     |
-| `minimumInteritemSpacing`                          | 간격의 현재 값이나 설정을 읽고 필요한 경우 변경해요.     |
-| `itemSize`                                         | 간격의 현재 값이나 설정을 읽고 필요한 경우 변경해요.     |
-| `estimatedItemSize`                                | 간격의 현재 값이나 설정을 읽고 필요한 경우 변경해요.     |
-| `automaticSize`                                    | 간격의 현재 값이나 설정을 읽고 필요한 경우 변경해요.     |
-| `sectionInset`                                     | inset의 현재 값이나 설정을 읽고 필요한 경우 변경해요.    |
-| `sectionInsetReference`                            | inset의 현재 값이나 설정을 읽고 필요한 경우 변경해요.    |
-| `UICollectionViewFlowLayout.SectionInsetReference` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                                | 하는 일                                                                            |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `minimumLineSpacing`                               | Flow Layout 행 또는 열 사이 최소 간격이에요.                                       |
+| `minimumInteritemSpacing`                          | 같은 행이나 열의 item 사이 최소 간격이에요.                                        |
+| `itemSize`                                         | Flow Layout item의 기본 크기예요.                                                  |
+| `estimatedItemSize`                                | self-sizing cell을 측정하기 전의 예상 크기예요.                                    |
+| `automaticSize`                                    | Collection View가 콘텐츠와 layout으로 계산하는 자동 item 크기예요.                 |
+| `sectionInset`                                     | Flow Layout section 둘레의 inset이에요.                                            |
+| `sectionInsetReference`                            | section inset 계산의 기준 영역이에요.                                              |
+| `UICollectionViewFlowLayout.SectionInsetReference` | section inset을 safe area·content inset·layout margin 중 어디서 계산할지 나타내요. |
 
 ### headers and footers 설정하기 (Configuring headers and footers)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                               | 하는 일                                              |
-| --------------------------------- | ---------------------------------------------------- |
-| `headerReferenceSize`             | 크기의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `footerReferenceSize`             | 크기의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `Flow layout supplementary views` | 보조 뷰 구현 흐름을 설명하는 관련 문서예요.          |
+| API                               | 하는 일                                                  |
+| --------------------------------- | -------------------------------------------------------- |
+| `headerReferenceSize`             | Flow Layout header의 기본 크기예요. 0이면 만들지 않아요. |
+| `footerReferenceSize`             | Flow Layout footer의 기본 크기예요. 0이면 만들지 않아요. |
+| `Flow layout supplementary views` | 보조 뷰 구현 흐름을 설명하는 관련 문서예요.              |
 
 ### headers and footers 고정하기 (Pinning headers and footers)
 
 `UICollectionViewFlowLayout`에서 Pinning headers and footers 책임을 담당하는 API예요.
 
-| API                                | 하는 일                                                     |
-| ---------------------------------- | ----------------------------------------------------------- |
-| `sectionHeadersPinToVisibleBounds` | 위치와 영역의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `sectionFootersPinToVisibleBounds` | 위치와 영역의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                | 하는 일                                         |
+| ---------------------------------- | ----------------------------------------------- |
+| `sectionHeadersPinToVisibleBounds` | section header를 보이는 경계에 고정할지 정해요. |
+| `sectionFootersPinToVisibleBounds` | section footer를 보이는 경계에 고정할지 정해요. |
 
 ## 타입 관계를 확인해요
 

@@ -54,16 +54,16 @@ func sourceID(
 
 | API        | 하는 일                                                |
 | ---------- | ------------------------------------------------------ |
-| `dragItem` | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| `dragItem` | drop 대상 데이터와 localObject를 담은 drag item이에요. |
 
 ### Item Information 확인하기 (Getting the Item Information)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API               | 하는 일                                                   |
-| ----------------- | --------------------------------------------------------- |
-| `previewSize`     | 크기의 현재 값이나 설정을 읽고 필요한 경우 변경해요.      |
-| `sourceIndexPath` | IndexPath의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API               | 하는 일                                                    |
+| ----------------- | ---------------------------------------------------------- |
+| `previewSize`     | drop placeholder가 차지할 예상 크기예요.                   |
+| `sourceIndexPath` | 같은 Collection View에서 drag를 시작한 원래 IndexPath예요. |
 
 ## 타입 관계를 확인해요
 
