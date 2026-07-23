@@ -29,8 +29,9 @@
 
   <g>
     <rect x="60" y="170" width="250" height="180" rx="22" fill="#ffffff" filter="url(#shadow)"/>
-    <rect x="60" y="170" width="250" height="180" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-    <rect x="60" y="170" width="8" height="180" rx="4" fill="#0f7ae5"/>
+    <rect x="60" y="170" width="250" height="180" rx="22" fill="#ffffff"/>
+    <path d="M82 170H288Q310 170 310 192V328Q310 350 288 350H82" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M82 170Q60 170 60 192V328Q60 350 82 350" fill="none" stroke="#0f7ae5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
     <text class="box-title" x="90" y="218">앱 모델</text>
     <text class="code" x="90" y="254">[Photo.ID: Photo]</text>
     <text class="box-text" x="90" y="294">실제 데이터와 상태를 저장</text>
@@ -39,8 +40,9 @@
 
   <g>
     <rect x="395" y="170" width="270" height="180" rx="22" fill="#ffffff" filter="url(#shadow)"/>
-    <rect x="395" y="170" width="270" height="180" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-    <rect x="395" y="170" width="8" height="180" rx="4" fill="#0f7ae5"/>
+    <rect x="395" y="170" width="270" height="180" rx="22" fill="#ffffff"/>
+    <path d="M417 170H643Q665 170 665 192V328Q665 350 643 350H417" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M417 170Q395 170 395 192V328Q395 350 417 350" fill="none" stroke="#0f7ae5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
     <text class="box-title" x="425" y="218">Snapshot</text>
     <text class="code" x="425" y="254">Section + Item.ID</text>
     <text class="box-text" x="425" y="294">한 시점의 순서와 포함 관계</text>
@@ -49,8 +51,9 @@
 
   <g>
     <rect x="750" y="170" width="290" height="180" rx="22" fill="#ffffff" filter="url(#shadow)"/>
-    <rect x="750" y="170" width="290" height="180" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-    <rect x="750" y="170" width="8" height="180" rx="4" fill="#0f7ae5"/>
+    <rect x="750" y="170" width="290" height="180" rx="22" fill="#ffffff"/>
+    <path d="M772 170H1018Q1040 170 1040 192V328Q1040 350 1018 350H772" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M772 170Q750 170 750 192V328Q750 350 772 350" fill="none" stroke="#0f7ae5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
     <text class="box-title" x="780" y="218">Diffable Data Source</text>
     <text class="code" x="780" y="254">apply(snapshot)</text>
     <text class="box-text" x="780" y="294">이전 상태와 차이를 계산</text>
@@ -59,8 +62,9 @@
 
   <g>
     <rect x="1125" y="170" width="215" height="180" rx="22" fill="#ffffff" filter="url(#shadow)"/>
-    <rect x="1125" y="170" width="215" height="180" rx="22" fill="#ffffff" stroke="#1675ea" stroke-width="3"/>
-    <rect x="1125" y="170" width="8" height="180" rx="4" fill="#1675ea"/>
+    <rect x="1125" y="170" width="215" height="180" rx="22" fill="#ffffff"/>
+    <path d="M1147 170H1318Q1340 170 1340 192V328Q1340 350 1318 350H1147" fill="none" stroke="#1675ea" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M1147 170Q1125 170 1125 192V328Q1125 350 1147 350" fill="none" stroke="#1675ea" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
     <text class="box-title" x="1155" y="218">UICollectionView</text>
     <text class="box-text" x="1155" y="260">스크롤·선택 관리</text>
     <text class="box-text" x="1155" y="290">재사용 뷰 요청</text>
@@ -84,8 +88,9 @@
 
   <g>
     <rect x="195" y="510" width="390" height="160" rx="22" fill="#ffffff" filter="url(#shadow)"/>
-    <rect x="195" y="510" width="390" height="160" rx="22" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
-    <rect x="195" y="510" width="8" height="160" rx="4" fill="#7c3aed"/>
+    <rect x="195" y="510" width="390" height="160" rx="22" fill="#ffffff"/>
+    <path d="M217 510H563Q585 510 585 532V648Q585 670 563 670H217" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M217 510Q195 510 195 532V648Q195 670 217 670" fill="none" stroke="#7c3aed" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
     <text class="box-title" x="225" y="558">Collection View Layout</text>
     <text class="code" x="225" y="594">layoutAttributes</text>
     <text class="box-text" x="225" y="630">셀·헤더의 크기와 위치를 계산</text>
@@ -93,8 +98,9 @@
 
   <g>
     <rect x="815" y="510" width="390" height="160" rx="22" fill="#ffffff" filter="url(#shadow)"/>
-    <rect x="815" y="510" width="390" height="160" rx="22" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
-    <rect x="815" y="510" width="8" height="160" rx="4" fill="#7c3aed"/>
+    <rect x="815" y="510" width="390" height="160" rx="22" fill="#ffffff"/>
+    <path d="M837 510H1183Q1205 510 1205 532V648Q1205 670 1183 670H837" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M837 510Q815 510 815 532V648Q815 670 837 670" fill="none" stroke="#7c3aed" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
     <text class="box-title" x="845" y="558">Reusable Cells</text>
     <text class="code" x="845" y="594">CellRegistration</text>
     <text class="box-text" x="845" y="630">현재 item 데이터로 매번 다시 구성</text>
