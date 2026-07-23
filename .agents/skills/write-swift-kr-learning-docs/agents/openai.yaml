@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Swift-KR 학습 문서 작성'
+  short_description: '입문자 중심의 Swift-KR 학습 문서를 일관된 형식으로 작성합니다.'
+  default_prompt: '$write-swift-kr-learning-docs 스킬로 이 주제를 입문자가 이해하기 쉬운 Swift-KR 문서로 작성해줘.'
