@@ -55,7 +55,7 @@ placeholder.cellUpdateHandler = { cell in
 
 | API                                         | 하는 일                                              |
 | ------------------------------------------- | ---------------------------------------------------- |
-| `init(insertionIndexPath:reuseIdentifier:)` | IndexPath에 필요한 값을 받아 새 인스턴스를 만들어요. |
+| `init(insertionIndexPath:reuseIdentifier:)` | 목적 IndexPath에 표시할 drop placeholder를 만들어요. |
 
 ### the Cell’s Content 갱신하기 (Updating the Cell’s Content)
 

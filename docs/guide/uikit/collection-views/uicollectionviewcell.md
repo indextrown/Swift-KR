@@ -23,6 +23,14 @@ Apple 공식 문서의 **Collection Views — Cells** 영역에 있는 클래스
 
 UICollectionViewCell은 item 하나를 표현하며 재사용 과정에서도 콘텐츠, 배경, 선택·하이라이트 상태를 일관되게 구성하는 뷰예요.
 
+## 공식 설명에서 놓치면 안 되는 동작
+
+셀을 그대로 사용하거나 하위 클래스로 만들어 속성과 동작을 추가할 수 있어요. 콘텐츠는 `contentConfiguration`으로 구성하거나 사용자 정의 subview를 `contentView`에 넣어요. 셀 자체에 subview를 바로 추가하지 마세요. 셀은 content view뿐 아니라 기본·선택 배경 등 여러 layer를 관리해요.
+
+`backgroundView`는 기본 배경, `selectedBackgroundView`는 선택·하이라이트 상태의 배경이에요. 더 복잡한 상태별 모양은 `updateConfiguration(using:)`에서 `UICellConfigurationState`를 기준으로 계산해요.
+
+일반적으로 셀 인스턴스를 직접 만들지 않아요. cell registration 또는 재사용 식별자로 타입을 등록하고 `dequeueConfiguredReusableCell`이나 `dequeueReusableCell`로 받아요. 재사용 시 이전 item의 비동기 이미지, accessory, 선택 표시가 남지 않도록 현재 모델만으로 모든 값을 다시 설정하세요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
@@ -55,13 +63,13 @@ final class PhotoCell: UICollectionViewCell {
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                                           | 하는 일                                                        |
-| --------------------------------------------- | -------------------------------------------------------------- |
-| `defaultBackgroundConfiguration()`            | configuration의 현재 값이나 설정을 읽고 필요한 경우 변경해요.  |
-| `backgroundConfiguration`                     | configuration의 현재 값이나 설정을 읽고 필요한 경우 변경해요.  |
-| `automaticallyUpdatesBackgroundConfiguration` | configuration의 활성화 여부나 현재 상태를 나타내요.            |
-| `backgroundView`                              | 관련 값과 동작의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `selectedBackgroundView`                      | 셀이 선택됐을 때 기본 배경 대신 표시할 뷰예요.                 |
+| API                                           | 하는 일                                                      |
+| --------------------------------------------- | ------------------------------------------------------------ |
+| `defaultBackgroundConfiguration()`            | 현재 셀에 맞는 기본 배경 configuration을 반환해요.           |
+| `backgroundConfiguration`                     | 현재 셀에 적용할 배경 configuration이에요.                   |
+| `automaticallyUpdatesBackgroundConfiguration` | 셀 상태가 바뀔 때 배경 configuration을 자동 갱신할지 정해요. |
+| `backgroundView`                              | 셀의 기본 상태에서 표시할 배경 뷰예요.                       |
+| `selectedBackgroundView`                      | 셀이 선택됐을 때 기본 배경 대신 표시할 뷰예요.               |
 
 ### content 관리하기 (Managing the content)
 
@@ -69,32 +77,32 @@ final class PhotoCell: UICollectionViewCell {
 
 | API                                        | 하는 일                                                        |
 | ------------------------------------------ | -------------------------------------------------------------- |
-| `contentConfiguration`                     | configuration의 현재 값이나 설정을 읽고 필요한 경우 변경해요.  |
-| `automaticallyUpdatesContentConfiguration` | configuration의 활성화 여부나 현재 상태를 나타내요.            |
-| `contentView`                              | 관련 값과 동작의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| `contentConfiguration`                     | 셀의 현재 콘텐츠 configuration이에요.                          |
+| `automaticallyUpdatesContentConfiguration` | 셀 상태가 바뀔 때 콘텐츠 configuration을 자동 갱신할지 정해요. |
+| `contentView`                              | 셀의 사용자 콘텐츠를 넣는 container view예요.                  |
 
 ### state 관리하기 (Managing the state)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                                               | 하는 일                                                       |
-| ------------------------------------------------- | ------------------------------------------------------------- |
-| `configurationState`                              | configuration의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `setNeedsUpdateConfiguration()`                   | configuration에 새 설정이나 상태를 적용해요.                  |
-| `updateConfiguration(using:)`                     | configuration을 최신 값으로 갱신해요.                         |
-| `configurationUpdateHandler`                      | configuration 변화에 실행할 클로저나 처리기예요.              |
-| `UICollectionViewCell.ConfigurationUpdateHandler` | 셀 변화에 실행할 클로저나 처리기예요.                         |
-| `isSelected`                                      | 선택 상태의 활성화 여부나 현재 상태를 나타내요.               |
-| `isHighlighted`                                   | 하이라이트 상태의 활성화 여부나 현재 상태를 나타내요.         |
+| API                                               | 하는 일                                          |
+| ------------------------------------------------- | ------------------------------------------------ |
+| `configurationState`                              | 선택·하이라이트 등 현재 셀 상태를 모은 값이에요. |
+| `setNeedsUpdateConfiguration()`                   | configuration에 새 설정이나 상태를 적용해요.     |
+| `updateConfiguration(using:)`                     | configuration을 최신 값으로 갱신해요.            |
+| `configurationUpdateHandler`                      | configuration 변화에 실행할 클로저나 처리기예요. |
+| `UICollectionViewCell.ConfigurationUpdateHandler` | 셀 변화에 실행할 클로저나 처리기예요.            |
+| `isSelected`                                      | 셀이 현재 선택된 상태인지 나타내요.              |
+| `isHighlighted`                                   | 셀이 터치로 일시 하이라이트된 상태인지 나타내요. |
 
 ### drag state changes 관리하기 (Managing drag state changes)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                              | 하는 일                                                |
-| -------------------------------- | ------------------------------------------------------ |
-| `dragStateDidChange(_:)`         | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UICollectionViewCell.DragState` | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                              | 하는 일                                                              |
+| -------------------------------- | -------------------------------------------------------------------- |
+| `dragStateDidChange(_:)`         | 셀의 drag state가 바뀔 때 사용자 정의 모양을 갱신할 기회를 제공해요. |
+| `UICollectionViewCell.DragState` | 셀이 lifting·dragging 등 어떤 drag 상태인지 나타내요.                |
 
 ## 타입 관계를 확인해요
 

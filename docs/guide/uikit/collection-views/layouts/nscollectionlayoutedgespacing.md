@@ -27,6 +27,12 @@ NSCollectionLayoutEdgeSpacing은 레이아웃 요소의 leading·top·trailing·
 
 ![왼쪽에서 오른쪽과 오른쪽에서 왼쪽 환경에서 trailing edge spacing이 적용되는 방향 비교](../assets/apple-docs/media-3570381@2x.png)
 
+## 공식 설명에서 놓치면 안 되는 동작
+
+edge spacing은 item을 container와 형제 item에서 떨어뜨리는 **바깥 여백**이에요. `leading`과 `trailing`은 고정된 왼쪽·오른쪽이 아니라 현재 언어의 읽기 방향을 따라가요. 왼쪽에서 오른쪽으로 읽는 환경의 trailing은 오른쪽, 오른쪽에서 왼쪽으로 읽는 환경의 trailing은 왼쪽이에요.
+
+그림처럼 directional edge를 사용하면 같은 코드가 두 읽기 방향에 자동으로 적응해요. 시각적으로 항상 물리적인 왼쪽/오른쪽이어야 하는 특별한 디자인이 아니라면 leading/trailing을 사용하세요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
@@ -57,28 +63,28 @@ item.edgeSpacing = edgeSpacing
 
 `NSCollectionLayoutEdgeSpacing`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                                  | 하는 일                                         |
-| ------------------------------------ | ----------------------------------------------- |
-| `init(leading:top:trailing:bottom:)` | 간격에 필요한 값을 받아 새 인스턴스를 만들어요. |
+| API                                  | 하는 일                                        |
+| ------------------------------------ | ---------------------------------------------- |
+| `init(leading:top:trailing:bottom:)` | 네 directional edge의 spacing을 묶어 만들어요. |
 
 ### edge spacing 확인하기 (Getting the edge spacing)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API        | 하는 일                                              |
-| ---------- | ---------------------------------------------------- |
-| `leading`  | 간격의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `top`      | 간격의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `trailing` | 간격의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `bottom`   | 간격의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API        | 하는 일                              |
+| ---------- | ------------------------------------ |
+| `leading`  | 읽기 방향 시작 edge의 spacing이에요. |
+| `top`      | 위쪽 edge spacing이에요.             |
+| `trailing` | 읽기 방향 끝 edge의 spacing이에요.   |
+| `bottom`   | 아래쪽 edge spacing이에요.           |
 
 ### 초기화
 
 `NSCollectionLayoutEdgeSpacing`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                                     | 하는 일                                                   |
-| --------------------------------------- | --------------------------------------------------------- |
-| `init(forLeading:top:trailing:bottom:)` | 관련 값과 동작에 필요한 값을 받아 새 인스턴스를 만들어요. |
+| API                                     | 하는 일                                                      |
+| --------------------------------------- | ------------------------------------------------------------ |
+| `init(forLeading:top:trailing:bottom:)` | Objective-C에서 네 directional edge spacing을 묶어 만들어요. |
 
 ## 타입 관계를 확인해요
 

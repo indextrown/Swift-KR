@@ -65,10 +65,10 @@ override func invalidationContext(
 
 `UICollectionViewLayoutInvalidationContext`에서 Invalidating the Content Area 책임을 담당하는 API예요.
 
-| API                       | 하는 일                                                     |
-| ------------------------- | ----------------------------------------------------------- |
-| `contentOffsetAdjustment` | 위치와 영역의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `contentSizeAdjustment`   | 크기의 현재 값이나 설정을 읽고 필요한 경우 변경해요.        |
+| API                       | 하는 일                                           |
+| ------------------------- | ------------------------------------------------- |
+| `contentOffsetAdjustment` | invalidation 뒤 적용할 스크롤 위치 보정값이에요.  |
+| `contentSizeAdjustment`   | invalidation으로 달라진 콘텐츠 크기 보정값이에요. |
 
 ### Invalidating Specific Items
 
@@ -87,11 +87,11 @@ override func invalidationContext(
 
 `UICollectionViewLayoutInvalidationContext`에서 Invalidating the Order of Items 책임을 담당하는 API예요.
 
-| API                                             | 하는 일                                                   |
-| ----------------------------------------------- | --------------------------------------------------------- |
-| `previousIndexPathsForInteractivelyMovingItems` | IndexPath의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `targetIndexPathsForInteractivelyMovingItems`   | IndexPath의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `interactiveMovementTarget`                     | item의 현재 값이나 설정을 읽고 필요한 경우 변경해요.      |
+| API                                             | 하는 일                                       |
+| ----------------------------------------------- | --------------------------------------------- |
+| `previousIndexPathsForInteractivelyMovingItems` | 대화형 이동 전 item들의 IndexPath 배열이에요. |
+| `targetIndexPathsForInteractivelyMovingItems`   | 대화형 이동 좌표의 목적 IndexPath를 반환해요. |
+| `interactiveMovementTarget`                     | 대화형 이동 중 item이 향하는 좌표예요.        |
 
 ## 타입 관계를 확인해요
 

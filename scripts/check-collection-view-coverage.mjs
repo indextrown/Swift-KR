@@ -79,6 +79,107 @@ function primaryContentImages(doc) {
     );
 }
 
+function officialBodyMetrics(doc) {
+  const metrics = {
+    paragraphCount: 0,
+    headingCount: 0,
+    swiftCodeCount: 0,
+    asideCount: 0,
+  };
+
+  function visit(value) {
+    if (Array.isArray(value)) {
+      value.forEach(visit);
+      return;
+    }
+    if (!value || typeof value !== 'object') return;
+
+    if (value.type === 'paragraph') metrics.paragraphCount += 1;
+    if (value.type === 'heading') metrics.headingCount += 1;
+    if (value.type === 'codeListing' && value.syntax === 'swift') {
+      metrics.swiftCodeCount += 1;
+    }
+    if (value.type === 'aside') metrics.asideCount += 1;
+
+    Object.values(value).forEach(visit);
+  }
+
+  visit(doc.primaryContentSections ?? []);
+  return metrics;
+}
+
+function localBodyMetrics(content, kind) {
+  const swiftCodeCount = content.match(/^```swift$/gm)?.length ?? 0;
+
+  return {
+    headingCount: content.match(/^#{2,6} /gm)?.length ?? 0,
+    // 심볼 문서의 첫 Swift 블록은 API 선언이므로 본문 예제에서 제외해요.
+    swiftCodeCount:
+      kind === 'symbol' ? Math.max(0, swiftCodeCount - 1) : swiftCodeCount,
+    asideCount:
+      content.match(/^> \*\*(?!면접 답변 한 줄 요약:)/gm)?.length ?? 0,
+  };
+}
+
+function checkBodyFidelity({ doc, content, entry, localPath, errors }) {
+  const official = officialBodyMetrics(doc);
+  const local = localBodyMetrics(content, entry.ref.kind);
+  const isRichSymbol =
+    entry.ref.kind === 'symbol' &&
+    (official.paragraphCount >= 4 || official.swiftCodeCount > 0);
+  const isRichArticle =
+    entry.ref.kind !== 'symbol' &&
+    (official.paragraphCount >= 8 || official.swiftCodeCount >= 2);
+
+  if (isRichSymbol) {
+    const marker = '## 공식 설명에서 놓치면 안 되는 동작';
+    if (!content.includes(marker)) {
+      errors.push(
+        `${entry.ref.title}: 설명이 풍부한 공식 심볼인데 "${marker}" 본문이 없습니다. (${localPath})`,
+      );
+    }
+  }
+
+  if (official.swiftCodeCount > local.swiftCodeCount) {
+    errors.push(
+      `${entry.ref.title}: 공식 Swift 예제가 줄었습니다. ` +
+        `(공식 ${official.swiftCodeCount}개, 로컬 ${local.swiftCodeCount}개)`,
+    );
+  }
+
+  if (isRichArticle) {
+    if (official.headingCount > local.headingCount) {
+      errors.push(
+        `${entry.ref.title}: 공식 본문 heading 흐름이 줄었습니다. ` +
+          `(공식 ${official.headingCount}개, 로컬 ${local.headingCount}개)`,
+      );
+    }
+    if (official.asideCount > local.asideCount) {
+      errors.push(
+        `${entry.ref.title}: 공식 note/important가 줄었습니다. ` +
+          `(공식 ${official.asideCount}개, 로컬 ${local.asideCount}개)`,
+      );
+    }
+  }
+
+  const fillerPatterns = [
+    '현재 값이나 설정을 읽고 필요한 경우 변경해요',
+    '필요한 값을 받아 새 인스턴스를 만들어요',
+    '에 정의된 값 또는 callback의 의미를 나타내요',
+    '활성화 여부나 현재 상태를 나타내요',
+    '전달한 초기값으로 새 인스턴스를 만들어요',
+  ];
+  for (const filler of fillerPatterns) {
+    if (content.includes(filler)) {
+      errors.push(
+        `${entry.ref.title}: 의미 없는 자동 생성 설명이 남아 있습니다. ("${filler}")`,
+      );
+    }
+  }
+
+  return { official, local, isRichArticle, isRichSymbol };
+}
+
 async function checkContentImages({
   doc,
   content,
@@ -258,6 +359,10 @@ async function main() {
   let symbolExampleCount = 0;
   let officialContentImageCount = 0;
   let mirroredContentImageCount = 0;
+  let richArticleCount = 0;
+  let richSymbolCount = 0;
+  let officialSwiftExampleCount = 0;
+  let mirroredSwiftExampleCount = 0;
   const uniqueMemberURLs = new Set();
 
   for (const [url, entry] of entriesByURL) {
@@ -309,6 +414,21 @@ async function main() {
     });
     officialContentImageCount += imageCoverage.officialImageCount;
     mirroredContentImageCount += imageCoverage.mirroredImageCount;
+
+    const bodyCoverage = checkBodyFidelity({
+      doc,
+      content,
+      entry,
+      localPath,
+      errors,
+    });
+    if (bodyCoverage.isRichArticle) richArticleCount += 1;
+    if (bodyCoverage.isRichSymbol) richSymbolCount += 1;
+    officialSwiftExampleCount += bodyCoverage.official.swiftCodeCount;
+    mirroredSwiftExampleCount += Math.min(
+      bodyCoverage.official.swiftCodeCount,
+      bodyCoverage.local.swiftCodeCount,
+    );
 
     for (const topicSection of doc.topicSections ?? []) {
       topicSectionCount += 1;
@@ -376,6 +496,12 @@ async function main() {
   console.log(
     `공식 본문 이미지: ${officialContentImageCount}장 / 로컬 반영: ${mirroredContentImageCount}장`,
   );
+  console.log(
+    `본문 보존 대상: article ${richArticleCount}개 / symbol ${richSymbolCount}개`,
+  );
+  console.log(
+    `공식 Swift 예제: ${officialSwiftExampleCount}개 / 로컬 반영: ${mirroredSwiftExampleCount}개`,
+  );
 
   if (errors.length > 0) {
     console.error(`\n누락 또는 불일치 ${errors.length}건:`);
@@ -384,7 +510,9 @@ async function main() {
     return;
   }
 
-  console.log('\nApple DocC 목차와 Swift-KR 문서가 1:1로 대응합니다.');
+  console.log(
+    '\nApple DocC 목차·본문 예제·callout·이미지와 Swift-KR 문서가 대응합니다.',
+  );
 }
 
 await main();

@@ -23,6 +23,23 @@ Configuration과 section provider를 사용하면 전체 스크롤 방향과 각
 
 NSCollectionLayoutEnvironment는 section을 만들 때 컨테이너 크기와 size class, 화면 배율 같은 trait 정보를 제공해요.
 
+## 공식 설명에서 놓치면 안 되는 동작
+
+section provider는 environment의 `container`에서 실제 크기와 inset을, `traitCollection`에서 size class·display scale·사용자 인터페이스 스타일과 idiom을 확인해 배치를 결정해요.
+
+```swift
+let layout = UICollectionViewCompositionalLayout {
+  _, environment in
+  if environment.traitCollection.userInterfaceStyle == .dark {
+    return makeSection(for: .dark)
+  } else {
+    return makeSection(for: .light)
+  }
+}
+```
+
+화면 크기 적응에는 기기 이름보다 `container.effectiveContentSize`를, 스타일 적응에는 `traitCollection`을 사용하세요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
@@ -51,17 +68,17 @@ let layout = UICollectionViewCompositionalLayout {
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API         | 하는 일                                                  |
-| ----------- | -------------------------------------------------------- |
-| `container` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API         | 하는 일                                            |
+| ----------- | -------------------------------------------------- |
+| `container` | 현재 section을 배치하는 layout container 정보예요. |
 
 ### trait collection 확인하기 (Getting the trait collection)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API               | 하는 일                                                        |
-| ----------------- | -------------------------------------------------------------- |
-| `traitCollection` | 관련 값과 동작의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API               | 하는 일                            |
+| ----------------- | ---------------------------------- |
+| `traitCollection` | 현재 layout 환경의 trait 정보예요. |
 
 ## 타입 관계를 확인해요
 

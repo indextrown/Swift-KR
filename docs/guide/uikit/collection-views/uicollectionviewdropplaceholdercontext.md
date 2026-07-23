@@ -60,10 +60,10 @@ func loadDroppedPhoto(
 
 데이터 또는 화면 상태를 변경할 때 사용하는 API예요. 모델과 표시 상태의 순서를 함께 확인해요.
 
-| API                                   | 하는 일                                            |
-| ------------------------------------- | -------------------------------------------------- |
-| `commitInsertion(dataSourceUpdates:)` | 셀의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `setNeedsCellUpdate()`                | 셀에 새 설정이나 상태를 적용해요.                  |
+| API                                   | 하는 일                                                |
+| ------------------------------------- | ------------------------------------------------------ |
+| `commitInsertion(dataSourceUpdates:)` | 로딩을 마친 placeholder를 최종 모델 item으로 교체해요. |
+| `setNeedsCellUpdate()`                | 셀에 새 설정이나 상태를 적용해요.                      |
 
 ### the Placeholder Cell 제거하기 (Removing the Placeholder Cell)
 
@@ -79,7 +79,7 @@ func loadDroppedPhoto(
 
 | API        | 하는 일                                                |
 | ---------- | ------------------------------------------------------ |
-| `dragItem` | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| `dragItem` | drop 대상 데이터와 localObject를 담은 drag item이에요. |
 
 ## 타입 관계를 확인해요
 

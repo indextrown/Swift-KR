@@ -57,37 +57,37 @@ func collectionView(
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API     | 하는 일                                                |
-| ------- | ------------------------------------------------------ |
-| `items` | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API     | 하는 일                                |
+| ------- | -------------------------------------- |
+| `items` | 현재 객체가 담고 있는 item 목록이에요. |
 
 ### Drop Location 확인하기 (Getting the Drop Location)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API                    | 하는 일                                                   |
-| ---------------------- | --------------------------------------------------------- |
-| `destinationIndexPath` | IndexPath의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                    | 하는 일                                |
+| ---------------------- | -------------------------------------- |
+| `destinationIndexPath` | drop이 향하는 현재 목적 IndexPath예요. |
 
 ### Items to Their Destination 애니메이션 처리하기 (Animating Items to Their Destination)
 
 `UICollectionViewDropCoordinator`에서 Animating Items to Their Destination 책임을 담당하는 API예요.
 
-| API                        | 하는 일                                              |
-| -------------------------- | ---------------------------------------------------- |
-| `drop(_:toItemAt:)`        | 드롭의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `drop(_:intoItemAt:rect:)` | 드롭의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `drop(_:to:)`              | 드롭의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `drop(_:to:)`              | 드롭의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                        | 하는 일                                             |
+| -------------------------- | --------------------------------------------------- |
+| `drop(_:toItemAt:)`        | drag item을 지정한 목적 위치로 drop 애니메이션해요. |
+| `drop(_:intoItemAt:rect:)` | drag item을 지정한 목적 위치로 drop 애니메이션해요. |
+| `drop(_:to:)`              | drag item을 지정한 목적 위치로 drop 애니메이션해요. |
+| `drop(_:to:)`              | drag item을 지정한 목적 위치로 drop 애니메이션해요. |
 
 ### Session Information 확인하기 (Getting the Session Information)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API        | 하는 일                                                        |
-| ---------- | -------------------------------------------------------------- |
-| `session`  | 관련 값과 동작의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `proposal` | 관련 값과 동작의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API        | 하는 일                                 |
+| ---------- | --------------------------------------- |
+| `session`  | 현재 drop interaction의 session이에요.  |
+| `proposal` | 현재 위치에 채택된 drop proposal이에요. |
 
 ## 타입 관계를 확인해요
 

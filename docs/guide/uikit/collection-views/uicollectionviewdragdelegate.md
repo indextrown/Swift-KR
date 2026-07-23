@@ -56,36 +56,36 @@ final class PhotoDragDelegate: NSObject, UICollectionViewDragDelegate {
 
 `UICollectionViewDragDelegate`에서 Providing the items to drag 책임을 담당하는 API예요.
 
-| API                                            | 하는 일                                                |
-| ---------------------------------------------- | ------------------------------------------------------ |
-| `collectionView(_:itemsForBeginning:at:)`      | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `collectionView(_:itemsForAddingTo:at:point:)` | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                            | 하는 일                                          |
+| ---------------------------------------------- | ------------------------------------------------ |
+| `collectionView(_:itemsForBeginning:at:)`      | 처음 drag할 UIDragItem 배열을 반환해요.          |
+| `collectionView(_:itemsForAddingTo:at:point:)` | 진행 중인 session에 추가할 drag item을 반환해요. |
 
 ### the drag session 추적하기 (Tracking the drag session)
 
 `UICollectionViewDragDelegate`에서 Tracking the drag session 책임을 담당하는 API예요.
 
-| API                                       | 하는 일                                                |
-| ----------------------------------------- | ------------------------------------------------------ |
-| `collectionView(_:dragSessionWillBegin:)` | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `collectionView(_:dragSessionDidEnd:)`    | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                       | 하는 일                            |
+| ----------------------------------------- | ---------------------------------- |
+| `collectionView(_:dragSessionWillBegin:)` | drag session 시작 직전에 호출돼요. |
+| `collectionView(_:dragSessionDidEnd:)`    | drag session이 끝난 뒤 호출돼요.   |
 
 ### a custom preview 제공하기 (Providing a custom preview)
 
 `UICollectionViewDragDelegate`에서 Providing a custom preview 책임을 담당하는 API예요.
 
-| API                                                 | 하는 일                                                |
-| --------------------------------------------------- | ------------------------------------------------------ |
-| `collectionView(_:dragPreviewParametersForItemAt:)` | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                                 | 하는 일                                         |
+| --------------------------------------------------- | ----------------------------------------------- |
+| `collectionView(_:dragPreviewParametersForItemAt:)` | drag preview 모양을 구성할 매개변수를 반환해요. |
 
 ### the drag session 제어하기 (Controlling the drag session)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                                                               | 하는 일                                                |
-| ----------------------------------------------------------------- | ------------------------------------------------------ |
-| `collectionView(_:dragSessionAllowsMoveOperation:)`               | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `collectionView(_:dragSessionIsRestrictedToDraggingApplication:)` | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                                               | 하는 일                                         |
+| ----------------------------------------------------------------- | ----------------------------------------------- |
+| `collectionView(_:dragSessionAllowsMoveOperation:)`               | 현재 drag session에서 move를 허용할지 결정해요. |
+| `collectionView(_:dragSessionIsRestrictedToDraggingApplication:)` | drag를 현재 앱 안으로 제한할지 결정해요.        |
 
 ## 타입 관계를 확인해요
 

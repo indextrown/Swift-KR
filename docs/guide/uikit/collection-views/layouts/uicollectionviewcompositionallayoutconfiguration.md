@@ -23,6 +23,34 @@ Configuration과 section provider를 사용하면 전체 스크롤 방향과 각
 
 UICollectionViewCompositionalLayoutConfiguration은 전체 Compositional Layout의 스크롤 방향, section 간격, 전역 헤더·푸터를 설정해요.
 
+## 공식 설명에서 놓치면 안 되는 동작
+
+이 configuration은 개별 section이 아니라 전체 layout에 적용돼요. `scrollDirection`으로 주축, `interSectionSpacing`으로 section 간격, `boundarySupplementaryItems`로 모든 section 바깥의 layout-level header와 footer를 지정해요.
+
+```swift
+let size = NSCollectionLayoutSize(
+  widthDimension: .fractionalWidth(1),
+  heightDimension: .estimated(44)
+)
+let header = NSCollectionLayoutBoundarySupplementaryItem(
+  layoutSize: size,
+  elementKind: ElementKind.layoutHeader,
+  alignment: .top
+)
+let footer = NSCollectionLayoutBoundarySupplementaryItem(
+  layoutSize: size,
+  elementKind: ElementKind.layoutFooter,
+  alignment: .bottom
+)
+
+let configuration = UICollectionViewCompositionalLayoutConfiguration()
+configuration.interSectionSpacing = 20
+configuration.scrollDirection = .horizontal
+configuration.boundarySupplementaryItems = [header, footer]
+```
+
+기존 layout의 `configuration`을 변경하면 UIKit이 layout을 무효화해 새 설정을 반영해요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
@@ -56,27 +84,27 @@ let layout = UICollectionViewCompositionalLayout(
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API               | 하는 일                                                        |
-| ----------------- | -------------------------------------------------------------- |
-| `scrollDirection` | 관련 값과 동작의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API               | 하는 일                                    |
+| ----------------- | ------------------------------------------ |
+| `scrollDirection` | Flow Layout의 가로·세로 스크롤 방향이에요. |
 
 ### spacing 설정하기 (Configuring spacing)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                        | 하는 일                                               |
-| -------------------------- | ----------------------------------------------------- |
-| `interSectionSpacing`      | 간격의 현재 값이나 설정을 읽고 필요한 경우 변경해요.  |
-| `contentInsetsReference`   | inset의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UIContentInsetsReference` | inset의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                        | 하는 일                                       |
+| -------------------------- | --------------------------------------------- |
+| `interSectionSpacing`      | Compositional Layout section 사이 간격이에요. |
+| `contentInsetsReference`   | content inset을 계산할 기준 영역이에요.       |
+| `UIContentInsetsReference` | content inset 계산의 기준 영역을 나타내요.    |
 
 ### additional views 설정하기 (Configuring additional views)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                          | 하는 일                                                 |
-| ---------------------------- | ------------------------------------------------------- |
-| `boundarySupplementaryItems` | 보조 뷰의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                          | 하는 일                                              |
+| ---------------------------- | ---------------------------------------------------- |
+| `boundarySupplementaryItems` | section 경계에 배치할 header·footer item 배열이에요. |
 
 ## 타입 관계를 확인해요
 

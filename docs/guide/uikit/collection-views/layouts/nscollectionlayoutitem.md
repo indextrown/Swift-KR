@@ -27,6 +27,12 @@ NSCollectionLayoutItem은 Compositional Layout에서 셀 하나의 크기, conte
 
 ![두 section의 Collection View에서 각 셀에 대응하는 최소 레이아웃 단위인 item](../assets/apple-docs/media-3568665@2x.png)
 
+## 공식 설명에서 놓치면 안 되는 동작
+
+item은 화면에 그려질 뷰 하나의 크기·간격·배치 청사진이에요. 보통 셀을 나타내지만 header·footer 같은 supplementary view 또는 다른 장식 요소를 나타낼 수도 있어요.
+
+모든 item은 width와 height dimension으로 명시적인 `layoutSize`를 가져요. 각 dimension은 바깥 container에 대한 비율, 고정 point, 런타임에 측정할 estimated 값으로 표현할 수 있어요. item은 단독으로 section에 들어가지 않고 group에 포함되어 형제 item과의 상대 배치가 정해져요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
@@ -65,35 +71,35 @@ let section = NSCollectionLayoutSection(group: group)
 
 `NSCollectionLayoutItem`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                                    | 하는 일                                             |
-| -------------------------------------- | --------------------------------------------------- |
-| `init(layoutSize:)`                    | 레이아웃에 필요한 값을 받아 새 인스턴스를 만들어요. |
-| `init(layoutSize:supplementaryItems:)` | 보조 뷰에 필요한 값을 받아 새 인스턴스를 만들어요.  |
+| API                                    | 하는 일                                    |
+| -------------------------------------- | ------------------------------------------ |
+| `init(layoutSize:)`                    | 지정한 layout size로 구성 요소를 만들어요. |
+| `init(layoutSize:supplementaryItems:)` | 지정한 layout size로 구성 요소를 만들어요. |
 
 ### an item’s size 확인하기 (Getting an item’s size)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API          | 하는 일                                                  |
-| ------------ | -------------------------------------------------------- |
-| `layoutSize` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API          | 하는 일                                          |
+| ------------ | ------------------------------------------------ |
+| `layoutSize` | width와 height dimension을 묶은 layout 크기예요. |
 
 ### supplementary items 확인하기 (Getting supplementary items)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API                  | 하는 일                                                 |
-| -------------------- | ------------------------------------------------------- |
-| `supplementaryItems` | 보조 뷰의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                  | 하는 일                                              |
+| -------------------- | ---------------------------------------------------- |
+| `supplementaryItems` | item에 badge처럼 붙는 supplementary item 배열이에요. |
 
 ### spacing and insets 설정하기 (Configuring spacing and insets)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API             | 하는 일                                               |
-| --------------- | ----------------------------------------------------- |
-| `edgeSpacing`   | inset의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `contentInsets` | inset의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API             | 하는 일                                   |
+| --------------- | ----------------------------------------- |
+| `edgeSpacing`   | item의 네 바깥 edge에 추가할 간격이에요.  |
+| `contentInsets` | 요소 경계 안쪽의 directional inset이에요. |
 
 ## 타입 관계를 확인해요
 

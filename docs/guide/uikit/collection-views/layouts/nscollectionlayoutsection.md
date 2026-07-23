@@ -27,6 +27,12 @@ NSCollectionLayoutSection은 group을 반복하는 한 section의 간격, inset,
 
 ![서로 다른 콘텐츠 배치를 가진 두 영역을 각각 section으로 표시한 Collection View](../assets/apple-docs/media-3568661@2x.png)
 
+## 공식 설명에서 놓치면 안 되는 동작
+
+Collection View Layout은 하나 이상의 section으로 나뉘어요. 모든 section이 같은 group을 반복할 수도 있고, section provider가 section index와 환경을 보고 서로 다른 group 구성을 반환할 수도 있어요.
+
+section은 자신을 만든 group의 배치를 반복하면서 content inset과 group 간격을 더하고, header·footer·배경으로 다른 section과 구분할 수 있어요. `orthogonalScrollingBehavior`를 지정하면 전체 세로 스크롤 안에서 특정 section만 가로로 움직이게 만들 수 있어요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
@@ -65,42 +71,42 @@ let section = NSCollectionLayoutSection(group: group)
 
 `NSCollectionLayoutSection`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                                      | 하는 일                                                  |
-| ---------------------------------------- | -------------------------------------------------------- |
-| `init(group:)`                           | section에 필요한 값을 받아 새 인스턴스를 만들어요.       |
-| `list(using:layoutEnvironment:)`         | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `orthogonalLayoutSectionForMediaItems()` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                      | 하는 일                                                     |
+| ---------------------------------------- | ----------------------------------------------------------- |
+| `init(group:)`                           | 반복할 group으로 새 layout section을 만들어요.              |
+| `list(using:layoutEnvironment:)`         | list configuration으로 list layout 또는 section을 만들어요. |
+| `orthogonalLayoutSectionForMediaItems()` | 미디어 item에 적합한 직교 스크롤 section을 만들어요.        |
 
 ### scrolling behavior 지정하기 (Specifying scrolling behavior)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                                                      | 하는 일                                                        |
-| -------------------------------------------------------- | -------------------------------------------------------------- |
-| `orthogonalScrollingBehavior`                            | 관련 값과 동작의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `orthogonalScrollingProperties`                          | 관련 값과 동작의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UICollectionLayoutSectionOrthogonalScrollingProperties` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요.       |
+| API                                                      | 하는 일                                              |
+| -------------------------------------------------------- | ---------------------------------------------------- |
+| `orthogonalScrollingBehavior`                            | section의 직교 스크롤 방식을 정해요.                 |
+| `orthogonalScrollingProperties`                          | section의 직교 스크롤 세부 동작을 구성해요.          |
+| `UICollectionLayoutSectionOrthogonalScrollingProperties` | 직교 스크롤 section의 세부 동작을 구성하는 값이에요. |
 
 ### section spacing 설정하기 (Configuring section spacing)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                                   | 하는 일                                                 |
-| ------------------------------------- | ------------------------------------------------------- |
-| `interGroupSpacing`                   | 간격의 현재 값이나 설정을 읽고 필요한 경우 변경해요.    |
-| `contentInsets`                       | inset의 현재 값이나 설정을 읽고 필요한 경우 변경해요.   |
-| `contentInsetsReference`              | inset의 현재 값이나 설정을 읽고 필요한 경우 변경해요.   |
-| `supplementaryContentInsetsReference` | 보조 뷰의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UIContentInsetsReference`            | inset의 현재 값이나 설정을 읽고 필요한 경우 변경해요.   |
+| API                                   | 하는 일                                          |
+| ------------------------------------- | ------------------------------------------------ |
+| `interGroupSpacing`                   | section에서 반복되는 group 사이 간격이에요.      |
+| `contentInsets`                       | 요소 경계 안쪽의 directional inset이에요.        |
+| `contentInsetsReference`              | content inset을 계산할 기준 영역이에요.          |
+| `supplementaryContentInsetsReference` | supplementary view inset 계산의 기준 영역이에요. |
+| `UIContentInsetsReference`            | content inset 계산의 기준 영역을 나타내요.       |
 
 ### additional views 설정하기 (Configuring additional views)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                          | 하는 일                                                 |
-| ---------------------------- | ------------------------------------------------------- |
-| `boundarySupplementaryItems` | 보조 뷰의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `decorationItems`            | 장식 뷰의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                          | 하는 일                                              |
+| ---------------------------- | ---------------------------------------------------- |
+| `boundarySupplementaryItems` | section 경계에 배치할 header·footer item 배열이에요. |
+| `decorationItems`            | section에 표시할 장식 item 배열이에요.               |
 
 ### items 표시하기 (Rendering items)
 
@@ -114,9 +120,9 @@ let section = NSCollectionLayoutSection(group: group)
 
 아래 API는 호환성을 위해 남아 있지만 새 코드에서는 대체 API를 선택해요.
 
-| API                                  | 하는 일                                               |
-| ------------------------------------ | ----------------------------------------------------- |
-| `supplementariesFollowContentInsets` | inset의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                  | 하는 일                                                              |
+| ------------------------------------ | -------------------------------------------------------------------- |
+| `supplementariesFollowContentInsets` | boundary supplementary item이 section content inset을 따를지 정해요. |
 
 ## 타입 관계를 확인해요
 

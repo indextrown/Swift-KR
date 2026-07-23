@@ -60,48 +60,48 @@ final class MosaicLayout: UICollectionViewLayout {
 
 `UICollectionViewLayoutAttributes`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                                      | 하는 일                                                  |
-| ---------------------------------------- | -------------------------------------------------------- |
-| `init(forCellWith:)`                     | 레이아웃 속성에 필요한 값을 받아 새 인스턴스를 만들어요. |
-| `init(forSupplementaryViewOfKind:with:)` | 보조 뷰에 필요한 값을 받아 새 인스턴스를 만들어요.       |
-| `init(forDecorationViewOfKind:with:)`    | 장식 뷰에 필요한 값을 받아 새 인스턴스를 만들어요.       |
+| API                                      | 하는 일                                                   |
+| ---------------------------------------- | --------------------------------------------------------- |
+| `init(forCellWith:)`                     | 지정한 cell IndexPath의 layout attributes를 만들어요.     |
+| `init(forSupplementaryViewOfKind:with:)` | 지정한 supplementary view의 layout attributes를 만들어요. |
+| `init(forDecorationViewOfKind:with:)`    | 지정한 decoration view의 layout attributes를 만들어요.    |
 
 ### referenced item 식별하기 (Identifying the referenced item)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API                                | 하는 일                                              |
-| ---------------------------------- | ---------------------------------------------------- |
-| `indexPath`                        | 지정한 IndexPath의 현재 위치를 반환해요.             |
-| `representedElementKind`           | item의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `representedElementCategory`       | item의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UICollectionView.ElementCategory` | item의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                | 하는 일                                                           |
+| ---------------------------------- | ----------------------------------------------------------------- |
+| `indexPath`                        | 해당 layout 요소 또는 update item의 IndexPath예요.                |
+| `representedElementKind`           | supplementary·decoration 요소의 kind 문자열이에요.                |
+| `representedElementCategory`       | attributes가 cell·supplementary·decoration 중 무엇인지 구분해요.  |
+| `UICollectionView.ElementCategory` | layout 요소가 cell·supplementary·decoration 중 무엇인지 구분해요. |
 
 ### layout attributes 접근하기 (Accessing the layout attributes)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API           | 하는 일                                                       |
-| ------------- | ------------------------------------------------------------- |
-| `frame`       | 레이아웃 속성의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `bounds`      | 레이아웃 속성의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `center`      | 레이아웃 속성의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `size`        | 레이아웃 속성의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `transform3D` | 레이아웃 속성의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `transform`   | 레이아웃 속성의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `alpha`       | 레이아웃 속성의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `zIndex`      | 레이아웃 속성의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `isHidden`    | 레이아웃 속성의 활성화 여부나 현재 상태를 나타내요.           |
+| API           | 하는 일                                                 |
+| ------------- | ------------------------------------------------------- |
+| `frame`       | layout container 좌표에서 요소가 차지하는 사각형이에요. |
+| `bounds`      | 요소 자체 좌표계의 크기와 원점을 나타내요.              |
+| `center`      | layout 좌표계에서 요소의 중심점이에요.                  |
+| `size`        | layout 요소의 크기예요.                                 |
+| `transform3D` | 요소에 적용할 3D transform이에요.                       |
+| `transform`   | 요소에 적용할 2D transform이에요.                       |
+| `alpha`       | 요소의 불투명도를 나타내요.                             |
+| `zIndex`      | 겹친 요소의 앞뒤 그리기 순서를 정해요.                  |
+| `isHidden`    | Collection View가 해당 layout 요소를 숨길지 정해요.     |
 
 ### 초기화
 
 `UICollectionViewLayoutAttributes`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                                               | 하는 일                                              |
-| ------------------------------------------------- | ---------------------------------------------------- |
-| `init(forCellWithIndexPath:)`                     | IndexPath에 필요한 값을 받아 새 인스턴스를 만들어요. |
-| `init(forDecorationViewOfKind:withIndexPath:)`    | 장식 뷰에 필요한 값을 받아 새 인스턴스를 만들어요.   |
-| `init(forSupplementaryViewOfKind:withIndexPath:)` | 보조 뷰에 필요한 값을 받아 새 인스턴스를 만들어요.   |
+| API                                               | 하는 일                                                   |
+| ------------------------------------------------- | --------------------------------------------------------- |
+| `init(forCellWithIndexPath:)`                     | 지정한 cell IndexPath의 layout attributes를 만들어요.     |
+| `init(forDecorationViewOfKind:withIndexPath:)`    | 지정한 decoration view의 layout attributes를 만들어요.    |
+| `init(forSupplementaryViewOfKind:withIndexPath:)` | 지정한 supplementary view의 layout attributes를 만들어요. |
 
 ## 타입 관계를 확인해요
 

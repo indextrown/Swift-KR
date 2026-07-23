@@ -27,6 +27,19 @@ UICollectionViewCompositionalLayout은 item·group·section 계층을 조합해 
 
 ![item이 group을 이루고 group이 section을 이루어 전체 Compositional Layout으로 조합되는 계층](../assets/apple-docs/media-3568664@2x.png)
 
+## 공식 설명에서 놓치면 안 되는 동작
+
+Compositional Layout은 각 구성 요소의 역할을 분리해요.
+
+- item은 셀 하나의 크기와 내부 여백을 정의해요.
+- group은 item 또는 다른 group을 가로·세로·사용자 정의 방식으로 묶어요.
+- section은 group 반복, content inset, header/footer, decoration, 직교 스크롤을 설정해요.
+- configuration은 전체 scroll direction, section 간격, 전체 header/footer를 설정해요.
+
+모든 section이 같으면 `init(section:)`을, section별 또는 환경별 배치가 다르면 section provider initializer를 사용해요. provider는 회전, Dynamic Type, iPad 멀티태스킹처럼 환경이 달라질 때 다시 호출될 수 있으므로 `NSCollectionLayoutEnvironment`의 실제 컨테이너 크기와 trait을 기준으로 결과를 만들어요.
+
+List UI는 `UICollectionLayoutListConfiguration`을 `list(using:)`에 전달해 만들 수 있어요. 목록, grid, 가로 carousel을 한 화면에 섞을 때도 하나의 section provider에서 section별 구성을 반환하면 돼요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
@@ -54,29 +67,29 @@ let layout = UICollectionViewCompositionalLayout { _, environment in
 
 `UICollectionViewCompositionalLayout`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                                    | 하는 일                                             |
-| -------------------------------------- | --------------------------------------------------- |
-| `init(section:)`                       | 레이아웃에 필요한 값을 받아 새 인스턴스를 만들어요. |
-| `init(section:configuration:)`         | 레이아웃에 필요한 값을 받아 새 인스턴스를 만들어요. |
-| `init(sectionProvider:)`               | 레이아웃에 필요한 값을 받아 새 인스턴스를 만들어요. |
-| `init(sectionProvider:configuration:)` | 레이아웃에 필요한 값을 받아 새 인스턴스를 만들어요. |
+| API                                    | 하는 일                                                  |
+| -------------------------------------- | -------------------------------------------------------- |
+| `init(section:)`                       | 지정한 section 구성으로 Compositional Layout을 만들어요. |
+| `init(section:configuration:)`         | 지정한 section 구성으로 Compositional Layout을 만들어요. |
+| `init(sectionProvider:)`               | section provider로 Compositional Layout을 만들어요.      |
+| `init(sectionProvider:configuration:)` | section provider로 Compositional Layout을 만들어요.      |
 
 ### list layout 만들기 (Creating a list layout)
 
 `UICollectionViewCompositionalLayout`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                                   | 하는 일                                                  |
-| ------------------------------------- | -------------------------------------------------------- |
-| `list(using:)`                        | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UICollectionLayoutListConfiguration` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                   | 하는 일                                                                |
+| ------------------------------------- | ---------------------------------------------------------------------- |
+| `list(using:)`                        | list configuration으로 list layout 또는 section을 만들어요.            |
+| `UICollectionLayoutListConfiguration` | List section의 appearance·header·separator·swipe action 설정을 담아요. |
 
 ### layout 설정하기 (Configuring the layout)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API             | 하는 일                                                  |
-| --------------- | -------------------------------------------------------- |
-| `configuration` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API             | 하는 일                                 |
+| --------------- | --------------------------------------- |
+| `configuration` | 현재 layout의 전역 configuration이에요. |
 
 ## 타입 관계를 확인해요
 

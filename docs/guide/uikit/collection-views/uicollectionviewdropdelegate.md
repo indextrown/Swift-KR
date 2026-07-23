@@ -65,17 +65,17 @@ final class PhotoDropDelegate: NSObject, UICollectionViewDropDelegate {
 
 `UICollectionViewDropDelegate`에서 Declaring support for handling drops 책임을 담당하는 API예요.
 
-| API                            | 하는 일                                              |
-| ------------------------------ | ---------------------------------------------------- |
-| `collectionView(_:canHandle:)` | 드롭의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                            | 하는 일                                          |
+| ------------------------------ | ------------------------------------------------ |
+| `collectionView(_:canHandle:)` | drop session의 데이터를 받을 수 있는지 결정해요. |
 
 ### the dropped data 반영하기 (Incorporating the dropped data)
 
 `UICollectionViewDropDelegate`에서 Incorporating the dropped data 책임을 담당하는 API예요.
 
-| API                                  | 하는 일                                              |
-| ------------------------------------ | ---------------------------------------------------- |
-| `collectionView(_:performDropWith:)` | 드롭의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                  | 하는 일                                               |
+| ------------------------------------ | ----------------------------------------------------- |
+| `collectionView(_:performDropWith:)` | drop 데이터를 모델과 Collection View에 실제 반영해요. |
 
 ### the drag movements 추적하기 (Tracking the drag movements)
 
@@ -83,18 +83,18 @@ final class PhotoDropDelegate: NSObject, UICollectionViewDropDelegate {
 
 | API                                                                | 하는 일                                                   |
 | ------------------------------------------------------------------ | --------------------------------------------------------- |
-| `collectionView(_:dropSessionDidUpdate:withDestinationIndexPath:)` | IndexPath의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `collectionView(_:dropSessionDidEnter:)`                           | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요.    |
-| `collectionView(_:dropSessionDidExit:)`                            | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요.    |
-| `collectionView(_:dropSessionDidEnd:)`                             | 드래그의 현재 값이나 설정을 읽고 필요한 경우 변경해요.    |
+| `collectionView(_:dropSessionDidUpdate:withDestinationIndexPath:)` | 현재 목적 위치의 drop operation과 intent를 제안해요.      |
+| `collectionView(_:dropSessionDidEnter:)`                           | drop session이 Collection View 안으로 들어올 때 호출돼요. |
+| `collectionView(_:dropSessionDidExit:)`                            | drop session이 Collection View 밖으로 나갈 때 호출돼요.   |
+| `collectionView(_:dropSessionDidEnd:)`                             | drop session이 끝난 뒤 호출돼요.                          |
 
 ### a custom preview 제공하기 (Providing a custom preview)
 
 `UICollectionViewDropDelegate`에서 Providing a custom preview 책임을 담당하는 API예요.
 
-| API                                                 | 하는 일                                              |
-| --------------------------------------------------- | ---------------------------------------------------- |
-| `collectionView(_:dropPreviewParametersForItemAt:)` | 드롭의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                                 | 하는 일                                         |
+| --------------------------------------------------- | ----------------------------------------------- |
+| `collectionView(_:dropPreviewParametersForItemAt:)` | drop preview 모양을 구성할 매개변수를 반환해요. |
 
 ## 타입 관계를 확인해요
 

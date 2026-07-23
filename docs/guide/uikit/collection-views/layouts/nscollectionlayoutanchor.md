@@ -27,6 +27,12 @@ NSCollectionLayoutAnchor는 badge 같은 보조 item을 컨테이너나 item의 
 
 ![top, bottom, leading, trailing edge 조합에 따라 anchor가 놓이는 위치](../assets/apple-docs/media-3570665@2x.png)
 
+## 공식 설명에서 놓치면 안 되는 동작
+
+anchor는 supplementary item을 특정 item이나 container에 붙일 edge와 offset을 담아요. 한 edge를 지정하면 변 중앙에, 인접한 두 edge를 지정하면 모서리에 붙어요.
+
+offset을 생략하면 anchor는 지정한 edge 안쪽에 놓여요. `absoluteOffset`은 point, `fractionalOffset`은 supplementary item 크기 비율로 중심을 이동해 badge 일부를 셀 밖으로 내보낼 수 있어요. leading/trailing은 읽기 방향에 맞춰 자동으로 바뀌어요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
@@ -62,29 +68,29 @@ let badge = NSCollectionLayoutSupplementaryItem(
 
 `NSCollectionLayoutAnchor`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                             | 하는 일                                                   |
-| ------------------------------- | --------------------------------------------------------- |
-| `init(edges:)`                  | 관련 값과 동작에 필요한 값을 받아 새 인스턴스를 만들어요. |
-| `init(edges:absoluteOffset:)`   | 위치와 영역에 필요한 값을 받아 새 인스턴스를 만들어요.    |
-| `init(edges:fractionalOffset:)` | 위치와 영역에 필요한 값을 받아 새 인스턴스를 만들어요.    |
+| API                             | 하는 일                                     |
+| ------------------------------- | ------------------------------------------- |
+| `init(edges:)`                  | 지정한 edge와 offset으로 anchor를 만들어요. |
+| `init(edges:absoluteOffset:)`   | 지정한 edge와 offset으로 anchor를 만들어요. |
+| `init(edges:fractionalOffset:)` | 지정한 edge와 offset으로 anchor를 만들어요. |
 
 ### edges 확인하기 (Getting the edges)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API     | 하는 일                                                        |
-| ------- | -------------------------------------------------------------- |
-| `edges` | 관련 값과 동작의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API     | 하는 일                        |
+| ------- | ------------------------------ |
+| `edges` | anchor가 붙을 edge 집합이에요. |
 
 ### offset 확인하기 (Getting the offset)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API                  | 하는 일                                                     |
-| -------------------- | ----------------------------------------------------------- |
-| `offset`             | 위치와 영역의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `isAbsoluteOffset`   | 위치와 영역의 활성화 여부나 현재 상태를 나타내요.           |
-| `isFractionalOffset` | 위치와 영역의 활성화 여부나 현재 상태를 나타내요.           |
+| API                  | 하는 일                                                 |
+| -------------------- | ------------------------------------------------------- |
+| `offset`             | anchor가 기준 edge에서 이동할 offset이에요.             |
+| `isAbsoluteOffset`   | `offset`이 point 단위 absolute 값인지 나타내요.         |
+| `isFractionalOffset` | `offset`이 요소 크기 비율인 fractional 값인지 나타내요. |
 
 ## 타입 관계를 확인해요
 

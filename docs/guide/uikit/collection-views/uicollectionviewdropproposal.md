@@ -53,27 +53,27 @@ func proposal(for session: UIDropSession)
 
 `UICollectionViewDropProposal`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                       | 하는 일                                         |
-| ------------------------- | ----------------------------------------------- |
-| `init(operation:intent:)` | 드롭에 필요한 값을 받아 새 인스턴스를 만들어요. |
+| API                       | 하는 일                                        |
+| ------------------------- | ---------------------------------------------- |
+| `init(operation:intent:)` | drop operation과 intent로 proposal을 만들어요. |
 
 ### Proposed Drop Location 확인하기 (Getting the Proposed Drop Location)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API                                   | 하는 일                                              |
-| ------------------------------------- | ---------------------------------------------------- |
-| `intent`                              | 드롭의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UICollectionViewDropProposal.Intent` | 드롭의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UIDropOperation`                     | 드롭의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                   | 하는 일                                                  |
+| ------------------------------------- | -------------------------------------------------------- |
+| `intent`                              | drop을 item 사이 또는 item 안에 놓을지 나타내요.         |
+| `UICollectionViewDropProposal.Intent` | drop content를 item 사이 또는 item 안에 놓을지 나타내요. |
+| `UIDropOperation`                     | drop을 금지·취소·복사·이동 중 어떻게 처리할지 나타내요.  |
 
 ### 초기화
 
 `UICollectionViewDropProposal`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                           | 하는 일                                         |
-| ----------------------------- | ----------------------------------------------- |
-| `init(dropOperation:intent:)` | 드롭에 필요한 값을 받아 새 인스턴스를 만들어요. |
+| API                           | 하는 일                                        |
+| ----------------------------- | ---------------------------------------------- |
+| `init(dropOperation:intent:)` | drop operation과 intent로 proposal을 만들어요. |
 
 ## 타입 관계를 확인해요
 

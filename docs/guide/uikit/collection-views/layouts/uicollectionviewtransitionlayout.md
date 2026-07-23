@@ -52,29 +52,29 @@ transition.updateValue(cardScale, forAnimatedKey: "cardScale")
 
 `UICollectionViewTransitionLayout`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                               | 하는 일                                             |
-| --------------------------------- | --------------------------------------------------- |
-| `init(currentLayout:nextLayout:)` | 레이아웃에 필요한 값을 받아 새 인스턴스를 만들어요. |
-| `init(coder:)`                    | 레이아웃에 필요한 값을 받아 새 인스턴스를 만들어요. |
+| API                               | 하는 일                                                        |
+| --------------------------------- | -------------------------------------------------------------- |
+| `init(currentLayout:nextLayout:)` | 현재 layout과 다음 layout 사이의 transition layout을 만들어요. |
+| `init(coder:)`                    | NSCoder에 저장된 구성으로 인스턴스를 복원해요.                 |
 
 ### the transition information 갱신하기 (Updating the transition information)
 
 데이터 또는 화면 상태를 변경할 때 사용하는 API예요. 모델과 표시 상태의 순서를 함께 확인해요.
 
-| API                              | 하는 일                                                       |
-| -------------------------------- | ------------------------------------------------------------- |
-| `transitionProgress`             | 레이아웃 전환의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `updateValue(_:forAnimatedKey:)` | 레이아웃 전환을 최신 값으로 갱신해요.                         |
-| `value(forAnimatedKey:)`         | 레이아웃 전환의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                              | 하는 일                                                 |
+| -------------------------------- | ------------------------------------------------------- |
+| `transitionProgress`             | 기존 layout에서 새 layout로 전환한 진행률이에요.        |
+| `updateValue(_:forAnimatedKey:)` | 레이아웃 전환을 최신 값으로 갱신해요.                   |
+| `value(forAnimatedKey:)`         | transition 중 사용자 정의 key의 현재 보간값을 반환해요. |
 
 ### layout objects 접근하기 (Accessing the layout objects)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API             | 하는 일                                                  |
-| --------------- | -------------------------------------------------------- |
-| `currentLayout` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `nextLayout`    | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API             | 하는 일                                  |
+| --------------- | ---------------------------------------- |
+| `currentLayout` | 전환을 시작한 기존 layout이에요.         |
+| `nextLayout`    | 전환이 끝났을 때 적용할 새 layout이에요. |
 
 ## 타입 관계를 확인해요
 

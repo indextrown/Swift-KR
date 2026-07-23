@@ -33,6 +33,12 @@ group은 item처럼 다른 item이나 group과 조합할 수 있어요. 큰 item
 
 ![큰 item과 작은 item 두 개를 담은 group을 다시 바깥 group 안에 중첩한 구조](../assets/apple-docs/media-3568666@2x.png)
 
+## 공식 설명에서 놓치면 안 되는 동작
+
+group은 item을 가로 행, 세로 열 또는 custom frame으로 배치하는 규칙이고 자체 콘텐츠를 그리지는 않아요. group도 width와 height dimension을 가지므로 section 안에서 얼마만큼의 공간을 차지할지 명확히 정해요.
+
+group은 `NSCollectionLayoutItem`의 하위 클래스처럼 동작해 다른 item이나 group 안에 다시 들어갈 수 있어요. 이 중첩으로 큰 카드 하나와 작은 카드 여러 개 같은 복합 배치를 만들어요. 구성을 마친 group은 `NSCollectionLayoutSection(group:)`에 전달해야 실제 section에서 반복돼요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
@@ -71,19 +77,19 @@ let section = NSCollectionLayoutSection(group: group)
 
 `NSCollectionLayoutGroup`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                                              | 하는 일                                                  |
-| ------------------------------------------------ | -------------------------------------------------------- |
-| `horizontal(layoutSize:subitems:)`               | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `horizontal(layoutSize:repeatingSubitem:count:)` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                              | 하는 일                                     |
+| ------------------------------------------------ | ------------------------------------------- |
+| `horizontal(layoutSize:subitems:)`               | subitem을 가로로 배치하는 group을 만들어요. |
+| `horizontal(layoutSize:repeatingSubitem:count:)` | subitem을 가로로 배치하는 group을 만들어요. |
 
 ### vertical group 만들기 (Creating a vertical group)
 
 `NSCollectionLayoutGroup`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API                                            | 하는 일                                                  |
-| ---------------------------------------------- | -------------------------------------------------------- |
-| `vertical(layoutSize:subitems:)`               | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `vertical(layoutSize:repeatingSubitem:count:)` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                            | 하는 일                                     |
+| ---------------------------------------------- | ------------------------------------------- |
+| `vertical(layoutSize:subitems:)`               | subitem을 세로로 배치하는 group을 만들어요. |
+| `vertical(layoutSize:repeatingSubitem:count:)` | subitem을 세로로 배치하는 group을 만들어요. |
 
 ### custom group 만들기 (Creating a custom group)
 
@@ -97,18 +103,18 @@ let section = NSCollectionLayoutSection(group: group)
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API                  | 하는 일                                                 |
-| -------------------- | ------------------------------------------------------- |
-| `subitems`           | item의 현재 값이나 설정을 읽고 필요한 경우 변경해요.    |
-| `supplementaryItems` | 보조 뷰의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                  | 하는 일                                              |
+| -------------------- | ---------------------------------------------------- |
+| `subitems`           | group에 직접 포함된 item 또는 하위 group 배열이에요. |
+| `supplementaryItems` | item에 badge처럼 붙는 supplementary item 배열이에요. |
 
 ### group spacing 설정하기 (Configuring group spacing)
 
 동작과 표시 방식을 요구사항에 맞게 설정하는 API예요.
 
-| API                | 하는 일                                              |
-| ------------------ | ---------------------------------------------------- |
-| `interItemSpacing` | 간격의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                | 하는 일                               |
+| ------------------ | ------------------------------------- |
+| `interItemSpacing` | group 안의 형제 item 사이 간격이에요. |
 
 ### group layout 디버깅하기 (Debugging group layout)
 
@@ -122,12 +128,12 @@ let section = NSCollectionLayoutSection(group: group)
 
 아래 API는 호환성을 위해 남아 있지만 새 코드에서는 대체 API를 선택해요.
 
-| API                                             | 하는 일                                                  |
-| ----------------------------------------------- | -------------------------------------------------------- |
-| `horizontal(layoutSize:subitem:count:)`         | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `horizontalGroup(with:repeatingSubitem:count:)` | item의 현재 값이나 설정을 읽고 필요한 경우 변경해요.     |
-| `vertical(layoutSize:subitem:count:)`           | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `verticalGroup(with:repeatingSubitem:count:)`   | item의 현재 값이나 설정을 읽고 필요한 경우 변경해요.     |
+| API                                             | 하는 일                                     |
+| ----------------------------------------------- | ------------------------------------------- |
+| `horizontal(layoutSize:subitem:count:)`         | subitem을 가로로 배치하는 group을 만들어요. |
+| `horizontalGroup(with:repeatingSubitem:count:)` | subitem을 가로로 배치하는 group을 만들어요. |
+| `vertical(layoutSize:subitem:count:)`           | subitem을 세로로 배치하는 group을 만들어요. |
+| `verticalGroup(with:repeatingSubitem:count:)`   | subitem을 세로로 배치하는 group을 만들어요. |
 
 ## 타입 관계를 확인해요
 

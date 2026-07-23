@@ -51,10 +51,10 @@ func nextFocusedItem(
 
 현재 상태에서 필요한 값이나 위치를 안전하게 조회하는 API예요.
 
-| API                          | 하는 일                                                   |
-| ---------------------------- | --------------------------------------------------------- |
-| `previouslyFocusedIndexPath` | IndexPath의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `nextFocusedIndexPath`       | IndexPath의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                          | 하는 일                                                    |
+| ---------------------------- | ---------------------------------------------------------- |
+| `previouslyFocusedIndexPath` | focus update 직전에 focus된 item의 IndexPath예요.          |
+| `nextFocusedIndexPath`       | focus update가 성공하면 새로 focus될 item의 IndexPath예요. |
 
 ## 타입 관계를 확인해요
 

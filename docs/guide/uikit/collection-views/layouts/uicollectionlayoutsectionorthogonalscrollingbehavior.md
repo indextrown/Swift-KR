@@ -53,22 +53,22 @@ section.orthogonalScrollingBehavior = behavior
 
 `UICollectionLayoutSectionOrthogonalScrollingBehavior`에서 Constants 책임을 담당하는 API예요.
 
-| API                                                                                   | 하는 일                                                  |
-| ------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `UICollectionLayoutSectionOrthogonalScrollingBehavior.none`                           | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UICollectionLayoutSectionOrthogonalScrollingBehavior.continuous`                     | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UICollectionLayoutSectionOrthogonalScrollingBehavior.continuousGroupLeadingBoundary` | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UICollectionLayoutSectionOrthogonalScrollingBehavior.paging`                         | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UICollectionLayoutSectionOrthogonalScrollingBehavior.groupPaging`                    | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
-| `UICollectionLayoutSectionOrthogonalScrollingBehavior.groupPagingCentered`            | 레이아웃의 현재 값이나 설정을 읽고 필요한 경우 변경해요. |
+| API                                                                                   | 하는 일                                            |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `UICollectionLayoutSectionOrthogonalScrollingBehavior.none`                           | 직교 스크롤을 사용하지 않아요.                     |
+| `UICollectionLayoutSectionOrthogonalScrollingBehavior.continuous`                     | section을 연속으로 스크롤해요.                     |
+| `UICollectionLayoutSectionOrthogonalScrollingBehavior.continuousGroupLeadingBoundary` | 연속 스크롤 뒤 group의 leading 경계에 맞춰 멈춰요. |
+| `UICollectionLayoutSectionOrthogonalScrollingBehavior.paging`                         | 보이는 화면 폭을 기준으로 페이지를 넘겨요.         |
+| `UICollectionLayoutSectionOrthogonalScrollingBehavior.groupPaging`                    | group 단위로 페이지를 넘겨요.                      |
+| `UICollectionLayoutSectionOrthogonalScrollingBehavior.groupPagingCentered`            | group 단위로 넘기고 가운데에 맞춰요.               |
 
 ### 초기화
 
 `UICollectionLayoutSectionOrthogonalScrollingBehavior`를 만들거나 필요한 구성 요소를 연결하는 API예요.
 
-| API               | 하는 일                                                   |
-| ----------------- | --------------------------------------------------------- |
-| `init(rawValue:)` | 관련 값과 동작에 필요한 값을 받아 새 인스턴스를 만들어요. |
+| API               | 하는 일                                           |
+| ----------------- | ------------------------------------------------- |
+| `init(rawValue:)` | raw value에 해당하는 직교 스크롤 동작을 만들어요. |
 
 ## 타입 관계를 확인해요
 

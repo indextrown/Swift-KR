@@ -23,6 +23,21 @@ Configuration과 section provider를 사용하면 전체 스크롤 방향과 각
 
 UICollectionViewCompositionalLayoutSectionProvider는 section 번호와 환경을 받아 해당 section의 레이아웃을 동적으로 반환하는 클로저예요.
 
+## 공식 설명에서 놓치면 안 되는 동작
+
+section provider는 여러 section을 서로 다르게 만들기 위한 핵심 진입점이에요. 첫 번째 인자는 현재 section index이고, 두 번째 인자는 컨테이너 크기·content inset·size class·display scale·사용자 인터페이스 idiom 같은 환경 정보예요.
+
+```swift
+let provider: UICollectionViewCompositionalLayoutSectionProvider = {
+  sectionIndex, environment in
+  let width = environment.container.effectiveContentSize.width
+  let columns = width < 800 ? 2 : 4
+  return makeGridSection(columnCount: columns)
+}
+```
+
+기기 모델을 직접 비교하지 말고 `effectiveContentSize`와 trait을 사용하세요. provider는 회전, 글자 크기, size class, iPad 멀티태스킹 변화에도 다시 호출될 수 있어요.
+
 ## 선언과 지원 범위를 확인해요
 
 ```swift
