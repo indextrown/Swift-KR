@@ -1,11 +1,11 @@
 ---
 title: UIKit Collection Views 한눈에 보기
-description: UICollectionView의 데이터, 셀 재사용, 레이아웃, 선택, 드래그 앤 드롭을 어떤 순서로 학습하고 조합하는지 전체 구조부터 설명합니다.
+description: UICollectionView의 데이터, 셀 재사용, 레이아웃, prefetch, delegate, 선택과 드래그 앤 드롭을 어떤 순서로 조합하는지 전체 구조부터 설명합니다.
 ---
 
 # UIKit Collection Views 한눈에 보기
 
-> **면접 답변 한 줄 요약:** `UICollectionView`는 데이터를 셀로 재사용해 보여 주고, 데이터 소스가 무엇을 표시할지 결정하며 레이아웃 객체가 어디에 배치할지 결정하는 UIKit의 범용 목록 화면이에요.
+> **면접 답변 한 줄 요약:** `UICollectionView`는 데이터 소스와 재사용 셀로 내용을 표시하고, 레이아웃으로 위치를 계산하며, prefetch와 delegate로 데이터 준비와 사용자 상호작용을 연결하는 UIKit의 범용 목록 화면이에요.
 
 사진 격자, 앱스토어처럼 가로로 넘기는 카드가 섞인 화면, 설정 목록은 겉모습이 서로 달라요. 하지만 모두 **반복되는 데이터를 화면 크기에 맞게 배치하고, 스크롤하면서 필요한 뷰만 만들어 쓰는 문제**를 풀어야 해요. UIKit의 Collection View는 이 문제를 데이터, 셀, 레이아웃이라는 역할로 나누어 해결해요.
 
@@ -27,6 +27,7 @@ description: UICollectionView의 데이터, 셀 재사용, 레이아웃, 선택,
 | layout                        | 셀과 헤더의 크기와 위치를 계산하는 객체예요. 데이터 내용이 아니라 화면의 배치를 책임져요.                                                                       |
 | cell                          | item 하나를 화면에 표현하는 재사용 가능한 뷰예요. 보이는 범위를 벗어난 셀은 나중에 다른 item을 표시하는 데 다시 사용될 수 있어요.                               |
 | supplementary·decoration view | supplementary view는 헤더처럼 데이터를 보조하고, decoration view는 section 배경처럼 레이아웃을 꾸며요.                                                          |
+| prefetch                      | 곧 화면에 나타날 item의 데이터가 필요하다는 사실을 미리 알려 네트워크 요청이나 이미지 준비를 일찍 시작하게 하는 기능이에요.                                     |
 | delegate                      | 선택이나 스크롤처럼 Collection View에서 발생한 사건을 전달받는 객체예요. Swift의 Delegation 패턴은 [별도 문서](/guide/design-patterns/delegation)에서 설명해요. |
 
 이 섹션에서는 다음 순서로 Collection Views를 배워요.
@@ -34,24 +35,25 @@ description: UICollectionView의 데이터, 셀 재사용, 레이아웃, 선택,
 1. Collection View를 이루는 역할을 구분해요.
 2. 작은 사진 격자를 화면에 띄워요.
 3. diffable data source와 snapshot으로 데이터를 갱신해요.
-4. 셀 재사용과 상태 구성을 이해해요.
+4. 셀 재사용과 prefetch를 이용한 데이터 준비를 이해해요.
 5. compositional layout으로 배치를 확장해요.
 6. 선택, 다중 선택, 드래그 앤 드롭을 연결해요.
 
-## Collection View는 네 역할을 조합해요
+## Collection View는 역할을 나눠 조합해요
 
-Collection View 화면을 구성할 때 가장 먼저 아래 네 질문을 나눠야 해요.
+Collection View 화면을 구성할 때 가장 먼저 아래 질문을 나눠야 해요.
 
-| 질문                                    | 담당 객체·개념                              |
-| --------------------------------------- | ------------------------------------------- |
-| 어떤 section과 item을 보여 주나요?      | 데이터 모델, snapshot, data source          |
-| item을 어떤 뷰로 표현하나요?            | cell registration, cell, supplementary view |
-| 셀을 어디에 얼마나 크게 배치하나요?     | collection view layout                      |
-| 사용자가 선택하거나 끌면 무엇을 하나요? | delegate, drag delegate, drop delegate      |
+| 질문                                                 | 담당 객체·개념                              |
+| ---------------------------------------------------- | ------------------------------------------- |
+| 어떤 section과 item을 보여 주나요?                   | 데이터 모델, snapshot, data source          |
+| item을 어떤 뷰로 표현하나요?                         | cell registration, cell, supplementary view |
+| 셀을 어디에 얼마나 크게 배치하나요?                  | collection view layout                      |
+| 곧 나타날 item의 데이터를 언제 준비하나요?           | prefetch data source                        |
+| 사용자가 선택하거나 스크롤하거나 끌면 무엇을 하나요? | delegate, drag delegate, drop delegate      |
 
-![데이터 모델과 snapshot, 데이터 소스, Collection View, 레이아웃, 셀의 역할을 연결한 구조도](./assets/collection-view-roles.svg)
+![데이터 모델과 snapshot, 데이터 소스, Collection View, 레이아웃, 재사용 셀, prefetch, delegate의 역할을 연결한 구조도](./assets/collection-view-roles.svg)
 
-화살표를 한 방향으로만 읽을 필요는 없어요. 예를 들어 data source는 item 식별자를 받아 셀을 구성하고, Collection View는 layout이 계산한 위치에 그 셀을 표시해요. 중요한 점은 **데이터의 순서와 화면의 배치를 같은 객체가 모두 책임지지 않는다**는 것이에요.
+화살표를 한 방향으로만 읽을 필요는 없어요. 예를 들어 data source는 item 식별자를 받아 셀을 구성하고, Collection View는 layout이 계산한 위치에 그 셀을 표시해요. 곧 나타날 item은 prefetch data source에 미리 알려 데이터 준비를 시작하고, 선택·표시·스크롤 이벤트는 delegate에 전달해요. 중요한 점은 **데이터의 순서, 화면의 배치, 사전 준비, 사용자 상호작용을 같은 객체가 모두 책임지지 않는다**는 것이에요.
 
 ## 가장 작은 사진 격자를 만들어요
 

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title description" shape-rendering="geometricPrecision" text-rendering="optimizeLegibility">
   <title id="title">Collection View 구성 요소의 역할</title>
-  <desc id="description">앱 모델이 snapshot을 만들고 diffable data source가 Collection View에 상태를 적용한다. Collection View는 layout에서 위치 정보를 받고 재사용 셀을 화면에 표시한다.</desc>
+  <desc id="description">앱 모델이 snapshot을 만들고 diffable data source가 Collection View에 상태를 적용한다. Collection View는 layout과 재사용 셀에 필요한 정보를 요청하고, prefetch data source에 표시 전 데이터 준비를 요청하며, delegate에 사용자 이벤트를 전달한다.</desc>
   <defs>
     <style>
       .title { font-family: "Helvetica Neue", "Apple SD Gothic Neo", Arial, sans-serif; font-size: 32px; font-weight: 700; fill: #111827; }
@@ -11,6 +11,10 @@
       .label { font-family: "Helvetica Neue", "Apple SD Gothic Neo", Arial, sans-serif; font-size: 14px; font-weight: 700; fill: #075dcc; }
       .flow { fill: none; stroke: #1675ea; stroke-width: 3; stroke-linecap: round; }
       .request { fill: none; stroke: #7c3aed; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 9 8; }
+      .prefetch { fill: none; stroke: #0f766e; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 9 8; }
+      .delegate { fill: none; stroke: #d97706; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 9 8; }
+      .code-teal { fill: #0f766e; }
+      .code-amber { fill: #b45309; font-size: 15px; }
     </style>
     <marker id="blue-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0L8 4L0 8Z" fill="#1675ea"/>
@@ -18,14 +22,20 @@
     <marker id="purple-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0L8 4L0 8Z" fill="#7c3aed"/>
     </marker>
+    <marker id="teal-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#0f766e"/>
+    </marker>
+    <marker id="amber-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#d97706"/>
+    </marker>
     <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
       <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#0f172a" flood-opacity=".08"/>
     </filter>
   </defs>
 
   <rect width="1400" height="760" rx="28" fill="#f8fafc"/>
-  <text class="title" x="60" y="66">Collection View는 데이터·표시·배치를 나눠요</text>
-  <text class="subtitle" x="60" y="99">안정적인 식별자가 화면 상태를 흐르고, 뷰와 레이아웃은 필요한 순간에 조합돼요.</text>
+  <text class="title" x="60" y="66">Collection View는 데이터·표시·배치·이벤트를 나눠요</text>
+  <text class="subtitle" x="60" y="99">상태 적용부터 셀 구성, 미리 가져오기, 사용자 이벤트까지 역할별로 연결돼요.</text>
 
   <g>
     <rect x="60" y="170" width="250" height="180" rx="22" fill="#ffffff" filter="url(#shadow)"/>
@@ -87,34 +97,60 @@
   <text class="label" x="1077" y="247" text-anchor="middle">차이 반영</text>
 
   <g>
-    <rect x="195" y="510" width="390" height="160" rx="22" fill="#ffffff" filter="url(#shadow)"/>
-    <rect x="195" y="510" width="390" height="160" rx="22" fill="#ffffff"/>
-    <path d="M217 510H563Q585 510 585 532V648Q585 670 563 670H217" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M217 510Q195 510 195 532V648Q195 670 217 670" fill="none" stroke="#7c3aed" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <text class="box-title" x="225" y="558">Collection View Layout</text>
-    <text class="code" x="225" y="594">layoutAttributes</text>
-    <text class="box-text" x="225" y="630">셀·헤더의 크기와 위치를 계산</text>
+    <rect x="60" y="520" width="280" height="160" rx="22" fill="#ffffff" filter="url(#shadow)"/>
+    <rect x="60" y="520" width="280" height="160" rx="22" fill="#ffffff"/>
+    <path d="M82 520H318Q340 520 340 542V658Q340 680 318 680H82" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M82 520Q60 520 60 542V658Q60 680 82 680" fill="none" stroke="#7c3aed" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="box-title" x="90" y="568">Layout</text>
+    <text class="code" x="90" y="604">layoutAttributes</text>
+    <text class="box-text" x="90" y="640">셀·헤더의 크기·위치 계산</text>
   </g>
 
   <g>
-    <rect x="815" y="510" width="390" height="160" rx="22" fill="#ffffff" filter="url(#shadow)"/>
-    <rect x="815" y="510" width="390" height="160" rx="22" fill="#ffffff"/>
-    <path d="M837 510H1183Q1205 510 1205 532V648Q1205 670 1183 670H837" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M837 510Q815 510 815 532V648Q815 670 837 670" fill="none" stroke="#7c3aed" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-    <text class="box-title" x="845" y="558">Reusable Cells</text>
-    <text class="code" x="845" y="594">CellRegistration</text>
-    <text class="box-text" x="845" y="630">현재 item 데이터로 매번 다시 구성</text>
+    <rect x="390" y="520" width="280" height="160" rx="22" fill="#ffffff" filter="url(#shadow)"/>
+    <rect x="390" y="520" width="280" height="160" rx="22" fill="#ffffff"/>
+    <path d="M412 520H648Q670 520 670 542V658Q670 680 648 680H412" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M412 520Q390 520 390 542V658Q390 680 412 680" fill="none" stroke="#7c3aed" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="box-title" x="420" y="568">Reusable Cells</text>
+    <text class="code" x="420" y="604">CellRegistration</text>
+    <text class="box-text" x="420" y="640">현재 item 데이터로 다시 구성</text>
   </g>
 
-  <path class="request" d="M1125 323C1020 420 820 444 585 555" marker-end="url(#purple-arrow)"/>
-  <rect x="820" y="415" width="112" height="28" rx="14" fill="#f3e8ff"/>
-  <text x="876" y="434" text-anchor="middle" style="font-family:'Helvetica Neue','Apple SD Gothic Neo',Arial,sans-serif;font-size:14px;font-weight:700;fill:#6d28d9">위치 정보 요청</text>
+  <g>
+    <rect x="730" y="520" width="280" height="160" rx="22" fill="#ffffff" filter="url(#shadow)"/>
+    <rect x="730" y="520" width="280" height="160" rx="22" fill="#ffffff"/>
+    <path d="M752 520H988Q1010 520 1010 542V658Q1010 680 988 680H752" fill="none" stroke="#5eead4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M752 520Q730 520 730 542V658Q730 680 752 680" fill="none" stroke="#0f766e" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="box-title" x="760" y="568">Prefetch</text>
+    <text class="code code-teal" x="760" y="604">DataSourcePrefetching</text>
+    <text class="box-text" x="760" y="640">보이기 전 데이터 준비</text>
+    <text class="box-text" x="760" y="667">불필요해지면 작업 취소</text>
+  </g>
 
-  <path class="request" d="M1125 327C1080 410 1040 445 1015 500" marker-end="url(#purple-arrow)"/>
-  <rect x="1038" y="415" width="112" height="28" rx="14" fill="#f3e8ff"/>
-  <text x="1094" y="434" text-anchor="middle" style="font-family:'Helvetica Neue','Apple SD Gothic Neo',Arial,sans-serif;font-size:14px;font-weight:700;fill:#6d28d9">보이는 셀 요청</text>
+  <g>
+    <rect x="1060" y="520" width="280" height="160" rx="22" fill="#ffffff" filter="url(#shadow)"/>
+    <rect x="1060" y="520" width="280" height="160" rx="22" fill="#ffffff"/>
+    <path d="M1082 520H1318Q1340 520 1340 542V658Q1340 680 1318 680H1082" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M1082 520Q1060 520 1060 542V658Q1060 680 1082 680" fill="none" stroke="#d97706" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="box-title" x="1090" y="568">Delegate</text>
+    <text class="code code-amber" x="1090" y="604">UICollectionViewDelegate</text>
+    <text class="box-text" x="1090" y="640">선택·표시·스크롤 이벤트</text>
+    <text class="box-text" x="1090" y="667">사용자 상호작용 전달</text>
+  </g>
 
-  <path class="flow" d="M750 330C690 430 645 475 585 550" marker-end="url(#blue-arrow)"/>
-  <rect x="636" y="431" width="98" height="28" rx="14" fill="#e8f3ff"/>
-  <text class="label" x="685" y="450" text-anchor="middle">배치와 독립</text>
+  <path class="request" d="M1135 326C930 390 520 430 200 510" marker-end="url(#purple-arrow)"/>
+  <rect x="470" y="395" width="112" height="28" rx="14" fill="#f3e8ff"/>
+  <text x="526" y="414" text-anchor="middle" style="font-family:'Helvetica Neue','Apple SD Gothic Neo',Arial,sans-serif;font-size:14px;font-weight:700;fill:#6d28d9">위치 정보 요청</text>
+
+  <path class="request" d="M1175 338C1035 400 790 450 530 510" marker-end="url(#purple-arrow)"/>
+  <rect x="720" y="431" width="112" height="28" rx="14" fill="#f3e8ff"/>
+  <text x="776" y="450" text-anchor="middle" style="font-family:'Helvetica Neue','Apple SD Gothic Neo',Arial,sans-serif;font-size:14px;font-weight:700;fill:#6d28d9">보이는 셀 요청</text>
+
+  <path class="prefetch" d="M1225 350C1150 405 1005 455 870 510" marker-end="url(#teal-arrow)"/>
+  <rect x="926" y="390" width="126" height="28" rx="14" fill="#ccfbf1"/>
+  <text x="989" y="409" text-anchor="middle" style="font-family:'Helvetica Neue','Apple SD Gothic Neo',Arial,sans-serif;font-size:14px;font-weight:700;fill:#0f766e">표시 전 준비 요청</text>
+
+  <path class="delegate" d="M1280 350C1310 405 1250 460 1200 510" marker-end="url(#amber-arrow)"/>
+  <rect x="1128" y="450" width="132" height="28" rx="14" fill="#fef3c7"/>
+  <text x="1194" y="469" text-anchor="middle" style="font-family:'Helvetica Neue','Apple SD Gothic Neo',Arial,sans-serif;font-size:14px;font-weight:700;fill:#b45309">선택·스크롤 알림</text>
 </svg>
