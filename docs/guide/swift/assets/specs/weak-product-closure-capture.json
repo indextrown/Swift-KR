@@ -1,0 +1,231 @@
+{
+  "title": "[weak self]는 클로저에서 객체로 돌아오는 고리를 끊어요",
+  "subtitle": "ViewModel과 Loader가 클로저를 소유해도 클로저는 self의 수명을 유지하지 않아요.",
+  "accessibility": {
+    "title": "weak self 캡처로 ProductViewModel의 클로저 순환을 끊는 관계",
+    "description": "스택의 화면은 힙의 ProductViewModel을 강하게 참조하고, ProductViewModel에서 ProductLoader와 completion 클로저로는 강한 참조가 이어지지만, 클로저에서 self로 돌아오는 참조는 약해 화면이 닫히면 세 객체를 해제할 수 있는 관계를 보여 준다."
+  },
+  "layout": {
+    "height": 930
+  },
+  "columns": [
+    {
+      "id": "code",
+      "title": "코드",
+      "type": "code",
+      "width": 190,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "weak-product-code",
+          "kind": "code",
+          "title": "[weak self]",
+          "monospaceTitle": true,
+          "x": 14,
+          "width": 162,
+          "height": 142,
+          "rows": [
+            {
+              "label": "캡처",
+              "value": "소유 안 함",
+              "tone": "weak"
+            }
+          ],
+          "footer": "호출 시 Optional"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "데이터",
+      "type": "data",
+      "width": 175,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "weak-product-data",
+          "kind": "data",
+          "title": "전역·정적 값",
+          "x": 15,
+          "width": 145,
+          "height": 112,
+          "rows": [
+            {
+              "label": "이 예제",
+              "value": "없음",
+              "tone": "muted"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heap",
+      "title": "힙",
+      "type": "heap",
+      "width": 700,
+      "nodeLayout": {
+        "vertical": "center",
+        "gap": 64
+      },
+      "nodes": [
+        {
+          "id": "weak-product-view-model",
+          "kind": "object",
+          "title": "ProductViewModel",
+          "monospaceTitle": true,
+          "tag": "외부 소유",
+          "tagTone": "safe",
+          "x": 70,
+          "width": 560,
+          "height": 140,
+          "rows": [
+            {
+              "label": "loader",
+              "value": "0xB240",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "ProductLoader를 강하게 소유"
+        },
+        {
+          "id": "weak-product-loader",
+          "kind": "object",
+          "title": "ProductLoader",
+          "monospaceTitle": true,
+          "tag": "해제 가능",
+          "tagTone": "safe",
+          "x": 70,
+          "width": 560,
+          "height": 140,
+          "rows": [
+            {
+              "label": "completion",
+              "value": "0xC360",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "completion 클로저를 강하게 저장"
+        },
+        {
+          "id": "weak-product-completion",
+          "kind": "closure",
+          "title": "completion 저장 클로저",
+          "tag": "해제 가능",
+          "tagTone": "safe",
+          "x": 70,
+          "width": 560,
+          "height": 140,
+          "rows": [
+            {
+              "label": "capture weak self",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "weak"
+            }
+          ],
+          "footer": "ProductViewModel을 소유하지 않음"
+        }
+      ]
+    },
+    {
+      "id": "stack",
+      "title": "스택",
+      "type": "stack",
+      "width": 340,
+      "nodeLayout": {
+        "vertical": "bottom-up",
+        "gap": 38,
+        "paddingBottom": 20
+      },
+      "nodes": [
+        {
+          "id": "product-screen",
+          "kind": "frame",
+          "title": "Product 화면",
+          "x": 18,
+          "width": 304,
+          "height": 150,
+          "rows": [
+            {
+              "label": "viewModel",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "화면이 ViewModel의 수명을 소유"
+        },
+        {
+          "id": "weak-product-result",
+          "kind": "note",
+          "title": "화면이 닫히면",
+          "x": 18,
+          "width": 304,
+          "height": 104,
+          "rows": [
+            {
+              "label": "viewModel = nil",
+              "value": "셋 다 해제",
+              "tone": "safe"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "connectors": [
+    {
+      "from": {
+        "id": "weak-product-view-model",
+        "side": "bottom",
+        "offset": 150
+      },
+      "to": {
+        "id": "weak-product-loader",
+        "side": "top",
+        "offset": 150
+      },
+      "kind": "strong",
+      "label": "loader 프로퍼티",
+      "labelOffset": [-88, 0]
+    },
+    {
+      "from": {
+        "id": "weak-product-loader",
+        "side": "bottom",
+        "offset": 150
+      },
+      "to": {
+        "id": "weak-product-completion",
+        "side": "top",
+        "offset": 150
+      },
+      "kind": "strong",
+      "label": "completion 저장",
+      "labelOffset": [-88, 0]
+    },
+    {
+      "from": {
+        "id": "weak-product-completion",
+        "side": "right",
+        "offset": 70
+      },
+      "to": {
+        "id": "weak-product-view-model",
+        "side": "right",
+        "offset": 70
+      },
+      "kind": "weak",
+      "label": "weak self 캡처",
+      "curve": [80, 0, 80, 0],
+      "labelOffset": [-54, -95]
+    }
+  ]
+}

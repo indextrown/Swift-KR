@@ -1,30 +1,30 @@
 {
-  "title": "저장 클로저가 self를 잡으면 객체로 돌아오는 고리가 생겨요",
-  "subtitle": "ViewModel은 클로저를 소유하고, 클로저의 캡처 리스트는 ViewModel을 다시 소유해요.",
+  "title": "저장 클로저가 self를 강하게 잡으면 순환이 생겨요",
+  "subtitle": "ProductViewModel → ProductLoader → completion → ProductViewModel이 모두 강한 참조로 이어져요.",
   "accessibility": {
-    "title": "저장 클로저와 self의 강한 참조 순환",
-    "description": "스택의 외부 변수가 nil인 뒤에도 힙의 ProfileHeaderViewModel이 makeTitle 클로저를 강하게 참조하고, 클로저가 self를 강하게 캡처해 ViewModel을 다시 참조하는 순환을 보여 준다."
+    "title": "ProductViewModel과 저장 클로저 사이의 강한 참조 순환",
+    "description": "스택의 외부 viewModel 변수가 nil인 뒤에도 힙의 ProductViewModel이 ProductLoader를, ProductLoader가 completion 클로저를, 클로저가 self인 ProductViewModel을 각각 강하게 참조해 세 객체가 해제되지 않는 관계를 보여 준다."
   },
   "layout": {
-    "height": 760
+    "height": 930
   },
   "columns": [
     {
       "id": "code",
       "title": "코드",
       "type": "code",
-      "width": 180,
+      "width": 190,
       "nodeLayout": {
         "vertical": "center"
       },
       "nodes": [
         {
-          "id": "closure-code",
+          "id": "product-cycle-code",
           "kind": "code",
-          "title": "makeTitle",
+          "title": "loader.load",
           "monospaceTitle": true,
           "x": 14,
-          "width": 152,
+          "width": 162,
           "height": 142,
           "rows": [
             {
@@ -33,7 +33,7 @@
               "tone": "danger"
             }
           ],
-          "footer": "클로저 본문"
+          "footer": "강한 self 캡처"
         }
       ]
     },
@@ -47,7 +47,7 @@
       },
       "nodes": [
         {
-          "id": "closure-data",
+          "id": "product-cycle-data",
           "kind": "data",
           "title": "전역·정적 값",
           "x": 15,
@@ -67,41 +67,61 @@
       "id": "heap",
       "title": "힙",
       "type": "heap",
-      "width": 590,
+      "width": 700,
       "nodeLayout": {
         "vertical": "center",
-        "gap": 88
+        "gap": 64
       },
       "nodes": [
         {
-          "id": "closure-view-model",
+          "id": "product-cycle-view-model",
           "kind": "object",
-          "title": "ProfileHeaderViewModel",
+          "title": "ProductViewModel",
           "monospaceTitle": true,
           "tag": "RC 1",
           "tagTone": "danger",
-          "x": 74,
-          "width": 442,
-          "height": 152,
+          "x": 70,
+          "width": 560,
+          "height": 140,
           "rows": [
             {
-              "label": "makeTitle",
+              "label": "loader",
+              "value": "0xB240",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "ProductLoader를 강하게 소유"
+        },
+        {
+          "id": "product-cycle-loader",
+          "kind": "object",
+          "title": "ProductLoader",
+          "monospaceTitle": true,
+          "tag": "RC 1",
+          "tagTone": "danger",
+          "x": 70,
+          "width": 560,
+          "height": 140,
+          "rows": [
+            {
+              "label": "completion",
               "value": "0xC360",
               "monospace": true,
               "tone": "strong"
             }
           ],
-          "footer": "저장 프로퍼티가 클로저를 소유"
+          "footer": "completion 클로저를 강하게 저장"
         },
         {
-          "id": "stored-closure",
+          "id": "product-cycle-completion",
           "kind": "closure",
-          "title": "makeTitle 저장 클로저",
+          "title": "completion 저장 클로저",
           "tag": "RC 1",
           "tagTone": "danger",
-          "x": 74,
-          "width": 442,
-          "height": 152,
+          "x": 70,
+          "width": 560,
+          "height": 140,
           "rows": [
             {
               "label": "capture self",
@@ -110,7 +130,7 @@
               "tone": "strong"
             }
           ],
-          "footer": "self를 강하게 캡처"
+          "footer": "ProductViewModel을 강하게 캡처"
         }
       ]
     },
@@ -118,20 +138,20 @@
       "id": "stack",
       "title": "스택",
       "type": "stack",
-      "width": 330,
+      "width": 340,
       "nodeLayout": {
         "vertical": "bottom-up",
         "paddingBottom": 20
       },
       "nodes": [
         {
-          "id": "released-header-owner",
+          "id": "released-product-view-model",
           "kind": "released",
           "title": "외부 변수",
           "tag": "해제됨",
           "tagTone": "muted",
           "x": 18,
-          "width": 294,
+          "width": 304,
           "height": 142,
           "rows": [
             {
@@ -149,33 +169,49 @@
   "connectors": [
     {
       "from": {
-        "id": "closure-view-model",
+        "id": "product-cycle-view-model",
         "side": "bottom",
-        "offset": 128
+        "offset": 150
       },
       "to": {
-        "id": "stored-closure",
+        "id": "product-cycle-loader",
         "side": "top",
-        "offset": 128
+        "offset": 150
       },
       "kind": "strong",
-      "label": "makeTitle 프로퍼티",
-      "labelOffset": [-76, 0]
+      "label": "loader 프로퍼티",
+      "labelOffset": [-88, 0]
     },
     {
       "from": {
-        "id": "stored-closure",
-        "side": "top",
-        "offset": 318
+        "id": "product-cycle-loader",
+        "side": "bottom",
+        "offset": 150
       },
       "to": {
-        "id": "closure-view-model",
-        "side": "bottom",
-        "offset": 318
+        "id": "product-cycle-completion",
+        "side": "top",
+        "offset": 150
+      },
+      "kind": "strong",
+      "label": "completion 저장",
+      "labelOffset": [-88, 0]
+    },
+    {
+      "from": {
+        "id": "product-cycle-completion",
+        "side": "right",
+        "offset": 70
+      },
+      "to": {
+        "id": "product-cycle-view-model",
+        "side": "right",
+        "offset": 70
       },
       "kind": "strong",
       "label": "강한 self 캡처",
-      "labelOffset": [72, 0]
+      "curve": [80, 0, 80, 0],
+      "labelOffset": [-54, -95]
     }
   ]
 }

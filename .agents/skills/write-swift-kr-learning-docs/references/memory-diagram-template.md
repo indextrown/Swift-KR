@@ -82,7 +82,7 @@ node .agents/skills/write-swift-kr-learning-docs/scripts/render-memory-diagram.m
 | `kind`     | 용도                                     |
 | ---------- | ---------------------------------------- |
 | `object`   | 힙에 생성된 클래스 인스턴스              |
-| `closure`  | 힙에 유지되는 저장 클로저와 캡처 목록    |
+| `closure`  | 힙에 유지되는 저장 클로저와 캡처 리스트  |
 | `frame`    | 함수 호출 프레임과 지역 변수             |
 | `code`     | 실행 코드나 함수 본문                    |
 | `data`     | 전역·정적 데이터 또는 예제에서 비운 영역 |

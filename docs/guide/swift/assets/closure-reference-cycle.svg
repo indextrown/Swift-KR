@@ -34,7 +34,7 @@
 
   <rect width="1427" height="760" fill="#ffffff" />
   <text x="38" y="42" class="diagram-title">저장 클로저가 self를 잡으면 객체로 돌아오는 고리가 생겨요</text>
-  <text x="38" y="70" class="diagram-subtitle">ViewModel은 클로저를 소유하고, 클로저의 캡처 목록은 ViewModel을 다시 소유해요.</text>
+  <text x="38" y="70" class="diagram-subtitle">ViewModel은 클로저를 소유하고, 클로저의 캡처 리스트는 ViewModel을 다시 소유해요.</text>
   <g transform="translate(1013 88)" aria-label="화살표 범례">
     <line x1="0" y1="0" x2="34" y2="0" stroke="#1473e6" stroke-width="3" marker-end="url(#arrow-strong)" />
     <text x="43" y="5" class="legend">강한 참조</text>
