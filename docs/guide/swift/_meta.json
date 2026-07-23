@@ -1,0 +1,12 @@
+[
+  {
+    "type": "file",
+    "name": "memory-management",
+    "label": "메모리와 참조 관리"
+  },
+  {
+    "type": "file",
+    "name": "closures",
+    "label": "클로저"
+  }
+]

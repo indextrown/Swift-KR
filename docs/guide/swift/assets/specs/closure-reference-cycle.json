@@ -1,0 +1,181 @@
+{
+  "title": "저장 클로저가 self를 잡으면 객체로 돌아오는 고리가 생겨요",
+  "subtitle": "ViewModel은 클로저를 소유하고, 클로저의 캡처 리스트는 ViewModel을 다시 소유해요.",
+  "accessibility": {
+    "title": "저장 클로저와 self의 강한 참조 순환",
+    "description": "스택의 외부 변수가 nil인 뒤에도 힙의 ProfileHeaderViewModel이 makeTitle 클로저를 강하게 참조하고, 클로저가 self를 강하게 캡처해 ViewModel을 다시 참조하는 순환을 보여 준다."
+  },
+  "layout": {
+    "height": 760
+  },
+  "columns": [
+    {
+      "id": "code",
+      "title": "코드",
+      "type": "code",
+      "width": 180,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "closure-code",
+          "kind": "code",
+          "title": "makeTitle",
+          "monospaceTitle": true,
+          "x": 14,
+          "width": 152,
+          "height": 142,
+          "rows": [
+            {
+              "label": "캡처",
+              "value": "self",
+              "tone": "danger"
+            }
+          ],
+          "footer": "클로저 본문"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "데이터",
+      "type": "data",
+      "width": 175,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "closure-data",
+          "kind": "data",
+          "title": "전역·정적 값",
+          "x": 15,
+          "width": 145,
+          "height": 112,
+          "rows": [
+            {
+              "label": "이 예제",
+              "value": "없음",
+              "tone": "muted"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heap",
+      "title": "힙",
+      "type": "heap",
+      "width": 590,
+      "nodeLayout": {
+        "vertical": "center",
+        "gap": 88
+      },
+      "nodes": [
+        {
+          "id": "closure-view-model",
+          "kind": "object",
+          "title": "ProfileHeaderViewModel",
+          "monospaceTitle": true,
+          "tag": "RC 1",
+          "tagTone": "danger",
+          "x": 74,
+          "width": 442,
+          "height": 152,
+          "rows": [
+            {
+              "label": "makeTitle",
+              "value": "0xC360",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "저장 프로퍼티가 클로저를 소유"
+        },
+        {
+          "id": "stored-closure",
+          "kind": "closure",
+          "title": "makeTitle 저장 클로저",
+          "tag": "RC 1",
+          "tagTone": "danger",
+          "x": 74,
+          "width": 442,
+          "height": 152,
+          "rows": [
+            {
+              "label": "capture self",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "self를 강하게 캡처"
+        }
+      ]
+    },
+    {
+      "id": "stack",
+      "title": "스택",
+      "type": "stack",
+      "width": 330,
+      "nodeLayout": {
+        "vertical": "bottom-up",
+        "paddingBottom": 20
+      },
+      "nodes": [
+        {
+          "id": "released-header-owner",
+          "kind": "released",
+          "title": "외부 변수",
+          "tag": "해제됨",
+          "tagTone": "muted",
+          "x": 18,
+          "width": 294,
+          "height": 142,
+          "rows": [
+            {
+              "label": "viewModel",
+              "value": "nil",
+              "monospace": true,
+              "tone": "muted"
+            }
+          ],
+          "footer": "밖에서는 다시 접근할 수 없음"
+        }
+      ]
+    }
+  ],
+  "connectors": [
+    {
+      "from": {
+        "id": "closure-view-model",
+        "side": "bottom",
+        "offset": 128
+      },
+      "to": {
+        "id": "stored-closure",
+        "side": "top",
+        "offset": 128
+      },
+      "kind": "strong",
+      "label": "makeTitle 프로퍼티",
+      "labelOffset": [-76, 0]
+    },
+    {
+      "from": {
+        "id": "stored-closure",
+        "side": "top",
+        "offset": 318
+      },
+      "to": {
+        "id": "closure-view-model",
+        "side": "bottom",
+        "offset": 318
+      },
+      "kind": "strong",
+      "label": "강한 self 캡처",
+      "labelOffset": [72, 0]
+    }
+  ]
+}

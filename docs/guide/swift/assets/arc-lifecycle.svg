@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1302" height="720" viewBox="0 0 1302 720" role="img" aria-labelledby="memory-diagram-title memory-diagram-desc">
+  <title id="memory-diagram-title">ARC가 강한 참조를 세어 객체를 해제하는 과정</title>
+  <desc id="memory-diagram-desc">스택의 currentProfile과 selectedProfile이 힙의 같은 Profile 객체를 강하게 참조해 참조 수가 2인 상태와 두 변수를 차례로 nil로 만들면 객체가 해제되는 순서를 보여 준다.</desc>
+  <defs>
+    <marker id="arrow-strong" markerWidth="11" markerHeight="11" refX="9.5" refY="5.5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 0.5 0.75 L 10 5.5 L 0.5 10.25 z" fill="#1473e6" />
+    </marker>
+    <marker id="arrow-weak" markerWidth="11" markerHeight="11" refX="9.5" refY="5.5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 0.5 0.75 L 10 5.5 L 0.5 10.25 z" fill="#7c3aed" />
+    </marker>
+    <marker id="arrow-layout" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 0.5 0.75 L 9 5 L 0.5 9.25 z" fill="#94a3b8" />
+    </marker>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+      .diagram-title { font-size: 30px; font-weight: 760; fill: #0b1220; letter-spacing: -0.5px; }
+      .diagram-subtitle { font-size: 16px; font-weight: 500; fill: #526071; }
+      .memory-title { font-size: 22px; font-weight: 760; fill: #111827; }
+      .column-title { font-size: 19px; font-weight: 720; fill: #111827; }
+      .node-title { font-size: 16px; font-weight: 720; fill: #111827; }
+      .node-title.mono, .row-value.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .row-label { font-size: 14px; font-weight: 600; fill: #64748b; }
+      .row-value { font-size: 14px; font-weight: 650; fill: #1f2937; }
+      .node-footer { font-size: 13px; font-weight: 560; fill: #64748b; }
+      .legend { font-size: 13px; font-weight: 650; fill: #526071; }
+      .connector-label { font-size: 13px; font-weight: 720; }
+      .strong-text { fill: #1473e6; }
+      .weak-text { fill: #7c3aed; }
+      .danger-text { fill: #dc2626; }
+      .safe-text { fill: #16835b; }
+      .muted-text { fill: #94a3b8; }
+    </style>
+  </defs>
+
+  <rect width="1302" height="720" fill="#ffffff" />
+  <text x="38" y="42" class="diagram-title">강한 참조가 모두 사라져야 객체를 해제해요</text>
+  <text x="38" y="70" class="diagram-subtitle">같은 인스턴스를 가리키는 변수가 늘면 참조 수가 올라가고, nil이 되면 내려가요.</text>
+  <g transform="translate(888 88)" aria-label="화살표 범례">
+    <line x1="0" y1="0" x2="34" y2="0" stroke="#1473e6" stroke-width="3" marker-end="url(#arrow-strong)" />
+    <text x="43" y="5" class="legend">강한 참조</text>
+    <line x1="122" y1="0" x2="156" y2="0" stroke="#7c3aed" stroke-width="3" stroke-dasharray="8 7" marker-end="url(#arrow-weak)" />
+    <text x="165" y="5" class="legend">약한 참조</text>
+    <line x1="244" y1="0" x2="278" y2="0" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="2 7" marker-end="url(#arrow-layout)" />
+    <text x="287" y="5" class="legend">구조 연결</text>
+  </g>
+
+  <rect x="38" y="116" width="1226" height="566" rx="28" fill="#fcfcfd" stroke="#111827" stroke-width="2" />
+  <text x="651" y="154" text-anchor="middle" class="memory-title">메모리 개념도</text>
+
+  <g id="column-code" aria-label="코드">
+    <text x="138" y="191" text-anchor="middle" class="column-title">코드</text>
+    <rect x="58" y="210" width="160" height="452" rx="18" fill="#eef1f4" stroke="#b8c0cc" stroke-width="1.5" />
+    <g id="node-arc-example-code">
+      <rect x="72" y="365" width="132" height="142" rx="13" fill="#f8fafc" />
+      <path d="M 85 365 H 191 Q 204 365 204 378 V 494 Q 204 507 191 507 H 85" fill="none" stroke="#64748b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6" />
+      <path d="M 85 365 Q 72 365 72 378 V 494 Q 72 507 85 507" fill="none" stroke="#475569" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="87" y="394" class="node-title" style="font-size: 16px;">ARC 예제</text>
+      
+      <line x1="86" y1="412" x2="190" y2="412" stroke="#e2e8f0" />
+      <text x="88" y="440" class="row-label" style="font-size: 14px;">대입</text>
+      <text x="188" y="440" text-anchor="end" class="row-value" style="font-size: 14px;">+1</text>
+      <text x="88" y="474" class="row-label" style="font-size: 14px;">nil</text>
+      <text x="188" y="474" text-anchor="end" class="row-value" style="font-size: 14px;">-1</text>
+      <text x="87" y="493" class="node-footer" style="font-size: 13px;">컴파일러가 관리</text>
+    </g>
+  </g>
+  <g id="column-data" aria-label="데이터">
+    <text x="315" y="191" text-anchor="middle" class="column-title">데이터</text>
+    <rect x="230" y="210" width="170" height="452" rx="18" fill="#f7f8fa" stroke="#b8c0cc" stroke-width="1.5" />
+    <g id="node-arc-data">
+      <rect x="245" y="380" width="140" height="112" rx="13" fill="#ffffff" />
+      <path d="M 258 380 H 372 Q 385 380 385 393 V 479 Q 385 492 372 492 H 258" fill="none" stroke="#94a3b8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 258 380 Q 245 380 245 393 V 479 Q 245 492 258 492" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="260" y="409" class="node-title" style="font-size: 16px;">전역·정적 값</text>
+      
+      <line x1="259" y1="427" x2="371" y2="427" stroke="#e2e8f0" />
+      <text x="261" y="455" class="row-label" style="font-size: 14px;">이 예제</text>
+      <text x="369" y="455" text-anchor="end" class="row-value muted-text" style="font-size: 14px;">없음</text>
+      
+    </g>
+  </g>
+  <g id="column-heap" aria-label="힙">
+    <text x="627" y="191" text-anchor="middle" class="column-title">힙</text>
+    <rect x="412" y="210" width="430" height="452" rx="18" fill="#ffffff" stroke="#b8c0cc" stroke-width="1.5" />
+    <g id="node-arc-profile">
+      <rect x="466" y="349" width="322" height="174" rx="13" fill="#ffffff" />
+      <path d="M 479 349 H 775 Q 788 349 788 362 V 510 Q 788 523 775 523 H 479" fill="none" stroke="#111827" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 479 349 Q 466 349 466 362 V 510 Q 466 523 479 523" fill="none" stroke="#1473e6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="481" y="378" class="node-title" style="font-size: 16px;">Profile 인스턴스</text>
+      <g>
+        <rect x="727.36" y="362" width="46.64" height="24" rx="12" fill="#fee2e2" />
+        <text x="750.6800000000001" y="379" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #dc2626;">RC 2</text>
+      </g>
+      <line x1="480" y1="396" x2="774" y2="396" stroke="#e2e8f0" />
+      <text x="482" y="424" class="row-label" style="font-size: 14px;">name</text>
+      <text x="772" y="424" text-anchor="end" class="row-value" style="font-size: 14px;">홍길동</text>
+      <text x="482" y="458" class="row-label" style="font-size: 14px;">주소</text>
+      <text x="772" y="458" text-anchor="end" class="row-value mono muted-text" style="font-size: 14px;">0xA120</text>
+      <text x="481" y="509" class="node-footer" style="font-size: 13px;">두 변수가 같은 객체를 가리킴</text>
+    </g>
+  </g>
+  <g id="column-stack" aria-label="스택">
+    <text x="1049" y="191" text-anchor="middle" class="column-title">스택</text>
+    <rect x="854" y="210" width="390" height="452" rx="18" fill="#f8fafc" stroke="#b8c0cc" stroke-width="1.5" />
+    <g id="node-arc-frame">
+      <rect x="874" y="462" width="350" height="180" rx="13" fill="#ffffff" />
+      <path d="M 887 462 H 1211 Q 1224 462 1224 475 V 629 Q 1224 642 1211 642 H 887" fill="none" stroke="#64748b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 887 462 Q 874 462 874 475 V 629 Q 874 642 887 642" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="889" y="491" class="node-title mono" style="font-size: 16px;">example()</text>
+      
+      <line x1="888" y1="509" x2="1210" y2="509" stroke="#e2e8f0" />
+      <text x="890" y="537" class="row-label" style="font-size: 14px;">currentProfile</text>
+      <text x="1208" y="537" text-anchor="end" class="row-value mono strong-text" style="font-size: 14px;">0xA120</text>
+      <text x="890" y="571" class="row-label" style="font-size: 14px;">selectedProfile</text>
+      <text x="1208" y="571" text-anchor="end" class="row-value mono strong-text" style="font-size: 14px;">0xA120</text>
+      <text x="889" y="628" class="node-footer" style="font-size: 13px;">현재 강한 참조 2개</text>
+    </g>
+    <g id="node-arc-release-order">
+      <rect x="874" y="272" width="350" height="142" rx="13" fill="#fff9ed" />
+      <path d="M 887 272 H 1211 Q 1224 272 1224 285 V 401 Q 1224 414 1211 414 H 887" fill="none" stroke="#e5a33b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 887 272 Q 874 272 874 285 V 401 Q 874 414 887 414" fill="none" stroke="#e5a33b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="889" y="301" class="node-title" style="font-size: 16px;">해제 순서</text>
+      
+      <line x1="888" y1="319" x2="1210" y2="319" stroke="#e2e8f0" />
+      <text x="890" y="347" class="row-label" style="font-size: 14px;">① current = nil</text>
+      <text x="1208" y="347" text-anchor="end" class="row-value" style="font-size: 14px;">RC 1</text>
+      <text x="890" y="381" class="row-label" style="font-size: 14px;">② selected = nil</text>
+      <text x="1208" y="381" text-anchor="end" class="row-value safe-text" style="font-size: 14px;">RC 0</text>
+      <text x="889" y="400" class="node-footer" style="font-size: 13px;">RC 0 → deinit 호출</text>
+    </g>
+  </g>
+
+  <g aria-label="참조 관계">
+    <g>
+      <path d="M 874 540 L 788 423" fill="none" stroke="#1473e6" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow-strong)" />
+      <g>
+        <rect x="806.7028480000001" y="457.979456" width="64" height="23" rx="11.5" fill="#ffffff" stroke="#e2e8f0" />
+        <text x="838.7028480000001" y="473.979456" text-anchor="middle" class="connector-label strong-text">① +1</text>
+      </g>
+    </g>
+    <g>
+      <path d="M 874 578 L 788 465" fill="none" stroke="#1473e6" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow-strong)" />
+      <g>
+        <rect x="788.7680640000001" y="516.0557120000001" width="64" height="23" rx="11.5" fill="#ffffff" stroke="#e2e8f0" />
+        <text x="820.7680640000001" y="532.0557120000001" text-anchor="middle" class="connector-label strong-text">② +1</text>
+      </g>
+    </g>
+  </g>
+</svg>

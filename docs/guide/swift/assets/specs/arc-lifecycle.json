@@ -1,0 +1,194 @@
+{
+  "title": "강한 참조가 모두 사라져야 객체를 해제해요",
+  "subtitle": "같은 인스턴스를 가리키는 변수가 늘면 참조 수가 올라가고, nil이 되면 내려가요.",
+  "accessibility": {
+    "title": "ARC가 강한 참조를 세어 객체를 해제하는 과정",
+    "description": "스택의 currentProfile과 selectedProfile이 힙의 같은 Profile 객체를 강하게 참조해 참조 수가 2인 상태와 두 변수를 차례로 nil로 만들면 객체가 해제되는 순서를 보여 준다."
+  },
+  "layout": {
+    "height": 720
+  },
+  "columns": [
+    {
+      "id": "code",
+      "title": "코드",
+      "type": "code",
+      "width": 160,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "arc-example-code",
+          "kind": "code",
+          "title": "ARC 예제",
+          "x": 14,
+          "width": 132,
+          "height": 142,
+          "rows": [
+            {
+              "label": "대입",
+              "value": "+1"
+            },
+            {
+              "label": "nil",
+              "value": "-1"
+            }
+          ],
+          "footer": "컴파일러가 관리"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "데이터",
+      "type": "data",
+      "width": 170,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "arc-data",
+          "kind": "data",
+          "title": "전역·정적 값",
+          "x": 15,
+          "width": 140,
+          "height": 112,
+          "rows": [
+            {
+              "label": "이 예제",
+              "value": "없음",
+              "tone": "muted"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heap",
+      "title": "힙",
+      "type": "heap",
+      "width": 430,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "arc-profile",
+          "kind": "object",
+          "title": "Profile 인스턴스",
+          "tag": "RC 2",
+          "tagTone": "danger",
+          "x": 54,
+          "width": 322,
+          "height": 174,
+          "rows": [
+            {
+              "label": "name",
+              "value": "홍길동"
+            },
+            {
+              "label": "주소",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "muted"
+            }
+          ],
+          "footer": "두 변수가 같은 객체를 가리킴"
+        }
+      ]
+    },
+    {
+      "id": "stack",
+      "title": "스택",
+      "type": "stack",
+      "width": 390,
+      "nodeLayout": {
+        "vertical": "bottom-up",
+        "gap": 48,
+        "paddingBottom": 20
+      },
+      "nodes": [
+        {
+          "id": "arc-frame",
+          "kind": "frame",
+          "title": "example()",
+          "monospaceTitle": true,
+          "x": 20,
+          "width": 350,
+          "height": 180,
+          "rows": [
+            {
+              "label": "currentProfile",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "strong"
+            },
+            {
+              "label": "selectedProfile",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "현재 강한 참조 2개"
+        },
+        {
+          "id": "arc-release-order",
+          "kind": "note",
+          "title": "해제 순서",
+          "x": 20,
+          "width": 350,
+          "height": 142,
+          "rows": [
+            {
+              "label": "① current = nil",
+              "value": "RC 1"
+            },
+            {
+              "label": "② selected = nil",
+              "value": "RC 0",
+              "tone": "safe"
+            }
+          ],
+          "footer": "RC 0 → deinit 호출"
+        }
+      ]
+    }
+  ],
+  "connectors": [
+    {
+      "from": {
+        "id": "arc-frame",
+        "side": "left",
+        "offset": 78
+      },
+      "to": {
+        "id": "arc-profile",
+        "side": "right",
+        "offset": 74
+      },
+      "kind": "strong",
+      "label": "① +1",
+      "labelPosition": 0.44,
+      "labelOffset": [0, -18]
+    },
+    {
+      "from": {
+        "id": "arc-frame",
+        "side": "left",
+        "offset": 116
+      },
+      "to": {
+        "id": "arc-profile",
+        "side": "right",
+        "offset": 116
+      },
+      "kind": "strong",
+      "label": "② +1",
+      "labelPosition": 0.58,
+      "labelOffset": [0, 24]
+    }
+  ]
+}

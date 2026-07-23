@@ -1,5 +1,11 @@
 [
   {
+    "text": "Swift",
+    "link": "/guide/swift/memory-management",
+    "activeMatch": "/guide/swift/",
+    "position": "left"
+  },
+  {
     "text": "디자인 패턴",
     "link": "/guide/design-patterns/dependency-injection",
     "activeMatch": "/guide/design-patterns/",

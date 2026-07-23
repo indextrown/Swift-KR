@@ -1,0 +1,187 @@
+{
+  "title": "외부에서 놓아도 객체끼리 붙잡으면 남아 있어요",
+  "subtitle": "두 객체의 강한 참조가 고리를 만들면 각 참조 수가 0이 되지 않아요.",
+  "accessibility": {
+    "title": "두 클래스 인스턴스의 강한 참조 순환",
+    "description": "스택의 외부 변수가 nil이 된 뒤에도 힙의 ProfileViewModel과 ProfileCoordinator가 실선 화살표로 서로 강하게 참조해 해제되지 않는 관계를 보여 준다."
+  },
+  "layout": {
+    "height": 760
+  },
+  "columns": [
+    {
+      "id": "code",
+      "title": "코드",
+      "type": "code",
+      "width": 165,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "connect-code",
+          "kind": "code",
+          "title": "connect()",
+          "monospaceTitle": true,
+          "x": 14,
+          "width": 137,
+          "height": 132,
+          "rows": [
+            {
+              "label": "대입",
+              "value": "서로 연결"
+            }
+          ],
+          "footer": "두 프로퍼티 설정"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "데이터",
+      "type": "data",
+      "width": 175,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "cycle-data",
+          "kind": "data",
+          "title": "전역·정적 값",
+          "x": 15,
+          "width": 145,
+          "height": 112,
+          "rows": [
+            {
+              "label": "이 예제",
+              "value": "없음",
+              "tone": "muted"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heap",
+      "title": "힙",
+      "type": "heap",
+      "width": 560,
+      "nodeLayout": {
+        "vertical": "center",
+        "gap": 48
+      },
+      "nodes": [
+        {
+          "id": "cycle-view-model",
+          "kind": "object",
+          "title": "ProfileViewModel",
+          "monospaceTitle": true,
+          "tag": "RC 1",
+          "tagTone": "danger",
+          "x": 76,
+          "width": 408,
+          "height": 152,
+          "rows": [
+            {
+              "label": "coordinator",
+              "value": "0xB240",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "Coordinator를 강하게 소유"
+        },
+        {
+          "id": "cycle-coordinator",
+          "kind": "object",
+          "title": "ProfileCoordinator",
+          "monospaceTitle": true,
+          "tag": "RC 1",
+          "tagTone": "danger",
+          "x": 76,
+          "width": 408,
+          "height": 152,
+          "rows": [
+            {
+              "label": "viewModel",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "ViewModel을 강하게 소유"
+        }
+      ]
+    },
+    {
+      "id": "stack",
+      "title": "스택",
+      "type": "stack",
+      "width": 330,
+      "nodeLayout": {
+        "vertical": "bottom-up",
+        "paddingBottom": 20
+      },
+      "nodes": [
+        {
+          "id": "released-owners",
+          "kind": "released",
+          "title": "외부 변수",
+          "tag": "해제됨",
+          "tagTone": "muted",
+          "x": 18,
+          "width": 294,
+          "height": 176,
+          "rows": [
+            {
+              "label": "viewModel",
+              "value": "nil",
+              "monospace": true,
+              "tone": "muted"
+            },
+            {
+              "label": "coordinator",
+              "value": "nil",
+              "monospace": true,
+              "tone": "muted"
+            }
+          ],
+          "footer": "밖에서는 다시 접근할 수 없음"
+        }
+      ]
+    }
+  ],
+  "connectors": [
+    {
+      "from": {
+        "id": "cycle-view-model",
+        "side": "bottom",
+        "offset": 118
+      },
+      "to": {
+        "id": "cycle-coordinator",
+        "side": "top",
+        "offset": 118
+      },
+      "kind": "strong",
+      "label": "coordinator",
+      "labelOffset": [-58, 0]
+    },
+    {
+      "from": {
+        "id": "cycle-coordinator",
+        "side": "top",
+        "offset": 290
+      },
+      "to": {
+        "id": "cycle-view-model",
+        "side": "bottom",
+        "offset": 290
+      },
+      "kind": "strong",
+      "label": "viewModel",
+      "labelOffset": [54, 0]
+    }
+  ]
+}

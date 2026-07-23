@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1514" height="720" viewBox="0 0 1514 720" role="img" aria-labelledby="memory-diagram-title memory-diagram-desc">
+  <title id="memory-diagram-title">Swift-KR 메모리 다이어그램 템플릿</title>
+  <desc id="memory-diagram-desc">폭이 서로 다른 코드, 데이터, 힙, 스택 1, 스택 2 영역과 강한 참조, 약한 참조, 구조 연결 표현을 보여 주는 샘플이다.</desc>
+  <defs>
+    <marker id="arrow-strong" markerWidth="11" markerHeight="11" refX="9.5" refY="5.5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 0.5 0.75 L 10 5.5 L 0.5 10.25 z" fill="#1473e6" />
+    </marker>
+    <marker id="arrow-weak" markerWidth="11" markerHeight="11" refX="9.5" refY="5.5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 0.5 0.75 L 10 5.5 L 0.5 10.25 z" fill="#7c3aed" />
+    </marker>
+    <marker id="arrow-layout" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 0.5 0.75 L 9 5 L 0.5 9.25 z" fill="#94a3b8" />
+    </marker>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+      .diagram-title { font-size: 30px; font-weight: 760; fill: #0b1220; letter-spacing: -0.5px; }
+      .diagram-subtitle { font-size: 16px; font-weight: 500; fill: #526071; }
+      .memory-title { font-size: 22px; font-weight: 760; fill: #111827; }
+      .column-title { font-size: 19px; font-weight: 720; fill: #111827; }
+      .node-title { font-size: 16px; font-weight: 720; fill: #111827; }
+      .node-title.mono, .row-value.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .row-label { font-size: 14px; font-weight: 600; fill: #64748b; }
+      .row-value { font-size: 14px; font-weight: 650; fill: #1f2937; }
+      .node-footer { font-size: 13px; font-weight: 560; fill: #64748b; }
+      .legend { font-size: 13px; font-weight: 650; fill: #526071; }
+      .connector-label { font-size: 13px; font-weight: 720; }
+      .strong-text { fill: #1473e6; }
+      .weak-text { fill: #7c3aed; }
+      .danger-text { fill: #dc2626; }
+      .safe-text { fill: #16835b; }
+      .muted-text { fill: #94a3b8; }
+    </style>
+  </defs>
+
+  <rect width="1514" height="720" fill="#ffffff" />
+  <text x="38" y="42" class="diagram-title">Swift-KR 메모리 다이어그램 샘플</text>
+  <text x="38" y="70" class="diagram-subtitle">열의 폭과 스택 개수를 바꾸고, 노드와 참조 관계를 JSON으로 정의해요.</text>
+  <g transform="translate(1100 88)" aria-label="화살표 범례">
+    <line x1="0" y1="0" x2="34" y2="0" stroke="#1473e6" stroke-width="3" marker-end="url(#arrow-strong)" />
+    <text x="43" y="5" class="legend">강한 참조</text>
+    <line x1="122" y1="0" x2="156" y2="0" stroke="#7c3aed" stroke-width="3" stroke-dasharray="8 7" marker-end="url(#arrow-weak)" />
+    <text x="165" y="5" class="legend">약한 참조</text>
+    <line x1="244" y1="0" x2="278" y2="0" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="2 7" marker-end="url(#arrow-layout)" />
+    <text x="287" y="5" class="legend">구조 연결</text>
+  </g>
+
+  <rect x="38" y="116" width="1438" height="566" rx="28" fill="#fcfcfd" stroke="#111827" stroke-width="2" />
+  <text x="757" y="154" text-anchor="middle" class="memory-title">메모리 개념도</text>
+
+  <g id="column-code" aria-label="코드">
+    <text x="138" y="191" text-anchor="middle" class="column-title">코드</text>
+    <rect x="58" y="210" width="160" height="452" rx="18" fill="#eef1f4" stroke="#b8c0cc" stroke-width="1.5" />
+    <g id="node-sample-code">
+      <rect x="72" y="373" width="132" height="126" rx="13" fill="#f8fafc" />
+      <path d="M 85 373 H 191 Q 204 373 204 386 V 486 Q 204 499 191 499 H 85" fill="none" stroke="#64748b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6" />
+      <path d="M 85 373 Q 72 373 72 386 V 486 Q 72 499 85 499" fill="none" stroke="#475569" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="87" y="402" class="node-title mono" style="font-size: 12.1px;">loadProfile()</text>
+      
+      <line x1="86" y1="420" x2="190" y2="420" stroke="#e2e8f0" />
+      <text x="88" y="448" class="row-label" style="font-size: 13.2px;">명령</text>
+      <text x="188" y="448" text-anchor="end" class="row-value" style="font-size: 13.2px;">실행 코드</text>
+      <text x="87" y="485" class="node-footer" style="font-size: 13px;">읽기 전용 영역</text>
+    </g>
+  </g>
+  <g id="column-data" aria-label="데이터">
+    <text x="335" y="191" text-anchor="middle" class="column-title">데이터</text>
+    <rect x="230" y="210" width="210" height="452" rx="18" fill="#f7f8fa" stroke="#b8c0cc" stroke-width="1.5" />
+    <g id="node-sample-data">
+      <rect x="246" y="371" width="178" height="130" rx="13" fill="#ffffff" />
+      <path d="M 259 371 H 411 Q 424 371 424 384 V 488 Q 424 501 411 501 H 259" fill="none" stroke="#94a3b8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 259 371 Q 246 371 246 384 V 488 Q 246 501 259 501" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="261" y="400" class="node-title" style="font-size: 16px;">정적 저장 값</text>
+      
+      <line x1="260" y1="418" x2="410" y2="418" stroke="#e2e8f0" />
+      <text x="262" y="446" class="row-label" style="font-size: 14px;">appName</text>
+      <text x="408" y="446" text-anchor="end" class="row-value" style="font-size: 14px;">Swift-KR</text>
+      <text x="261" y="487" class="node-footer" style="font-size: 13px;">앱 실행 동안 유지</text>
+    </g>
+  </g>
+  <g id="column-heap" aria-label="힙">
+    <text x="662" y="191" text-anchor="middle" class="column-title">힙</text>
+    <rect x="452" y="210" width="420" height="452" rx="18" fill="#ffffff" stroke="#b8c0cc" stroke-width="1.5" />
+    <g id="node-sample-object">
+      <rect x="504" y="257" width="316" height="166" rx="13" fill="#ffffff" />
+      <path d="M 517 257 H 807 Q 820 257 820 270 V 410 Q 820 423 807 423 H 517" fill="none" stroke="#111827" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 517 257 Q 504 257 504 270 V 410 Q 504 423 517 423" fill="none" stroke="#1473e6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="519" y="286" class="node-title" style="font-size: 16px;">Profile 인스턴스</text>
+      <g>
+        <rect x="759.36" y="270" width="46.64" height="24" rx="12" fill="#dbeafe" />
+        <text x="782.6800000000001" y="287" text-anchor="middle" style="font-size: 12px; font-weight: 760; fill: #1473e6;">RC 1</text>
+      </g>
+      <line x1="518" y1="304" x2="806" y2="304" stroke="#e2e8f0" />
+      <text x="520" y="332" class="row-label" style="font-size: 14px;">name</text>
+      <text x="804" y="332" text-anchor="end" class="row-value" style="font-size: 14px;">홍길동</text>
+      <text x="520" y="366" class="row-label" style="font-size: 14px;">주소</text>
+      <text x="804" y="366" text-anchor="end" class="row-value mono muted-text" style="font-size: 14px;">0xA120</text>
+      <text x="519" y="409" class="node-footer" style="font-size: 13px;">ARC가 수명을 관리</text>
+    </g>
+    <g id="node-sample-closure">
+      <rect x="542" y="489" width="240" height="126" rx="13" fill="#faf7ff" />
+      <path d="M 555 489 H 769 Q 782 489 782 502 V 602 Q 782 615 769 615 H 555" fill="none" stroke="#6d28d9" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 555 489 Q 542 489 542 502 V 602 Q 542 615 555 615" fill="none" stroke="#7c3aed" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="557" y="518" class="node-title" style="font-size: 16px;">저장 클로저</text>
+      
+      <line x1="556" y1="536" x2="768" y2="536" stroke="#e2e8f0" />
+      <text x="558" y="564" class="row-label" style="font-size: 14px;">capture</text>
+      <text x="766" y="564" text-anchor="end" class="row-value weak-text" style="font-size: 14px;">weak self</text>
+      <text x="557" y="601" class="node-footer" style="font-size: 13px;">호출 뒤에도 저장 가능</text>
+    </g>
+  </g>
+  <g id="column-stack-1" aria-label="스택 1">
+    <text x="1039" y="191" text-anchor="middle" class="column-title">스택 1</text>
+    <rect x="884" y="210" width="310" height="452" rx="18" fill="#f8fafc" stroke="#b8c0cc" stroke-width="1.5" />
+    <g id="node-sample-frame-1">
+      <rect x="902" y="476" width="274" height="166" rx="13" fill="#ffffff" />
+      <path d="M 915 476 H 1163 Q 1176 476 1176 489 V 629 Q 1176 642 1163 642 H 915" fill="none" stroke="#64748b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 915 476 Q 902 476 902 489 V 629 Q 902 642 915 642" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="917" y="505" class="node-title mono" style="font-size: 16px;">loadProfile()</text>
+      
+      <line x1="916" y1="523" x2="1162" y2="523" stroke="#e2e8f0" />
+      <text x="918" y="551" class="row-label" style="font-size: 14px;">profile</text>
+      <text x="1160" y="551" text-anchor="end" class="row-value mono strong-text" style="font-size: 14px;">0xA120</text>
+      <text x="918" y="585" class="row-label" style="font-size: 14px;">userID</text>
+      <text x="1160" y="585" text-anchor="end" class="row-value" style="font-size: 14px;">42</text>
+      <text x="917" y="628" class="node-footer" style="font-size: 13px;">현재 호출 프레임</text>
+    </g>
+  </g>
+  <g id="column-stack-2" aria-label="스택 2">
+    <text x="1331" y="191" text-anchor="middle" class="column-title">스택 2</text>
+    <rect x="1206" y="210" width="250" height="452" rx="18" fill="#f8fafc" stroke="#b8c0cc" stroke-width="1.5" />
+    <g id="node-sample-frame-2">
+      <rect x="1222" y="510" width="218" height="132" rx="13" fill="#ffffff" />
+      <path d="M 1235 510 H 1427 Q 1440 510 1440 523 V 629 Q 1440 642 1427 642 H 1235" fill="none" stroke="#64748b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M 1235 510 Q 1222 510 1222 523 V 629 Q 1222 642 1235 642" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="1237" y="539" class="node-title mono" style="font-size: 16px;">callback()</text>
+      
+      <line x1="1236" y1="557" x2="1426" y2="557" stroke="#e2e8f0" />
+      <text x="1238" y="585" class="row-label" style="font-size: 14px;">owner</text>
+      <text x="1424" y="585" text-anchor="end" class="row-value weak-text" style="font-size: 14px;">weak</text>
+      <text x="1237" y="628" class="node-footer" style="font-size: 13px;">별도 실행 흐름</text>
+    </g>
+  </g>
+
+  <g aria-label="참조 관계">
+    <g>
+      <path d="M 902 546 L 820 339" fill="none" stroke="#1473e6" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow-strong)" />
+      <g>
+        <rect x="828.75" y="412.5" width="64.5" height="23" rx="11.5" fill="#ffffff" stroke="#e2e8f0" />
+        <text x="861" y="428.5" text-anchor="middle" class="connector-label strong-text">강한 참조</text>
+      </g>
+    </g>
+    <g>
+      <path d="M 662 489 C 662 441, 714 471, 714 423" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 8" marker-end="url(#arrow-weak)" />
+      <g>
+        <rect x="690.75" y="440" width="98.5" height="23" rx="11.5" fill="#ffffff" stroke="#e2e8f0" />
+        <text x="740" y="456" text-anchor="middle" class="connector-label weak-text">weak self</text>
+      </g>
+    </g>
+    <g>
+      <path d="M 204 436 L 246 436" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="2 7" marker-end="url(#arrow-layout)" />
+      
+    </g>
+  </g>
+</svg>
