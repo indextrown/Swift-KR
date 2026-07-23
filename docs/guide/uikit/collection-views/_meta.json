@@ -1,0 +1,42 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "한눈에 보기"
+  },
+  {
+    "type": "file",
+    "name": "views",
+    "label": "화면과 역할"
+  },
+  {
+    "type": "file",
+    "name": "data",
+    "label": "데이터와 Diffable Data Source"
+  },
+  {
+    "type": "file",
+    "name": "cells-and-reusable-views",
+    "label": "셀과 재사용 뷰"
+  },
+  {
+    "type": "file",
+    "name": "layouts",
+    "label": "레이아웃"
+  },
+  {
+    "type": "file",
+    "name": "selection",
+    "label": "선택 상태"
+  },
+  {
+    "type": "file",
+    "name": "drag-and-drop",
+    "label": "드래그 앤 드롭"
+  },
+  {
+    "type": "file",
+    "name": "official-document-inventory",
+    "label": "공식 문서 인벤토리"
+  }
+]
