@@ -6,6 +6,12 @@
     "position": "left"
   },
   {
+    "text": "UIKit",
+    "link": "/guide/uikit/collection-views/index",
+    "activeMatch": "/guide/uikit/",
+    "position": "left"
+  },
+  {
     "text": "디자인 패턴",
     "link": "/guide/design-patterns/dependency-injection",
     "activeMatch": "/guide/design-patterns/",

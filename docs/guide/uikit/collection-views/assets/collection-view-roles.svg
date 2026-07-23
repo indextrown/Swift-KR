@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 760" role="img" aria-labelledby="title description">
+  <title id="title">Collection View 구성 요소의 역할</title>
+  <desc id="description">앱 모델이 snapshot을 만들고 diffable data source가 Collection View에 상태를 적용한다. Collection View는 layout에서 위치 정보를 받고 재사용 셀을 화면에 표시한다.</desc>
+  <defs>
+    <style>
+      .title { font-family: "Helvetica Neue", "Apple SD Gothic Neo", Arial, sans-serif; font-size: 32px; font-weight: 700; fill: #111827; }
+      .subtitle { font-family: "Helvetica Neue", "Apple SD Gothic Neo", Arial, sans-serif; font-size: 17px; font-weight: 500; fill: #64748b; }
+      .box-title { font-family: "Helvetica Neue", "Apple SD Gothic Neo", Arial, sans-serif; font-size: 22px; font-weight: 700; fill: #0f172a; }
+      .box-text { font-family: "Helvetica Neue", "Apple SD Gothic Neo", Arial, sans-serif; font-size: 16px; font-weight: 500; fill: #475569; }
+      .code { font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace; font-size: 17px; font-weight: 700; fill: #075dcc; }
+      .label { font-family: "Helvetica Neue", "Apple SD Gothic Neo", Arial, sans-serif; font-size: 14px; font-weight: 700; fill: #075dcc; }
+      .flow { fill: none; stroke: #1675ea; stroke-width: 3; stroke-linecap: round; }
+      .request { fill: none; stroke: #7c3aed; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 9 8; }
+    </style>
+    <marker id="blue-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#1675ea"/>
+    </marker>
+    <marker id="purple-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#7c3aed"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#0f172a" flood-opacity=".08"/>
+    </filter>
+  </defs>
+
+  <rect width="1400" height="760" rx="28" fill="#f8fafc"/>
+  <text class="title" x="60" y="66">Collection View는 데이터·표시·배치를 나눠요</text>
+  <text class="subtitle" x="60" y="99">안정적인 식별자가 화면 상태를 흐르고, 뷰와 레이아웃은 필요한 순간에 조합돼요.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="60" y="170" width="250" height="180" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="60" y="170" width="8" height="180" rx="4" fill="#0f7ae5"/>
+    <text class="box-title" x="90" y="218">앱 모델</text>
+    <text class="code" x="90" y="254">[Photo.ID: Photo]</text>
+    <text class="box-text" x="90" y="294">실제 데이터와 상태를 저장</text>
+    <text class="box-text" x="90" y="321">정체성은 ID로 유지</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="395" y="170" width="270" height="180" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="395" y="170" width="8" height="180" rx="4" fill="#0f7ae5"/>
+    <text class="box-title" x="425" y="218">Snapshot</text>
+    <text class="code" x="425" y="254">Section + Item.ID</text>
+    <text class="box-text" x="425" y="294">한 시점의 순서와 포함 관계</text>
+    <text class="box-text" x="425" y="321">화면의 목표 상태를 표현</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="750" y="170" width="290" height="180" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="750" y="170" width="8" height="180" rx="4" fill="#0f7ae5"/>
+    <text class="box-title" x="780" y="218">Diffable Data Source</text>
+    <text class="code" x="780" y="254">apply(snapshot)</text>
+    <text class="box-text" x="780" y="294">이전 상태와 차이를 계산</text>
+    <text class="box-text" x="780" y="321">item ID로 셀 구성을 요청</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1125" y="170" width="215" height="180" rx="22" fill="#ffffff" stroke="#1675ea" stroke-width="3"/>
+    <rect x="1125" y="170" width="8" height="180" rx="4" fill="#1675ea"/>
+    <text class="box-title" x="1155" y="218">UICollectionView</text>
+    <text class="box-text" x="1155" y="260">스크롤·선택 관리</text>
+    <text class="box-text" x="1155" y="290">재사용 뷰 요청</text>
+    <text class="box-text" x="1155" y="320">화면에 실제 배치</text>
+  </g>
+
+  <path class="flow" d="M310 260H389"/>
+  <path d="M389 260L382 256V264Z" fill="#1675ea"/>
+  <rect x="319" y="229" width="62" height="26" rx="13" fill="#e8f3ff"/>
+  <text class="label" x="350" y="247" text-anchor="middle">ID 추출</text>
+
+  <path class="flow" d="M665 260H744"/>
+  <path d="M744 260L737 256V264Z" fill="#1675ea"/>
+  <rect x="674" y="229" width="58" height="26" rx="13" fill="#e8f3ff"/>
+  <text class="label" x="703" y="247" text-anchor="middle">적용</text>
+
+  <path class="flow" d="M1040 260H1119"/>
+  <path d="M1119 260L1112 256V264Z" fill="#1675ea"/>
+  <rect x="1044" y="229" width="66" height="26" rx="13" fill="#e8f3ff"/>
+  <text class="label" x="1077" y="247" text-anchor="middle">차이 반영</text>
+
+  <g filter="url(#shadow)">
+    <rect x="195" y="510" width="390" height="160" rx="22" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+    <rect x="195" y="510" width="8" height="160" rx="4" fill="#7c3aed"/>
+    <text class="box-title" x="225" y="558">Collection View Layout</text>
+    <text class="code" x="225" y="594">layoutAttributes</text>
+    <text class="box-text" x="225" y="630">셀·헤더의 크기와 위치를 계산</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="815" y="510" width="390" height="160" rx="22" fill="#ffffff" stroke="#a78bfa" stroke-width="2"/>
+    <rect x="815" y="510" width="8" height="160" rx="4" fill="#7c3aed"/>
+    <text class="box-title" x="845" y="558">Reusable Cells</text>
+    <text class="code" x="845" y="594">CellRegistration</text>
+    <text class="box-text" x="845" y="630">현재 item 데이터로 매번 다시 구성</text>
+  </g>
+
+  <path class="request" d="M1125 323C1020 420 820 444 585 555" marker-end="url(#purple-arrow)"/>
+  <rect x="820" y="415" width="112" height="28" rx="14" fill="#f3e8ff"/>
+  <text x="876" y="434" text-anchor="middle" style="font-family:'Helvetica Neue','Apple SD Gothic Neo',Arial,sans-serif;font-size:14px;font-weight:700;fill:#6d28d9">위치 정보 요청</text>
+
+  <path class="request" d="M1125 327C1080 410 1040 445 1015 500" marker-end="url(#purple-arrow)"/>
+  <rect x="1038" y="415" width="112" height="28" rx="14" fill="#f3e8ff"/>
+  <text x="1094" y="434" text-anchor="middle" style="font-family:'Helvetica Neue','Apple SD Gothic Neo',Arial,sans-serif;font-size:14px;font-weight:700;fill:#6d28d9">보이는 셀 요청</text>
+
+  <path class="flow" d="M750 330C690 430 645 475 585 550" marker-end="url(#blue-arrow)"/>
+  <rect x="636" y="431" width="98" height="28" rx="14" fill="#e8f3ff"/>
+  <text class="label" x="685" y="450" text-anchor="middle">배치와 독립</text>
+</svg>

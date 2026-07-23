@@ -1,0 +1,9 @@
+[
+  {
+    "type": "dir",
+    "name": "collection-views",
+    "label": "Collection Views",
+    "collapsible": true,
+    "collapsed": true
+  }
+]

@@ -6,6 +6,11 @@
   },
   {
     "type": "dir-section-header",
+    "name": "uikit",
+    "label": "UIKit"
+  },
+  {
+    "type": "dir-section-header",
     "name": "design-patterns",
     "label": "디자인 패턴"
   }

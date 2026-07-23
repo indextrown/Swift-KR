@@ -145,6 +145,19 @@ html .rp-sidebar-item__left .rp-doc {
   overflow-wrap: break-word;
 }
 
+html .rp-sidebar-group.rp-sidebar-item--active,
+html .rp-sidebar-group.rp-sidebar-item--active:hover {
+  color: var(--rp-c-text-1);
+  background-color: transparent;
+  font-weight: 400;
+}
+
+html
+  .rp-sidebar-group.rp-sidebar-item--group-item.rp-sidebar-item--active
+  .rp-sidebar-item__left:before {
+  background-color: var(--rp-c-divider-light);
+}
+
 html .osd-outline {
   border-left: 0;
   box-shadow: none;

@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 740" role="img" aria-labelledby="title description">
+  <title id="title">Collection View 셀 재사용 흐름</title>
+  <desc id="description">Photo A를 표시하던 셀이 화면 밖으로 이동하고 prepareForReuse를 거쳐 재사용 큐에 들어간 뒤, Photo B 데이터로 다시 구성되어 화면에 표시된다.</desc>
+  <defs>
+    <style>
+      .title { font-family: "Helvetica Neue", "Apple SD Gothic Neo", Arial, sans-serif; font-size: 32px; font-weight: 700; fill: #111827; }
+      .subtitle { font-family: "Helvetica Neue", "Apple SD Gothic Neo", Arial, sans-serif; font-size: 17px; font-weight: 500; fill: #64748b; }
+      .step { font-family: "Helvetica Neue", "Apple SD Gothic Neo", Arial, sans-serif; font-size: 14px; font-weight: 700; fill: #075dcc; }
+      .card-title { font-family: "Helvetica Neue", "Apple SD Gothic Neo", Arial, sans-serif; font-size: 21px; font-weight: 700; fill: #0f172a; }
+      .card-text { font-family: "Helvetica Neue", "Apple SD Gothic Neo", Arial, sans-serif; font-size: 16px; font-weight: 500; fill: #475569; }
+      .code { font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace; font-size: 16px; font-weight: 700; fill: #075dcc; }
+      .arrow { fill: none; stroke: #1675ea; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+    <marker id="arrowhead" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#1675ea"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#0f172a" flood-opacity=".08"/>
+    </filter>
+  </defs>
+
+  <rect width="1400" height="740" rx="28" fill="#f8fafc"/>
+  <text class="title" x="60" y="66">같은 셀 객체가 다른 item을 표현해요</text>
+  <text class="subtitle" x="60" y="99">재사용은 객체를 아끼지만, 이전 상태를 모두 덮어써야 한다는 책임이 생겨요.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="185" width="270" height="180" rx="22" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="70" y="185" width="8" height="180" rx="4" fill="#1675ea"/>
+    <rect x="102" y="220" width="72" height="72" rx="16" fill="#dbeafe"/>
+    <circle cx="138" cy="250" r="14" fill="#60a5fa"/>
+    <path d="M111 282L134 259L149 273L160 262L170 282Z" fill="#2563eb"/>
+    <text class="card-title" x="195" y="238">화면 표시</text>
+    <text class="code" x="195" y="272">Photo A</text>
+    <text class="card-text" x="102" y="328">텍스트·이미지·선택 상태 구성</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="415" y="185" width="250" height="180" rx="22" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="415" y="185" width="8" height="180" rx="4" fill="#64748b"/>
+    <text class="card-title" x="450" y="238">화면 밖 이동</text>
+    <text class="card-text" x="450" y="278">스크롤로 보이는 범위를</text>
+    <text class="card-text" x="450" y="306">벗어나도 객체를 바로</text>
+    <text class="card-text" x="450" y="334">버리지 않을 수 있어요.</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="740" y="185" width="270" height="180" rx="22" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="740" y="185" width="8" height="180" rx="4" fill="#7c3aed"/>
+    <text class="card-title" x="775" y="238">재사용 준비</text>
+    <text class="code" x="775" y="276">prepareForReuse()</text>
+    <text class="card-text" x="775" y="314">비동기 요청 취소</text>
+    <text class="card-text" x="775" y="340">임시 상태와 이미지 초기화</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1085" y="185" width="245" height="180" rx="22" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="1085" y="185" width="8" height="180" rx="4" fill="#7c3aed"/>
+    <text class="card-title" x="1120" y="238">재사용 큐</text>
+    <text class="code" x="1120" y="276">Reusable Cell</text>
+    <text class="card-text" x="1120" y="314">다음 요청까지 같은</text>
+    <text class="card-text" x="1120" y="340">종류의 셀을 보관해요.</text>
+  </g>
+
+  <path class="arrow" d="M340 275H409"/>
+  <path d="M409 275L402 271V279Z" fill="#1675ea"/>
+  <path class="arrow" d="M665 275H734"/>
+  <path d="M734 275L727 271V279Z" fill="#1675ea"/>
+  <path class="arrow" d="M1010 275H1079"/>
+  <path d="M1079 275L1072 271V279Z" fill="#1675ea"/>
+  <text class="step" x="373" y="252" text-anchor="middle">1</text>
+  <text class="step" x="698" y="252" text-anchor="middle">2</text>
+  <text class="step" x="1043" y="252" text-anchor="middle">3</text>
+
+  <g filter="url(#shadow)">
+    <rect x="735" y="500" width="290" height="160" rx="22" fill="#fff" stroke="#93c5fd" stroke-width="2"/>
+    <rect x="735" y="500" width="8" height="160" rx="4" fill="#1675ea"/>
+    <text class="card-title" x="770" y="548">다시 구성</text>
+    <text class="code" x="770" y="585">CellRegistration</text>
+    <text class="card-text" x="770" y="624">Photo B의 모든 상태를 대입</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="375" y="500" width="285" height="160" rx="22" fill="#fff" stroke="#93c5fd" stroke-width="2"/>
+    <rect x="375" y="500" width="8" height="160" rx="4" fill="#1675ea"/>
+    <text class="card-title" x="410" y="548">dequeue</text>
+    <text class="code" x="410" y="585">configured cell</text>
+    <text class="card-text" x="410" y="624">필요한 위치에 셀을 요청</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="60" y="500" width="240" height="160" rx="22" fill="#fff" stroke="#1675ea" stroke-width="3"/>
+    <rect x="60" y="500" width="8" height="160" rx="4" fill="#1675ea"/>
+    <text class="card-title" x="95" y="548">화면 표시</text>
+    <text class="code" x="95" y="585">Photo B</text>
+    <text class="card-text" x="95" y="624">같은 객체, 새로운 내용</text>
+  </g>
+
+  <path class="arrow" d="M1207 365V430C1207 470 1175 490 1035 555"/>
+  <path d="M1035 555L1045 549L1043 558Z" fill="#1675ea"/>
+  <path class="arrow" d="M735 580H666"/>
+  <path d="M666 580L673 576V584Z" fill="#1675ea"/>
+  <path class="arrow" d="M375 580H306"/>
+  <path d="M306 580L313 576V584Z" fill="#1675ea"/>
+  <text class="step" x="1185" y="432">4</text>
+  <text class="step" x="703" y="558" text-anchor="middle">5</text>
+  <text class="step" x="343" y="558" text-anchor="middle">6</text>
+
+  <path class="arrow" d="M60 580H35V140H205V179"/>
+  <path d="M205 179L201 172H209Z" fill="#1675ea"/>
+  <text class="step" x="30" y="385" text-anchor="middle">반복</text>
+</svg>
