@@ -233,6 +233,31 @@ html
   display: none;
 }
 
+.memory-diagram {
+  max-width: 100%;
+  margin: 24px 0;
+  overflow-x: auto;
+  border-radius: 16px;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.memory-diagram > p {
+  margin: 0;
+}
+
+.memory-diagram img {
+  display: block;
+  width: 100%;
+  max-width: none;
+}
+
+@media (width <= 640px) {
+  .memory-diagram img {
+    width: 780px;
+  }
+}
+
 .rp-home-background {
   filter: blur(28px);
   opacity: 0.72;

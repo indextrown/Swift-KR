@@ -1,6 +1,11 @@
 [
   {
     "type": "dir-section-header",
+    "name": "swift",
+    "label": "Swift"
+  },
+  {
+    "type": "dir-section-header",
     "name": "design-patterns",
     "label": "디자인 패턴"
   }

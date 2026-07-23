@@ -1,0 +1,210 @@
+{
+  "title": "[weak self]는 클로저에서 객체로 돌아오는 고리를 끊어요",
+  "subtitle": "클로저는 저장되지만 self를 소유하지 않으므로 화면이 닫히면 함께 정리할 수 있어요.",
+  "accessibility": {
+    "title": "weak self 캡처로 클로저 순환을 끊는 관계",
+    "description": "스택의 화면은 ProfileHeaderViewModel을 강하게 참조하고, ViewModel에서 makeTitle 클로저로는 강한 참조, 클로저에서 self로는 약한 참조가 있어 순환이 생기지 않는 관계를 보여 준다."
+  },
+  "layout": {
+    "height": 760
+  },
+  "columns": [
+    {
+      "id": "code",
+      "title": "코드",
+      "type": "code",
+      "width": 180,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "weak-closure-code",
+          "kind": "code",
+          "title": "[weak self]",
+          "monospaceTitle": true,
+          "x": 14,
+          "width": 152,
+          "height": 142,
+          "rows": [
+            {
+              "label": "캡처",
+              "value": "소유 안 함",
+              "tone": "weak"
+            }
+          ],
+          "footer": "호출 시 Optional"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "데이터",
+      "type": "data",
+      "width": 175,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "weak-closure-data",
+          "kind": "data",
+          "title": "전역·정적 값",
+          "x": 15,
+          "width": 145,
+          "height": 112,
+          "rows": [
+            {
+              "label": "이 예제",
+              "value": "없음",
+              "tone": "muted"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heap",
+      "title": "힙",
+      "type": "heap",
+      "width": 590,
+      "nodeLayout": {
+        "vertical": "center",
+        "gap": 88
+      },
+      "nodes": [
+        {
+          "id": "weak-closure-view-model",
+          "kind": "object",
+          "title": "ProfileHeaderViewModel",
+          "monospaceTitle": true,
+          "tag": "외부 소유",
+          "tagTone": "safe",
+          "x": 74,
+          "width": 442,
+          "height": 152,
+          "rows": [
+            {
+              "label": "makeTitle",
+              "value": "0xC360",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "저장 프로퍼티가 클로저를 소유"
+        },
+        {
+          "id": "weak-stored-closure",
+          "kind": "closure",
+          "title": "makeTitle 저장 클로저",
+          "tag": "해제 가능",
+          "tagTone": "safe",
+          "x": 74,
+          "width": 442,
+          "height": 152,
+          "rows": [
+            {
+              "label": "capture weak self",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "weak"
+            }
+          ],
+          "footer": "self를 소유하지 않음"
+        }
+      ]
+    },
+    {
+      "id": "stack",
+      "title": "스택",
+      "type": "stack",
+      "width": 330,
+      "nodeLayout": {
+        "vertical": "bottom-up",
+        "gap": 38,
+        "paddingBottom": 20
+      },
+      "nodes": [
+        {
+          "id": "weak-header-owner",
+          "kind": "frame",
+          "title": "ProfileHeader 화면",
+          "x": 18,
+          "width": 294,
+          "height": 150,
+          "rows": [
+            {
+              "label": "viewModel",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "화면이 수명을 소유"
+        },
+        {
+          "id": "weak-closure-result",
+          "kind": "note",
+          "title": "화면이 닫히면",
+          "x": 18,
+          "width": 294,
+          "height": 104,
+          "rows": [
+            {
+              "label": "viewModel = nil",
+              "value": "둘 다 해제",
+              "tone": "safe"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "connectors": [
+    {
+      "from": {
+        "id": "weak-header-owner",
+        "side": "left",
+        "offset": 68
+      },
+      "to": {
+        "id": "weak-closure-view-model",
+        "side": "right",
+        "offset": 72
+      },
+      "kind": "strong",
+      "label": "화면이 소유",
+      "labelOffset": [0, -16]
+    },
+    {
+      "from": {
+        "id": "weak-closure-view-model",
+        "side": "bottom",
+        "offset": 128
+      },
+      "to": {
+        "id": "weak-stored-closure",
+        "side": "top",
+        "offset": 128
+      },
+      "kind": "strong",
+      "label": "makeTitle 프로퍼티",
+      "labelOffset": [-76, 0]
+    },
+    {
+      "from": {
+        "id": "weak-stored-closure",
+        "side": "top",
+        "offset": 318
+      },
+      "to": {
+        "id": "weak-closure-view-model",
+        "side": "bottom",
+        "offset": 318
+      },
+      "kind": "weak",
+      "label": "weak self 캡처",
+      "labelOffset": [72, 0]
+    }
+  ]
+}

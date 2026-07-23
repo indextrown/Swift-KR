@@ -1,0 +1,151 @@
+{
+  "title": "코드를 실행하면 값마다 머무는 위치가 달라요",
+  "subtitle": "영역은 개념 모델이며, 실제 배치는 컴파일러 최적화에 따라 달라질 수 있어요.",
+  "accessibility": {
+    "title": "Swift 앱의 메모리 영역",
+    "description": "코드, 데이터, 힙, 스택 영역을 나누고 스택의 profile 지역 변수가 힙의 Profile 인스턴스를 강하게 참조하는 관계를 실선 화살표로 보여 준다."
+  },
+  "layout": {
+    "height": 720
+  },
+  "columns": [
+    {
+      "id": "code",
+      "title": "코드",
+      "type": "code",
+      "width": 170,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "show-profile-code",
+          "kind": "code",
+          "title": "showProfile()",
+          "monospaceTitle": true,
+          "x": 14,
+          "width": 142,
+          "height": 140,
+          "rows": [
+            {
+              "label": "명령",
+              "value": "실행 코드"
+            }
+          ],
+          "footer": "컴파일된 명령"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "데이터",
+      "type": "data",
+      "width": 190,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "launch-count",
+          "kind": "data",
+          "title": "전역·정적 값",
+          "x": 15,
+          "width": 160,
+          "height": 132,
+          "rows": [
+            {
+              "label": "launchCount",
+              "value": "1"
+            }
+          ],
+          "footer": "앱 실행 동안 유지"
+        }
+      ]
+    },
+    {
+      "id": "heap",
+      "title": "힙",
+      "type": "heap",
+      "width": 450,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "profile-object",
+          "kind": "object",
+          "title": "Profile 인스턴스",
+          "tag": "RC 1",
+          "tagTone": "strong",
+          "x": 60,
+          "width": 330,
+          "height": 174,
+          "rows": [
+            {
+              "label": "name",
+              "value": "홍길동"
+            },
+            {
+              "label": "주소",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "muted"
+            }
+          ],
+          "footer": "클래스 인스턴스 저장"
+        }
+      ]
+    },
+    {
+      "id": "stack",
+      "title": "스택",
+      "type": "stack",
+      "width": 350,
+      "nodeLayout": {
+        "vertical": "bottom-up",
+        "paddingBottom": 20
+      },
+      "nodes": [
+        {
+          "id": "show-profile-frame",
+          "kind": "frame",
+          "title": "showProfile()",
+          "monospaceTitle": true,
+          "x": 20,
+          "width": 310,
+          "height": 176,
+          "rows": [
+            {
+              "label": "profile",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "strong"
+            },
+            {
+              "label": "localID",
+              "value": "42"
+            }
+          ],
+          "footer": "함수가 끝나면 프레임 제거"
+        }
+      ]
+    }
+  ],
+  "connectors": [
+    {
+      "from": {
+        "id": "show-profile-frame",
+        "side": "left",
+        "offset": 78
+      },
+      "to": {
+        "id": "profile-object",
+        "side": "right",
+        "offset": 86
+      },
+      "kind": "strong",
+      "label": "profile이 소유",
+      "labelOffset": [0, 20]
+    }
+  ]
+}

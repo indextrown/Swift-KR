@@ -1,0 +1,226 @@
+{
+  "title": "Swift-KR 메모리 다이어그램 샘플",
+  "subtitle": "열의 폭과 스택 개수를 바꾸고, 노드와 참조 관계를 JSON으로 정의해요.",
+  "accessibility": {
+    "title": "Swift-KR 메모리 다이어그램 템플릿",
+    "description": "폭이 서로 다른 코드, 데이터, 힙, 스택 1, 스택 2 영역과 강한 참조, 약한 참조, 구조 연결 표현을 보여 주는 샘플이다."
+  },
+  "layout": {
+    "height": 720
+  },
+  "columns": [
+    {
+      "id": "code",
+      "title": "코드",
+      "type": "code",
+      "width": 160,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "sample-code",
+          "kind": "code",
+          "title": "loadProfile()",
+          "monospaceTitle": true,
+          "x": 14,
+          "width": 132,
+          "height": 126,
+          "rows": [
+            {
+              "label": "명령",
+              "value": "실행 코드"
+            }
+          ],
+          "footer": "읽기 전용 영역"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "데이터",
+      "type": "data",
+      "width": 210,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "sample-data",
+          "kind": "data",
+          "title": "정적 저장 값",
+          "x": 16,
+          "width": 178,
+          "height": 130,
+          "rows": [
+            {
+              "label": "appName",
+              "value": "Swift-KR"
+            }
+          ],
+          "footer": "앱 실행 동안 유지"
+        }
+      ]
+    },
+    {
+      "id": "heap",
+      "title": "힙",
+      "type": "heap",
+      "width": 420,
+      "nodeLayout": {
+        "vertical": "center",
+        "gap": 66
+      },
+      "nodes": [
+        {
+          "id": "sample-object",
+          "kind": "object",
+          "title": "Profile 인스턴스",
+          "tag": "RC 1",
+          "tagTone": "strong",
+          "x": 52,
+          "width": 316,
+          "height": 166,
+          "rows": [
+            {
+              "label": "name",
+              "value": "홍길동"
+            },
+            {
+              "label": "주소",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "muted"
+            }
+          ],
+          "footer": "ARC가 수명을 관리"
+        },
+        {
+          "id": "sample-closure",
+          "kind": "closure",
+          "title": "저장 클로저",
+          "x": 90,
+          "width": 240,
+          "height": 126,
+          "rows": [
+            {
+              "label": "capture",
+              "value": "weak self",
+              "tone": "weak"
+            }
+          ],
+          "footer": "호출 뒤에도 저장 가능"
+        }
+      ]
+    },
+    {
+      "id": "stack-1",
+      "title": "스택 1",
+      "type": "stack",
+      "width": 310,
+      "nodeLayout": {
+        "vertical": "bottom-up",
+        "paddingBottom": 20
+      },
+      "nodes": [
+        {
+          "id": "sample-frame-1",
+          "kind": "frame",
+          "title": "loadProfile()",
+          "monospaceTitle": true,
+          "x": 18,
+          "width": 274,
+          "height": 166,
+          "rows": [
+            {
+              "label": "profile",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "strong"
+            },
+            {
+              "label": "userID",
+              "value": "42"
+            }
+          ],
+          "footer": "현재 호출 프레임"
+        }
+      ]
+    },
+    {
+      "id": "stack-2",
+      "title": "스택 2",
+      "type": "stack",
+      "width": 250,
+      "nodeLayout": {
+        "vertical": "bottom-up",
+        "paddingBottom": 20
+      },
+      "nodes": [
+        {
+          "id": "sample-frame-2",
+          "kind": "frame",
+          "title": "callback()",
+          "monospaceTitle": true,
+          "x": 16,
+          "width": 218,
+          "height": 132,
+          "rows": [
+            {
+              "label": "owner",
+              "value": "weak",
+              "tone": "weak"
+            }
+          ],
+          "footer": "별도 실행 흐름"
+        }
+      ]
+    }
+  ],
+  "connectors": [
+    {
+      "from": {
+        "id": "sample-frame-1",
+        "side": "left",
+        "offset": 70
+      },
+      "to": {
+        "id": "sample-object",
+        "side": "right",
+        "offset": 82
+      },
+      "kind": "strong",
+      "label": "강한 참조",
+      "labelOffset": [0, -14]
+    },
+    {
+      "from": {
+        "id": "sample-closure",
+        "side": "top",
+        "offset": 120
+      },
+      "to": {
+        "id": "sample-object",
+        "side": "bottom",
+        "offset": 210
+      },
+      "kind": "weak",
+      "label": "weak self",
+      "curve": [0, -48, 0, 48],
+      "labelOffset": [52, 0]
+    },
+    {
+      "from": {
+        "id": "sample-code",
+        "side": "right",
+        "offset": 63
+      },
+      "to": {
+        "id": "sample-data",
+        "side": "left",
+        "offset": 65
+      },
+      "kind": "layout"
+    }
+  ]
+}

@@ -1,0 +1,210 @@
+{
+  "title": "되돌아오는 참조를 weak로 바꾸면 고리가 끊겨요",
+  "subtitle": "화면이 ViewModel을 놓으면 ViewModel과 Coordinator를 순서대로 해제할 수 있어요.",
+  "accessibility": {
+    "title": "약한 참조로 객체 순환을 끊는 관계",
+    "description": "스택의 화면은 ProfileViewModel을 강하게 참조하고, ViewModel에서 Coordinator로는 강한 참조, Coordinator에서 ViewModel로는 약한 참조가 있어 순환이 생기지 않는 관계를 보여 준다."
+  },
+  "layout": {
+    "height": 760
+  },
+  "columns": [
+    {
+      "id": "code",
+      "title": "코드",
+      "type": "code",
+      "width": 165,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "weak-code",
+          "kind": "code",
+          "title": "weak var",
+          "monospaceTitle": true,
+          "x": 14,
+          "width": 137,
+          "height": 132,
+          "rows": [
+            {
+              "label": "대상",
+              "value": "viewModel"
+            }
+          ],
+          "footer": "소유하지 않는 참조"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "데이터",
+      "type": "data",
+      "width": 175,
+      "nodeLayout": {
+        "vertical": "center"
+      },
+      "nodes": [
+        {
+          "id": "weak-data",
+          "kind": "data",
+          "title": "전역·정적 값",
+          "x": 15,
+          "width": 145,
+          "height": 112,
+          "rows": [
+            {
+              "label": "이 예제",
+              "value": "없음",
+              "tone": "muted"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heap",
+      "title": "힙",
+      "type": "heap",
+      "width": 560,
+      "nodeLayout": {
+        "vertical": "center",
+        "gap": 48
+      },
+      "nodes": [
+        {
+          "id": "weak-view-model",
+          "kind": "object",
+          "title": "ProfileViewModel",
+          "monospaceTitle": true,
+          "tag": "외부 소유",
+          "tagTone": "safe",
+          "x": 76,
+          "width": 408,
+          "height": 152,
+          "rows": [
+            {
+              "label": "coordinator",
+              "value": "0xB240",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "Coordinator를 강하게 소유"
+        },
+        {
+          "id": "weak-coordinator",
+          "kind": "object",
+          "title": "ProfileCoordinator",
+          "monospaceTitle": true,
+          "tag": "해제 가능",
+          "tagTone": "safe",
+          "x": 76,
+          "width": 408,
+          "height": 152,
+          "rows": [
+            {
+              "label": "weak viewModel",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "weak"
+            }
+          ],
+          "footer": "ViewModel을 소유하지 않음"
+        }
+      ]
+    },
+    {
+      "id": "stack",
+      "title": "스택",
+      "type": "stack",
+      "width": 330,
+      "nodeLayout": {
+        "vertical": "bottom-up",
+        "gap": 36,
+        "paddingBottom": 20
+      },
+      "nodes": [
+        {
+          "id": "screen-owner",
+          "kind": "frame",
+          "title": "Profile 화면",
+          "x": 18,
+          "width": 294,
+          "height": 150,
+          "rows": [
+            {
+              "label": "viewModel",
+              "value": "0xA120",
+              "monospace": true,
+              "tone": "strong"
+            }
+          ],
+          "footer": "화면이 수명을 소유"
+        },
+        {
+          "id": "release-result",
+          "kind": "note",
+          "title": "화면이 닫히면",
+          "x": 18,
+          "width": 294,
+          "height": 104,
+          "rows": [
+            {
+              "label": "viewModel = nil",
+              "value": "둘 다 해제",
+              "tone": "safe"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "connectors": [
+    {
+      "from": {
+        "id": "screen-owner",
+        "side": "left",
+        "offset": 68
+      },
+      "to": {
+        "id": "weak-view-model",
+        "side": "right",
+        "offset": 72
+      },
+      "kind": "strong",
+      "label": "화면이 소유",
+      "labelOffset": [0, -16]
+    },
+    {
+      "from": {
+        "id": "weak-view-model",
+        "side": "bottom",
+        "offset": 118
+      },
+      "to": {
+        "id": "weak-coordinator",
+        "side": "top",
+        "offset": 118
+      },
+      "kind": "strong",
+      "label": "coordinator",
+      "labelOffset": [-58, 0]
+    },
+    {
+      "from": {
+        "id": "weak-coordinator",
+        "side": "top",
+        "offset": 290
+      },
+      "to": {
+        "id": "weak-view-model",
+        "side": "bottom",
+        "offset": 290
+      },
+      "kind": "weak",
+      "label": "weak viewModel",
+      "labelOffset": [64, 0]
+    }
+  ]
+}
