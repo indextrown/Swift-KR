@@ -6,6 +6,7 @@
   "scripts": {
     "build": "rspress build",
     "dev": "rspress dev",
+    "docs:check-collection-views": "node scripts/check-collection-view-coverage.mjs",
     "format": "prettier --write .",
     "lint": "eslint .",
     "preview": "rspress preview"

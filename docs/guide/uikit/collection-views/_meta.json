@@ -1,42 +1,483 @@
 [
   {
-    "type": "file",
-    "name": "index",
-    "label": "한눈에 보기"
+    "type": "custom-link",
+    "label": "학습 가이드",
+    "link": "/guide/uikit/collection-views/index",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "한눈에 보기",
+        "link": "/guide/uikit/collection-views/index"
+      },
+      {
+        "type": "custom-link",
+        "label": "화면과 역할",
+        "link": "/guide/uikit/collection-views/views"
+      },
+      {
+        "type": "custom-link",
+        "label": "데이터와 Diffable Data Source",
+        "link": "/guide/uikit/collection-views/data"
+      },
+      {
+        "type": "custom-link",
+        "label": "셀과 재사용 뷰",
+        "link": "/guide/uikit/collection-views/cells-and-reusable-views"
+      },
+      {
+        "type": "custom-link",
+        "label": "레이아웃",
+        "link": "/guide/uikit/collection-views/layout-guide"
+      },
+      {
+        "type": "custom-link",
+        "label": "선택 상태",
+        "link": "/guide/uikit/collection-views/selection"
+      },
+      {
+        "type": "custom-link",
+        "label": "드래그 앤 드롭",
+        "link": "/guide/uikit/collection-views/drag-and-drop"
+      },
+      {
+        "type": "custom-link",
+        "label": "공식 문서 인벤토리",
+        "link": "/guide/uikit/collection-views/official-document-inventory"
+      }
+    ]
   },
   {
-    "type": "file",
-    "name": "views",
-    "label": "화면과 역할"
+    "type": "custom-link",
+    "label": "뷰",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "UICollectionView",
+        "link": "/guide/uikit/collection-views/uicollectionview"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewController",
+        "link": "/guide/uikit/collection-views/uicollectionviewcontroller"
+      }
+    ]
   },
   {
-    "type": "file",
-    "name": "data",
-    "label": "데이터와 Diffable Data Source"
+    "type": "custom-link",
+    "label": "데이터",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "Diffable Data Source로 Collection View 업데이트하기",
+        "link": "/guide/uikit/collection-views/updating-collection-views-using-diffable-data-sources"
+      },
+      {
+        "type": "custom-link",
+        "label": "현대적인 Collection View 구현하기",
+        "link": "/guide/uikit/collection-views/implementing-modern-collection-views"
+      },
+      {
+        "type": "custom-link",
+        "label": "고성능 목록과 Collection View 만들기",
+        "link": "/guide/uikit/collection-views/building-high-performance-lists-and-collection-views"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewDiffableDataSource",
+        "link": "/guide/uikit/collection-views/uicollectionviewdiffabledatasource"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewDataSource",
+        "link": "/guide/uikit/collection-views/uicollectionviewdatasource"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewDataSourcePrefetching",
+        "link": "/guide/uikit/collection-views/uicollectionviewdatasourceprefetching"
+      },
+      {
+        "type": "custom-link",
+        "label": "NSDiffableDataSourceSnapshot",
+        "link": "/guide/uikit/collection-views/nsdiffabledatasourcesnapshot"
+      },
+      {
+        "type": "custom-link",
+        "label": "NSDiffableDataSourceSectionSnapshot",
+        "link": "/guide/uikit/collection-views/nsdiffabledatasourcesectionsnapshot"
+      },
+      {
+        "type": "custom-link",
+        "label": "UIRefreshControl",
+        "link": "/guide/uikit/collection-views/uirefreshcontrol"
+      }
+    ]
   },
   {
-    "type": "file",
-    "name": "cells-and-reusable-views",
-    "label": "셀과 재사용 뷰"
+    "type": "custom-link",
+    "label": "셀",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewCell",
+        "link": "/guide/uikit/collection-views/uicollectionviewcell"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewListCell",
+        "link": "/guide/uikit/collection-views/uicollectionviewlistcell"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionReusableView",
+        "link": "/guide/uikit/collection-views/uicollectionreusableview"
+      }
+    ]
   },
   {
-    "type": "file",
-    "name": "layouts",
-    "label": "레이아웃"
+    "type": "custom-link",
+    "label": "레이아웃",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "현대적인 Collection View 구현하기",
+        "link": "/guide/uikit/collection-views/implementing-modern-collection-views"
+      },
+      {
+        "type": "custom-link",
+        "label": "레이아웃",
+        "link": "/guide/uikit/collection-views/layouts/index",
+        "collapsible": true,
+        "collapsed": true,
+        "items": [
+          {
+            "type": "custom-link",
+            "label": "핵심 API",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "custom-link",
+                "label": "현대적인 Collection View 구현하기",
+                "link": "/guide/uikit/collection-views/implementing-modern-collection-views"
+              },
+              {
+                "type": "custom-link",
+                "label": "UICollectionViewCompositionalLayout",
+                "link": "/guide/uikit/collection-views/layouts/uicollectionviewcompositionallayout"
+              }
+            ]
+          },
+          {
+            "type": "custom-link",
+            "label": "구성 요소",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutItem",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutitem"
+              },
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutGroup",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutgroup"
+              },
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutSection",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutsection"
+              }
+            ]
+          },
+          {
+            "type": "custom-link",
+            "label": "크기와 간격",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutDimension",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutdimension"
+              },
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutSize",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutsize"
+              },
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutSpacing",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutspacing"
+              },
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutEdgeSpacing",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutedgespacing"
+              },
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutContainer",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutcontainer"
+              }
+            ]
+          },
+          {
+            "type": "custom-link",
+            "label": "구성",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "custom-link",
+                "label": "UICollectionViewCompositionalLayoutConfiguration",
+                "link": "/guide/uikit/collection-views/layouts/uicollectionviewcompositionallayoutconfiguration"
+              },
+              {
+                "type": "custom-link",
+                "label": "UICollectionViewCompositionalLayoutSectionProvider",
+                "link": "/guide/uikit/collection-views/layouts/uicollectionviewcompositionallayoutsectionprovider"
+              },
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutEnvironment",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutenvironment"
+              }
+            ]
+          },
+          {
+            "type": "custom-link",
+            "label": "상호작용",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "custom-link",
+                "label": "UICollectionLayoutSectionOrthogonalScrollingBehavior",
+                "link": "/guide/uikit/collection-views/layouts/uicollectionlayoutsectionorthogonalscrollingbehavior"
+              }
+            ]
+          },
+          {
+            "type": "custom-link",
+            "label": "모양",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutAnchor",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutanchor"
+              },
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutSupplementaryItem",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutsupplementaryitem"
+              },
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutBoundarySupplementaryItem",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutboundarysupplementaryitem"
+              },
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutDecorationItem",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutdecorationitem"
+              }
+            ]
+          },
+          {
+            "type": "custom-link",
+            "label": "고급 레이아웃",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutGroupCustomItem",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutgroupcustomitem"
+              },
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutGroupCustomItemProvider",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutgroupcustomitemprovider"
+              }
+            ]
+          },
+          {
+            "type": "custom-link",
+            "label": "레이아웃 업데이트",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutVisibleItem",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutvisibleitem"
+              },
+              {
+                "type": "custom-link",
+                "label": "NSCollectionLayoutSectionVisibleItemsInvalidationHandler",
+                "link": "/guide/uikit/collection-views/layouts/nscollectionlayoutsectionvisibleitemsinvalidationhandler"
+              },
+              {
+                "type": "custom-link",
+                "label": "UICollectionViewUpdateItem",
+                "link": "/guide/uikit/collection-views/layouts/uicollectionviewupdateitem"
+              },
+              {
+                "type": "custom-link",
+                "label": "UICollectionViewFocusUpdateContext",
+                "link": "/guide/uikit/collection-views/layouts/uicollectionviewfocusupdatecontext"
+              },
+              {
+                "type": "custom-link",
+                "label": "UICollectionViewLayoutInvalidationContext",
+                "link": "/guide/uikit/collection-views/layouts/uicollectionviewlayoutinvalidationcontext"
+              }
+            ]
+          },
+          {
+            "type": "custom-link",
+            "label": "직접 구성하는 레이아웃",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "custom-link",
+                "label": "Collection View Layout 사용자 정의하기",
+                "link": "/guide/uikit/collection-views/layouts/customizing-collection-view-layouts"
+              },
+              {
+                "type": "custom-link",
+                "label": "UICollectionViewLayout",
+                "link": "/guide/uikit/collection-views/layouts/uicollectionviewlayout"
+              },
+              {
+                "type": "custom-link",
+                "label": "UICollectionViewFlowLayout",
+                "link": "/guide/uikit/collection-views/layouts/uicollectionviewflowlayout"
+              },
+              {
+                "type": "custom-link",
+                "label": "UICollectionViewTransitionLayout",
+                "link": "/guide/uikit/collection-views/layouts/uicollectionviewtransitionlayout"
+              },
+              {
+                "type": "custom-link",
+                "label": "UICollectionViewLayoutAttributes",
+                "link": "/guide/uikit/collection-views/layouts/uicollectionviewlayoutattributes"
+              },
+              {
+                "type": "custom-link",
+                "label": "UICollectionViewFlowLayoutInvalidationContext",
+                "link": "/guide/uikit/collection-views/layouts/uicollectionviewflowlayoutinvalidationcontext"
+              }
+            ]
+          },
+          {
+            "type": "custom-link",
+            "label": "데이터",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "custom-link",
+                "label": "NSDiffableDataSourceSnapshot",
+                "link": "/guide/uikit/collection-views/nsdiffabledatasourcesnapshot"
+              }
+            ]
+          }
+        ]
+      }
+    ]
   },
   {
-    "type": "file",
-    "name": "selection",
-    "label": "선택 상태"
+    "type": "custom-link",
+    "label": "선택 관리",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "선택·하이라이트 셀 모양 바꾸기",
+        "link": "/guide/uikit/collection-views/changing-the-appearance-of-selected-and-highlighted-cells"
+      },
+      {
+        "type": "custom-link",
+        "label": "두 손가락 제스처로 여러 item 선택하기",
+        "link": "/guide/uikit/collection-views/selecting-multiple-items-with-a-two-finger-pan-gesture"
+      }
+    ]
   },
   {
-    "type": "file",
-    "name": "drag-and-drop",
-    "label": "드래그 앤 드롭"
-  },
-  {
-    "type": "file",
-    "name": "official-document-inventory",
-    "label": "공식 문서 인벤토리"
+    "type": "custom-link",
+    "label": "드래그 앤 드롭",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "Collection View에서 드래그 앤 드롭 지원하기",
+        "link": "/guide/uikit/collection-views/supporting-drag-and-drop-in-collection-views"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewDragDelegate",
+        "link": "/guide/uikit/collection-views/uicollectionviewdragdelegate"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewDropDelegate",
+        "link": "/guide/uikit/collection-views/uicollectionviewdropdelegate"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewDropCoordinator",
+        "link": "/guide/uikit/collection-views/uicollectionviewdropcoordinator"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewDropPlaceholder",
+        "link": "/guide/uikit/collection-views/uicollectionviewdropplaceholder"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewDropProposal",
+        "link": "/guide/uikit/collection-views/uicollectionviewdropproposal"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewDropItem",
+        "link": "/guide/uikit/collection-views/uicollectionviewdropitem"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewDropPlaceholderContext",
+        "link": "/guide/uikit/collection-views/uicollectionviewdropplaceholdercontext"
+      },
+      {
+        "type": "custom-link",
+        "label": "UIDataSourceTranslating",
+        "link": "/guide/uikit/collection-views/uidatasourcetranslating"
+      },
+      {
+        "type": "custom-link",
+        "label": "UICollectionViewPlaceholder",
+        "link": "/guide/uikit/collection-views/uicollectionviewplaceholder"
+      }
+    ]
   }
 ]

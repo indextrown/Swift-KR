@@ -1,11 +1,17 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useFrontmatter, usePage, useSite } from '@rspress/core/runtime';
+import {
+  useFrontmatter,
+  usePage,
+  useSidebar,
+  useSite,
+} from '@rspress/core/runtime';
 import {
   Root as ThemeRoot,
+  SidebarList,
   Toc,
   type RootProps,
 } from '@rspress/core/theme-original';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 export * from '@rspress/core/theme-original';
 
@@ -61,6 +67,25 @@ export function Outline() {
         <Toc />
       </nav>
     </div>
+  );
+}
+
+export function Sidebar() {
+  const rawSidebarData = useSidebar();
+  const sidebarSource = useRef(rawSidebarData);
+  const [sidebarData, setSidebarData] = useState(() =>
+    structuredClone(rawSidebarData),
+  );
+
+  useLayoutEffect(() => {
+    if (sidebarSource.current === rawSidebarData) return;
+
+    sidebarSource.current = rawSidebarData;
+    setSidebarData(structuredClone(rawSidebarData));
+  }, [rawSidebarData]);
+
+  return (
+    <SidebarList sidebarData={sidebarData} setSidebarData={setSidebarData} />
   );
 }
 

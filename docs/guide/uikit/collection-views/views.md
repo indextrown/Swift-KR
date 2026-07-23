@@ -208,7 +208,7 @@ private func changeToListLayout() {
 }
 ```
 
-`collectionViewLayout` 프로퍼티를 직접 바꾸면 즉시 전환되고, `setCollectionViewLayout(_:animated:)`를 사용하면 전환을 애니메이션으로 보여 줄 수 있어요. 제스처에 따라 진행률을 제어하는 interactive transition과 `UICollectionViewTransitionLayout`은 [레이아웃 문서](./layouts)에서 다뤄요.
+`collectionViewLayout` 프로퍼티를 직접 바꾸면 즉시 전환되고, `setCollectionViewLayout(_:animated:)`를 사용하면 전환을 애니메이션으로 보여 줄 수 있어요. 제스처에 따라 진행률을 제어하는 interactive transition과 `UICollectionViewTransitionLayout`은 [레이아웃 문서](./layout-guide)에서 다뤄요.
 
 layout을 바꿔도 data source의 item 식별자와 순서는 그대로 유지할 수 있어요. 데이터와 배치를 분리했기 때문에 가능한 일이에요.
 

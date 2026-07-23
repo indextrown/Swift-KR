@@ -9,7 +9,11 @@ description: UICollectionView의 데이터, 셀 재사용, 레이아웃, 선택,
 
 사진 격자, 앱스토어처럼 가로로 넘기는 카드가 섞인 화면, 설정 목록은 겉모습이 서로 달라요. 하지만 모두 **반복되는 데이터를 화면 크기에 맞게 배치하고, 스크롤하면서 필요한 뷰만 만들어 쓰는 문제**를 풀어야 해요. UIKit의 Collection View는 이 문제를 데이터, 셀, 레이아웃이라는 역할로 나누어 해결해요.
 
-이 문서는 Apple의 [Collection views](https://developer.apple.com/documentation/uikit/collection-views) 문서 계층을 따라가되, API 이름을 나열하는 대신 처음 화면을 만드는 순서대로 다시 구성했어요.
+<!-- Apple DocC image: collection-views-1 -->
+
+![사진 앱의 월별 보기에서 여러 사진을 격자로 정리한 Collection View](./assets/apple-docs/collection-views-1@2x.png)
+
+이 섹션은 두 층으로 구성했어요. 먼저 이 문서부터 이어지는 **학습 가이드**에서 화면을 만드는 순서대로 개념을 익혀요. 그다음 사이드바의 `View`, `Data`, `Cells`, `Layouts`, `Selection management`, `Drag and drop`에서는 Apple의 [Collection views](https://developer.apple.com/documentation/uikit/collection-views) 목차와 1:1로 대응하는 한국어 API 문서를 찾아볼 수 있어요.
 
 ## 먼저 알아둘 UIKit 용어
 
@@ -96,7 +100,7 @@ private func makeGridLayout() -> UICollectionViewLayout {
 }
 ```
 
-`fractionalWidth(1)`은 부모 너비 전체를 뜻해요. 그룹 안에 같은 item을 두 개 반복하므로 각 셀은 한 행을 절반씩 나눠 써요. item과 group, section의 관계는 [레이아웃 문서](./layouts)에서 그림과 함께 더 자세히 살펴봐요.
+`fractionalWidth(1)`은 부모 너비 전체를 뜻해요. 그룹 안에 같은 item을 두 개 반복하므로 각 셀은 한 행을 절반씩 나눠 써요. item과 group, section의 관계는 [레이아웃 문서](./layout-guide)에서 그림과 함께 더 자세히 살펴봐요.
 
 화면에서는 layout을 전달해 Collection View를 만들어요.
 
@@ -231,9 +235,11 @@ private func renamePhoto(id: Photo.ID, title: String) {
 | `UICollectionView`와 컨트롤러의 역할 구분 | [화면과 역할](./views)                              |
 | snapshot으로 안전하게 목록 갱신           | [데이터와 Diffable Data Source](./data)             |
 | 셀 재사용과 상태 구성 이해                | [셀과 재사용 뷰](./cells-and-reusable-views)        |
-| 격자·목록·가로 스크롤 배치                | [레이아웃](./layouts)                               |
+| 격자·목록·가로 스크롤 배치                | [레이아웃](./layout-guide)                          |
 | 선택과 하이라이트, 다중 선택              | [선택 상태](./selection)                            |
 | 앱 안팎으로 item 이동                     | [드래그 앤 드롭](./drag-and-drop)                   |
+| `UICollectionView` 전체 API 확인          | [`UICollectionView`](./uicollectionview)            |
+| Layouts 공식 분류에서 API 찾기            | [Layouts API 모음](./layouts/index)                 |
 | Apple 원문과 Swift-KR 문서 대응 확인      | [공식 문서 인벤토리](./official-document-inventory) |
 
 처음이라면 위에서 아래 순서로 읽는 것이 좋아요. 기존 프로젝트의 특정 문제를 해결하는 중이라면 필요한 역할의 문서부터 읽어도 돼요.

@@ -1,7 +1,9 @@
 [
   {
-    "type": "dir-section-header",
+    "type": "dir",
     "name": "collection-views",
-    "label": "Collection Views"
+    "label": "Collection Views",
+    "collapsible": true,
+    "collapsed": true
   }
 ]
