@@ -4,5 +4,11 @@
     "link": "/guide/tca/readme",
     "activeMatch": "/guide/tca/",
     "position": "left"
+  },
+  {
+    "text": "디자인 패턴",
+    "link": "/guide/design-patterns/dependency-injection",
+    "activeMatch": "/guide/design-patterns/",
+    "position": "left"
   }
 ]

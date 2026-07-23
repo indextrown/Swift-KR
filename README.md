@@ -2,7 +2,7 @@
 
 Swift의 유명 오픈소스 라이브러리와 아키텍처·디자인 패턴을 한국어로 읽기 쉽게 정리하는 문서 저장소입니다.
 
-현재 [The Composable Architecture (TCA)](https://github.com/pointfreeco/swift-composable-architecture)를 시작으로 Dependencies와 CasePaths 문서를 제공하며, 앞으로 다양한 Swift 라이브러리와 설계 패턴을 추가할 예정입니다.
+현재 [The Composable Architecture (TCA)](https://github.com/pointfreeco/swift-composable-architecture), Dependencies, CasePaths 문서와 의존성 주입을 다루는 디자인 패턴 문서를 제공합니다. 앞으로 다양한 Swift 라이브러리와 설계 패턴을 추가할 예정입니다.
 
 문서 사이트: <https://indextrown.github.io/Swift-KR/>
 

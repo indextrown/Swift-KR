@@ -3,5 +3,10 @@
     "type": "dir-section-header",
     "name": "tca",
     "label": "The Composable Architecture (TCA)"
+  },
+  {
+    "type": "dir-section-header",
+    "name": "design-patterns",
+    "label": "디자인 패턴"
   }
 ]

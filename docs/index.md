@@ -21,7 +21,8 @@ features:
   - title: 공식 원문 기반
     details: 모든 문서에서 원문과 공식 저장소를 함께 안내합니다.
     icon: 🔗
-  - title: 계속 확장하는 Swift 문서
-    details: 유명 라이브러리부터 아키텍처와 디자인 패턴까지 주제별 문서를 차례로 추가합니다.
+  - title: 디자인 패턴
+    details: 의존성 주입을 시작으로 Swift 코드에 적용하는 설계 원칙과 디자인 패턴을 설명합니다.
     icon: 📚
+    link: /guide/design-patterns/dependency-injection
 ---
