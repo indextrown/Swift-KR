@@ -23,22 +23,28 @@ Apple 공식 문서의 **Collection Views — Cells** 영역에 있는 클래스
 
 UICollectionViewListCell은 목록에 맞는 기본 콘텐츠 구성, 들여쓰기, 구분선, accessory를 제공하는 Collection View 셀이에요.
 
-## 공식 설명에서 놓치면 안 되는 동작
+## 개요 (Overview)
 
-List Cell은 들여쓰기와 `UICellAccessory`를 기본 지원해요. 어떤 layout에서도 사용할 수 있지만 list section 안에서는 구분선 정렬, leading/trailing swipe action 같은 목록 전용 동작도 사용할 수 있어요.
+List Cell은 목록에 나타나는 개별 item을 표현해요. 기본 들여쓰기를 지원하며, 시각적인 장식이나 셀과의 사용자 상호작용을 제공하는 `UICellAccessory`를 추가할 수 있어요.
 
-`defaultContentConfiguration()`은 현재 list 환경에 맞는 기본 스타일을 제공해요. 텍스트·보조 텍스트·이미지를 설정한 뒤 `contentConfiguration`에 다시 대입해야 실제 셀에 반영돼요.
+List Cell은 어떤 layout에서도 사용할 수 있어요. List Section이나 List Layout 안에서 사용하면 목록 전용 동작이 추가돼요. 예를 들어 List Cell 사이의 separator 정렬을 지정하거나 각 셀의 leading·trailing 가장자리에 swipe action을 구성할 수 있어요. 개별 List Section은 `list(using:layoutEnvironment:)`으로, 전체 List Layout은 `list(using:)`으로 만들어요.
+
+`defaultContentConfiguration()`을 호출하면 List Cell의 기본 스타일이 미리 적용된 콘텐츠 configuration을 얻을 수 있어요. 이 configuration에 텍스트·이미지 같은 콘텐츠를 지정하고 필요한 프로퍼티를 조정한 뒤, 셀의 현재 `contentConfiguration`에 대입해요. 세부 설정은 `UIListContentConfiguration`에서 확인할 수 있어요.
 
 ```swift
 var content = cell.defaultContentConfiguration()
-content.text = photo.title
-content.secondaryText = photo.subtitle
-content.image = photo.thumbnail
+
+// Configure content.
+content.image = UIImage(systemName: "star")
+content.text = "Favorites"
+
+// Customize appearance.
+content.imageProperties.tintColor = .purple
+
 cell.contentConfiguration = content
-cell.accessories = [.disclosureIndicator()]
 ```
 
-사용자 정의 subview가 필요하면 `contentView`에 추가할 수 있지만, 시스템 configuration과 accessory를 먼저 사용하면 Dynamic Type, 색상, layout margin, 선택 상태 적응을 더 적은 코드로 얻을 수 있어요.
+기본 configuration 대신 직접 만든 subview를 `contentView`에 추가해 콘텐츠를 구성할 수도 있어요.
 
 ## 선언과 지원 범위를 확인해요
 

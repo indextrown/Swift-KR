@@ -23,13 +23,15 @@ Apple 공식 문서의 **Layouts — Manual layouts** 영역에 있는 클래스
 
 UICollectionViewFlowLayout은 item을 한 줄씩 채워 나가는 격자 배치와 section inset, 간격, 헤더·푸터, 고정 동작을 제공해요.
 
-## 공식 설명에서 놓치면 안 되는 동작
+## 개요 (Overview)
 
-Flow Layout은 scroll direction에 따라 한 행 또는 열을 가능한 만큼 채우고 다음 줄로 넘어가요. 세로 스크롤에서는 콘텐츠 폭이 Collection View 폭으로 제한되고 높이가 item 수에 따라 늘어나며, 가로 스크롤에서는 반대로 동작해요.
+Flow Layout은 Collection View Layout의 한 종류예요. 스크롤 방향에 따라 item을 한 행이나 한 열에 들어갈 수 있는 만큼 배치한 뒤 다음 행이나 열로 이어 가요. 모든 셀의 크기를 같게 만들 수도 있고 서로 다르게 만들 수도 있어요.
 
-item 크기와 section inset, item/line 간격, header/footer 크기는 layout 프로퍼티에 공통값으로 지정하거나 `UICollectionViewDelegateFlowLayout`에서 section별로 동적으로 반환할 수 있어요. delegate 값을 제공하지 않으면 layout의 기본 프로퍼티를 사용해요.
+Flow Layout은 Collection View의 delegate와 협력해 각 section과 grid의 item, header, footer 크기를 정해요. 이 delegate는 `UICollectionViewDelegateFlowLayout`을 준수해야 해요. delegate를 사용하면 grid item마다 서로 다른 크기를 반환하는 것처럼 layout 정보를 동적으로 조정할 수 있어요. delegate가 값을 제공하지 않으면 Flow Layout은 이 class의 프로퍼티에 설정한 기본값을 사용해요.
 
-header나 footer의 크기가 0이면 해당 supplementary view를 만들지 않아요. 고정 header/footer가 필요하면 `sectionHeadersPinToVisibleBounds`와 `sectionFootersPinToVisibleBounds`를 사용하고 다른 요소와 겹칠 때의 배경과 z-order도 확인하세요.
+Flow Layout은 한 방향의 길이는 고정하고 다른 방향의 길이는 스크롤할 수 있게 콘텐츠를 배치해요. 세로로 스크롤하는 grid에서는 콘텐츠 width가 Collection View width에 맞춰지고, 콘텐츠 height는 section과 item 수에 따라 동적으로 늘어나요. 기본 스크롤 방향은 세로이며 `scrollDirection`으로 바꿀 수 있어요.
+
+각 section은 별도의 header와 footer를 가질 수 있어요. header나 footer를 표시하려면 delegate 메서드에서 0이 아닌 크기를 반환하거나 `headerReferenceSize`, `footerReferenceSize`에 크기를 지정해요. 크기가 `.zero`이면 대응하는 supplementary view는 Collection View에 추가되지 않아요.
 
 ## 선언과 지원 범위를 확인해요
 

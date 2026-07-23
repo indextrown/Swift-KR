@@ -23,20 +23,67 @@ Configuration과 section provider를 사용하면 전체 스크롤 방향과 각
 
 UICollectionViewCompositionalLayoutSectionProvider는 section 번호와 환경을 받아 해당 section의 레이아웃을 동적으로 반환하는 클로저예요.
 
-## 공식 설명에서 놓치면 안 되는 동작
+## 설명 (Discussion)
 
-section provider는 여러 section을 서로 다르게 만들기 위한 핵심 진입점이에요. 첫 번째 인자는 현재 section index이고, 두 번째 인자는 컨테이너 크기·content inset·size class·display scale·사용자 인터페이스 idiom 같은 환경 정보예요.
+Section Provider는 section마다 서로 다른 layout을 가진 `UICollectionViewCompositionalLayout`을 만들 때 사용해요. 현재 만들고 있는 section의 index를 전달하므로 section별로 다른 구성을 반환할 수 있어요.
+
+다음 예제는 첫 번째 section에는 2열 layout을, 이후 section에는 4열 layout을 만들어요.
 
 ```swift
-let provider: UICollectionViewCompositionalLayoutSectionProvider = {
-  sectionIndex, environment in
-  let width = environment.container.effectiveContentSize.width
-  let columns = width < 800 ? 2 : 4
-  return makeGridSection(columnCount: columns)
+func createPerSectionLayout() -> UICollectionViewLayout {
+    let layout = UICollectionViewCompositionalLayout { (sectionIndex: Int,
+        layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
+
+        let columns = sectionIndex == 0 ? 2 : 4
+
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                             heightDimension: .fractionalHeight(1.0))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                              heightDimension: .absolute(44))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
+                                                          subitem: item,
+                                                            count: columns)
+
+        let section = NSCollectionLayoutSection(group: group)
+        return section
+    }
+    return layout
 }
 ```
 
-기기 모델을 직접 비교하지 말고 `effectiveContentSize`와 trait을 사용하세요. provider는 회전, 글자 크기, size class, iPad 멀티태스킹 변화에도 다시 호출될 수 있어요.
+Section Provider는 기기 회전, 시스템 글자 크기 변경, iPad 멀티태스킹에 따른 size class 변경 같은 시스템 이벤트에도 다시 호출돼요. 이때 `NSCollectionLayoutEnvironment`의 현재 컨테이너와 trait 정보를 확인해 환경에 적응하는 section을 만들 수 있어요.
+
+다음 예제는 section 컨테이너의 width가 800 point보다 작으면 2열을, 그렇지 않으면 4열을 사용해요.
+
+```swift
+func createAdaptiveLayout() -> UICollectionViewLayout {
+    let layout = UICollectionViewCompositionalLayout { (sectionIndex: Int,
+        layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection in
+
+        let columns = layoutEnvironment.container.effectiveContentSize.width < 800 ? 2 : 4
+
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                             heightDimension: .fractionalHeight(1.0))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                              heightDimension: .absolute(44))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize,
+                                                          subitem: item,
+                                                            count: columns)
+
+        let section = NSCollectionLayoutSection(group: group)
+        return section
+    }
+    return layout
+}
+```
+
+UIKit은 이 closure 안에서 `layoutEnvironment`의 trait을 읽으면 automatic trait tracking을 지원해요.
+
+iOS 27 이상에서는 `Observable` macro를 사용하는 객체의 프로퍼티를 읽을 때 automatic observation tracking도 지원해요.
 
 ## 선언과 지원 범위를 확인해요
 

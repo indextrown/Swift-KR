@@ -23,13 +23,13 @@ Apple 공식 문서의 **Collection Views — Cells** 영역에 있는 클래스
 
 UICollectionViewCell은 item 하나를 표현하며 재사용 과정에서도 콘텐츠, 배경, 선택·하이라이트 상태를 일관되게 구성하는 뷰예요.
 
-## 공식 설명에서 놓치면 안 되는 동작
+## 개요 (Overview)
 
-셀을 그대로 사용하거나 하위 클래스로 만들어 속성과 동작을 추가할 수 있어요. 콘텐츠는 `contentConfiguration`으로 구성하거나 사용자 정의 subview를 `contentView`에 넣어요. 셀 자체에 subview를 바로 추가하지 마세요. 셀은 content view뿐 아니라 기본·선택 배경 등 여러 layer를 관리해요.
+`UICollectionViewCell`을 그대로 사용하거나 하위 클래스를 만들어 프로퍼티와 메서드를 추가할 수 있어요. 셀의 layout과 화면 표시는 Collection View와 해당 Layout 객체가 관리해요.
 
-`backgroundView`는 기본 배경, `selectedBackgroundView`는 선택·하이라이트 상태의 배경이에요. 더 복잡한 상태별 모양은 `updateConfiguration(using:)`에서 `UICellConfigurationState`를 기준으로 계산해요.
+셀의 콘텐츠와 모양은 `contentConfiguration`과 `backgroundConfiguration`으로 구성할 수 있어요. 또는 데이터 item을 표시할 사용자 정의 뷰를 `contentView`의 subview로 추가할 수 있어요. 셀 자체에 subview를 직접 추가하면 안 돼요. 셀은 여러 콘텐츠 layer를 관리하며 content view는 그중 하나예요. content view 외에도 선택되지 않은 상태와 선택된 상태를 표현하는 두 개의 background view를 관리해요.
 
-일반적으로 셀 인스턴스를 직접 만들지 않아요. cell registration 또는 재사용 식별자로 타입을 등록하고 `dequeueConfiguredReusableCell`이나 `dequeueReusableCell`로 받아요. 재사용 시 이전 item의 비동기 이미지, accessory, 선택 표시가 남지 않도록 현재 모델만으로 모든 값을 다시 설정하세요.
+일반적으로 이 class의 인스턴스를 직접 만들지 않아요. Cell Registration에 사용자 정의 셀 하위 클래스나 구성된 셀이 들어 있는 nib을 등록해요. 새 셀이 필요할 때는 Collection View의 `dequeueConfiguredReusableCell(using:for:item:)`을 호출해 재사용 가능한 인스턴스를 가져와요.
 
 ## 선언과 지원 범위를 확인해요
 

@@ -23,33 +23,28 @@ Configuration과 section provider를 사용하면 전체 스크롤 방향과 각
 
 UICollectionViewCompositionalLayoutConfiguration은 전체 Compositional Layout의 스크롤 방향, section 간격, 전역 헤더·푸터를 설정해요.
 
-## 공식 설명에서 놓치면 안 되는 동작
+## 개요 (Overview)
 
-이 configuration은 개별 section이 아니라 전체 layout에 적용돼요. `scrollDirection`으로 주축, `interSectionSpacing`으로 section 간격, `boundarySupplementaryItems`로 모든 section 바깥의 layout-level header와 footer를 지정해요.
+Layout Configuration은 Collection View Layout의 기본 스크롤 방향을 바꾸고, 각 section 사이에 간격을 추가하며, 전체 layout의 header 또는 footer를 지정할 때 사용해요.
+
+`UICollectionViewCompositionalLayout`을 만들 때 configuration을 전달하거나 기존 layout의 `configuration` 프로퍼티에 대입할 수 있어요. 기존 layout의 configuration을 수정하면 시스템이 layout을 무효화하고 새 설정으로 다시 계산해요.
 
 ```swift
-let size = NSCollectionLayoutSize(
-  widthDimension: .fractionalWidth(1),
-  heightDimension: .estimated(44)
-)
-let header = NSCollectionLayoutBoundarySupplementaryItem(
-  layoutSize: size,
-  elementKind: ElementKind.layoutHeader,
-  alignment: .top
-)
-let footer = NSCollectionLayoutBoundarySupplementaryItem(
-  layoutSize: size,
-  elementKind: ElementKind.layoutFooter,
-  alignment: .bottom
-)
+let headerFooterSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
+                                             heightDimension: .estimated(44))
 
-let configuration = UICollectionViewCompositionalLayoutConfiguration()
-configuration.interSectionSpacing = 20
-configuration.scrollDirection = .horizontal
-configuration.boundarySupplementaryItems = [header, footer]
+let header = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerFooterSize,
+                                                        elementKind: "header",
+                                                          alignment: .top)
+let footer = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerFooterSize,
+                                                        elementKind: "footer",
+                                                          alignment: .bottom)
+
+let config = UICollectionViewCompositionalLayoutConfiguration()
+config.interSectionSpacing = 20
+config.scrollDirection = .horizontal
+config.boundarySupplementaryItems = [header, footer]
 ```
-
-기존 layout의 `configuration`을 변경하면 UIKit이 layout을 무효화해 새 설정을 반영해요.
 
 ## 선언과 지원 범위를 확인해요
 

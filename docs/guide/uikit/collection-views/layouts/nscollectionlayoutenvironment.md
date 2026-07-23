@@ -23,22 +23,23 @@ Configuration과 section provider를 사용하면 전체 스크롤 방향과 각
 
 NSCollectionLayoutEnvironment는 section을 만들 때 컨테이너 크기와 size class, 화면 배율 같은 trait 정보를 제공해요.
 
-## 공식 설명에서 놓치면 안 되는 동작
+## 개요 (Overview)
 
-section provider는 environment의 `container`에서 실제 크기와 inset을, `traitCollection`에서 size class·display scale·사용자 인터페이스 스타일과 idiom을 확인해 배치를 결정해요.
+Section Provider에서는 Layout Environment를 사용해 현재 layout이 표시되는 맥락을 확인해요. `container`에서 크기와 content inset을 가져오고, 환경 trait에서 size class, display scale, 사용자 인터페이스 idiom 같은 정보를 확인할 수 있어요. Section을 만들 때 이 정보를 이용하면 현재 화면 환경에 적합한 배치를 선택할 수 있어요.
+
+다음 코드는 Layout Environment의 trait collection을 확인해 Dark Mode 여부에 따라 다른 section을 반환해요.
 
 ```swift
-let layout = UICollectionViewCompositionalLayout {
-  _, environment in
-  if environment.traitCollection.userInterfaceStyle == .dark {
-    return makeSection(for: .dark)
-  } else {
-    return makeSection(for: .light)
-  }
+let layout = UICollectionViewCompositionalLayout { (sectionIndex: Int,
+    layoutEnvironment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection in
+
+    if layoutEnvironment.traitCollection.userInterfaceStyle == .dark {
+        return sectionForUserInterfaceStyle(.dark)
+    } else {
+        return sectionForUserInterfaceStyle(.light)
+    }
 }
 ```
-
-화면 크기 적응에는 기기 이름보다 `container.effectiveContentSize`를, 스타일 적응에는 `traitCollection`을 사용하세요.
 
 ## 선언과 지원 범위를 확인해요
 

@@ -83,9 +83,95 @@ function officialBodyMetrics(doc) {
   const metrics = {
     paragraphCount: 0,
     headingCount: 0,
+    headingTitles: [],
     swiftCodeCount: 0,
     asideCount: 0,
+    listCount: 0,
+    listItemCount: 0,
+    tableCount: 0,
   };
+
+  function hasProse(value) {
+    if (Array.isArray(value)) {
+      return value.some(hasProse);
+    }
+    if (!value || typeof value !== 'object') return false;
+    if (
+      value.type === 'text' ||
+      value.type === 'reference' ||
+      value.type === 'codeVoice'
+    ) {
+      return true;
+    }
+    if (value.type === 'image') return false;
+    return Object.values(value).some(hasProse);
+  }
+
+  function visit(value, container = 'root') {
+    if (Array.isArray(value)) {
+      value.forEach((item) => visit(item, container));
+      return;
+    }
+    if (!value || typeof value !== 'object') return;
+
+    if (
+      value.type === 'paragraph' &&
+      container === 'root' &&
+      hasProse(value.inlineContent)
+    ) {
+      metrics.paragraphCount += 1;
+    }
+    if (value.type === 'heading') {
+      metrics.headingCount += 1;
+      metrics.headingTitles.push(value.text);
+    }
+    if (value.type === 'codeListing' && value.syntax === 'swift') {
+      metrics.swiftCodeCount += 1;
+    }
+    if (value.type === 'aside') metrics.asideCount += 1;
+    if (value.type === 'unorderedList' || value.type === 'orderedList') {
+      metrics.listCount += 1;
+      metrics.listItemCount += value.items?.length ?? 0;
+    }
+    if (value.type === 'table') metrics.tableCount += 1;
+
+    let childContainer = container;
+    if (value.type === 'unorderedList' || value.type === 'orderedList') {
+      childContainer = 'list';
+    } else if (value.type === 'table') {
+      childContainer = 'table';
+    } else if (value.type === 'aside') {
+      childContainer = 'aside';
+    }
+
+    Object.values(value).forEach((child) => visit(child, childContainer));
+  }
+
+  visit(doc.primaryContentSections ?? []);
+  return metrics;
+}
+
+function officialBodyFromLocal(content) {
+  const start = content.match(
+    /^## (?:개요|설명) \((?:Overview|Discussion)\)$/m,
+  );
+  if (!start || start.index === undefined) return '';
+
+  const bodyStart = start.index;
+  const afterStart = content.slice(bodyStart + start[0].length);
+  const end = afterStart.match(
+    /^## (?:Swift-KR 보충:|선언과 지원 범위를 확인해요|공식 API 목차대로 살펴봐요|참고 자료)/m,
+  );
+  const bodyEnd =
+    end && end.index !== undefined
+      ? bodyStart + start[0].length + end.index
+      : content.length;
+
+  return content.slice(bodyStart, bodyEnd);
+}
+
+function officialSwiftCodeListings(doc) {
+  const listings = [];
 
   function visit(value) {
     if (Array.isArray(value)) {
@@ -94,70 +180,172 @@ function officialBodyMetrics(doc) {
     }
     if (!value || typeof value !== 'object') return;
 
-    if (value.type === 'paragraph') metrics.paragraphCount += 1;
-    if (value.type === 'heading') metrics.headingCount += 1;
     if (value.type === 'codeListing' && value.syntax === 'swift') {
-      metrics.swiftCodeCount += 1;
+      listings.push((value.code ?? []).join('\n'));
     }
-    if (value.type === 'aside') metrics.asideCount += 1;
-
     Object.values(value).forEach(visit);
   }
 
   visit(doc.primaryContentSections ?? []);
-  return metrics;
+  return listings;
 }
 
-function localBodyMetrics(content, kind) {
-  const swiftCodeCount = content.match(/^```swift$/gm)?.length ?? 0;
+function localSwiftCodeListings(content) {
+  return [...content.matchAll(/^```swift\n([\s\S]*?)^```$/gm)].map(
+    (match) => match[1],
+  );
+}
 
-  return {
+function normalizeCode(content) {
+  return content
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .join('\n')
+    .trim();
+}
+
+function localBodyMetrics(content, subtractDeclaration = false) {
+  const swiftCodeCount = content.match(/^```swift$/gm)?.length ?? 0;
+  const metrics = {
+    paragraphCount: 0,
     headingCount: content.match(/^#{2,6} /gm)?.length ?? 0,
-    // 심볼 문서의 첫 Swift 블록은 API 선언이므로 본문 예제에서 제외해요.
-    swiftCodeCount:
-      kind === 'symbol' ? Math.max(0, swiftCodeCount - 1) : swiftCodeCount,
+    headingTitles:
+      content
+        .match(/^#{2,6} (.+)$/gm)
+        ?.map((line) => line.replace(/^#{2,6} /, '').trim()) ?? [],
+    swiftCodeCount: subtractDeclaration
+      ? Math.max(0, swiftCodeCount - 1)
+      : swiftCodeCount,
     asideCount:
       content.match(/^> \*\*(?!면접 답변 한 줄 요약:)/gm)?.length ?? 0,
+    listCount: 0,
+    listItemCount: 0,
+    tableCount: 0,
   };
+
+  let inCode = false;
+  let inParagraph = false;
+  let inList = false;
+  let inTable = false;
+
+  for (const line of content.split('\n')) {
+    if (line.startsWith('```')) {
+      inCode = !inCode;
+      inParagraph = false;
+      inList = false;
+      inTable = false;
+      continue;
+    }
+    if (inCode) continue;
+
+    const trimmed = line.trim();
+    const isListItem = /^(?:[-+*]|\d+\.)\s+/.test(trimmed);
+    const isTableLine = /^\|.*\|$/.test(trimmed);
+
+    if (isListItem) {
+      metrics.listItemCount += 1;
+      if (!inList) metrics.listCount += 1;
+      inList = true;
+      inParagraph = false;
+      inTable = false;
+      continue;
+    }
+    inList = false;
+
+    if (isTableLine) {
+      if (!inTable) metrics.tableCount += 1;
+      inTable = true;
+      inParagraph = false;
+      continue;
+    }
+    inTable = false;
+
+    if (
+      trimmed.length === 0 ||
+      /^#{1,6} /.test(trimmed) ||
+      /^> /.test(trimmed) ||
+      /^<!--/.test(trimmed) ||
+      /^!\[/.test(trimmed)
+    ) {
+      inParagraph = false;
+      continue;
+    }
+
+    if (!inParagraph) metrics.paragraphCount += 1;
+    inParagraph = true;
+  }
+
+  return metrics;
 }
 
 function checkBodyFidelity({ doc, content, entry, localPath, errors }) {
   const official = officialBodyMetrics(doc);
-  const local = localBodyMetrics(content, entry.ref.kind);
   const isRichSymbol =
     entry.ref.kind === 'symbol' &&
     (official.paragraphCount >= 4 || official.swiftCodeCount > 0);
   const isRichArticle =
     entry.ref.kind !== 'symbol' &&
     (official.paragraphCount >= 8 || official.swiftCodeCount >= 2);
+  const localOfficialBody =
+    isRichSymbol || isRichArticle ? officialBodyFromLocal(content) : content;
+  const local = localBodyMetrics(
+    localOfficialBody,
+    entry.ref.kind === 'symbol' && !isRichSymbol,
+  );
 
-  if (isRichSymbol) {
-    const marker = '## 공식 설명에서 놓치면 안 되는 동작';
-    if (!content.includes(marker)) {
+  if (isRichSymbol || isRichArticle) {
+    if (localOfficialBody.length === 0) {
       errors.push(
-        `${entry.ref.title}: 설명이 풍부한 공식 심볼인데 "${marker}" 본문이 없습니다. (${localPath})`,
+        `${entry.ref.title}: 설명이 풍부한 공식 문서인데 개요·설명 본문이 없습니다. (${localPath})`,
       );
     }
-  }
 
-  if (official.swiftCodeCount > local.swiftCodeCount) {
-    errors.push(
-      `${entry.ref.title}: 공식 Swift 예제가 줄었습니다. ` +
-        `(공식 ${official.swiftCodeCount}개, 로컬 ${local.swiftCodeCount}개)`,
-    );
-  }
-
-  if (isRichArticle) {
-    if (official.headingCount > local.headingCount) {
-      errors.push(
-        `${entry.ref.title}: 공식 본문 heading 흐름이 줄었습니다. ` +
-          `(공식 ${official.headingCount}개, 로컬 ${local.headingCount}개)`,
-      );
+    const structuralMetrics = [
+      ['headingCount', 'heading'],
+      ['paragraphCount', '본문 문단'],
+      ['listCount', '목록'],
+      ['listItemCount', '목록 항목'],
+      ['tableCount', '표'],
+      ['asideCount', 'note/important'],
+      ['swiftCodeCount', 'Swift 예제'],
+    ];
+    for (const [key, label] of structuralMetrics) {
+      if (official[key] > local[key]) {
+        errors.push(
+          `${entry.ref.title}: 공식 ${label} 구조가 줄었습니다. ` +
+            `(공식 ${official[key]}개, 로컬 공식 본문 ${local[key]}개)`,
+        );
+      }
     }
-    if (official.asideCount > local.asideCount) {
+
+    for (const heading of official.headingTitles) {
+      if (
+        !local.headingTitles.some((localHeading) =>
+          localHeading.includes(heading),
+        )
+      ) {
+        errors.push(
+          `${entry.ref.title}: 공식 본문 제목 "${heading}"이 로컬 공식 본문에 없습니다.`,
+        );
+      }
+    }
+    const officialCodeListings = officialSwiftCodeListings(doc);
+    const localCodeListings = localSwiftCodeListings(localOfficialBody);
+    for (const [index, officialCode] of officialCodeListings.entries()) {
+      if (
+        normalizeCode(officialCode) !==
+        normalizeCode(localCodeListings[index] ?? '')
+      ) {
+        errors.push(
+          `${entry.ref.title}: 공식 Swift 예제 ${index + 1}번의 내용이나 순서가 달라졌습니다.`,
+        );
+      }
+    }
+  } else {
+    if (official.swiftCodeCount > local.swiftCodeCount) {
       errors.push(
-        `${entry.ref.title}: 공식 note/important가 줄었습니다. ` +
-          `(공식 ${official.asideCount}개, 로컬 ${local.asideCount}개)`,
+        `${entry.ref.title}: 공식 Swift 예제가 줄었습니다. ` +
+          `(공식 ${official.swiftCodeCount}개, 로컬 ${local.swiftCodeCount}개)`,
       );
     }
   }
@@ -395,7 +583,10 @@ async function main() {
 
     if (entry.ref.kind === 'symbol') {
       symbolExampleCount += 1;
-      const exampleSection = content.split('## 가장 작은 사용 예제')[1] ?? '';
+      const exampleSection =
+        content.split(
+          /^## (?:Swift-KR 보충: )?가장 작은 사용 예제(?: \(Swift-KR 보충\))?$/m,
+        )[1] ?? '';
       const exampleCode =
         exampleSection.match(/```swift\n([\s\S]*?)```/)?.[1] ?? '';
       if (!exampleCode.includes(entry.ref.title)) {

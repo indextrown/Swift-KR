@@ -23,15 +23,19 @@ item은 셀 하나, group은 item 묶음, section은 group 반복 단위예요. 
 
 NSCollectionLayoutSection은 group을 반복하는 한 section의 간격, inset, 헤더·푸터, 배경, 직교 스크롤 동작을 정의해요.
 
+## 개요 (Overview)
+
+Collection View Layout은 하나 이상의 section으로 이루어져요. section을 사용하면 전체 layout을 서로 구분되는 여러 부분으로 나눌 수 있어요.
+
+각 section은 다른 section과 같은 layout을 사용할 수도 있고 서로 다른 layout을 사용할 수도 있어요. section의 layout은 그 section을 만들 때 전달한 `NSCollectionLayoutGroup`의 프로퍼티로 결정돼요.
+
+사진 앱의 연도 화면에서는 각 section이 같은 layout을 사용해요. 반면 App Store의 앱 화면에서는 여러 section이 서로 다른 콘텐츠 배치를 사용해요.
+
 <!-- Apple DocC image: media-3568661 -->
 
 ![서로 다른 콘텐츠 배치를 가진 두 영역을 각각 section으로 표시한 Collection View](../assets/apple-docs/media-3568661@2x.png)
 
-## 공식 설명에서 놓치면 안 되는 동작
-
-Collection View Layout은 하나 이상의 section으로 나뉘어요. 모든 section이 같은 group을 반복할 수도 있고, section provider가 section index와 환경을 보고 서로 다른 group 구성을 반환할 수도 있어요.
-
-section은 자신을 만든 group의 배치를 반복하면서 content inset과 group 간격을 더하고, header·footer·배경으로 다른 section과 구분할 수 있어요. `orthogonalScrollingBehavior`를 지정하면 전체 세로 스크롤 안에서 특정 section만 가로로 움직이게 만들 수 있어요.
+section마다 별도의 배경, header, footer를 지정해 다른 section과 시각적으로 구분할 수 있어요.
 
 ## 선언과 지원 범위를 확인해요
 

@@ -23,15 +23,19 @@ item은 셀 하나, group은 item 묶음, section은 group 반복 단위예요. 
 
 NSCollectionLayoutItem은 Compositional Layout에서 셀 하나의 크기, content inset, edge spacing, 보조 item을 정의하는 최소 단위예요.
 
+## 개요 (Overview)
+
+item은 Collection View에서 콘텐츠 하나의 크기·간격·배치 방법을 나타내는 청사진이에요. 화면에 실제로 표시되는 뷰 하나를 표현해요. 일반적으로 셀을 뜻하지만 header·footer 같은 supplementary view나 다른 decoration을 나타낼 수도 있어요.
+
+사진 앱에서는 사진 한 장이 item 하나가 될 수 있어요. App Store에서는 추천 앱 목록에 있는 앱 아이콘, 이름, 설명, 다운로드 버튼을 담은 셀 하나가 item에 해당할 수 있어요.
+
 <!-- Apple DocC image: media-3568665 -->
 
 ![두 section의 Collection View에서 각 셀에 대응하는 최소 레이아웃 단위인 item](../assets/apple-docs/media-3568665@2x.png)
 
-## 공식 설명에서 놓치면 안 되는 동작
+각 item은 width dimension과 height dimension으로 자신의 크기를 지정해요. dimension은 컨테이너에 대한 비율, 고정된 point 값, 또는 시스템 글자 크기 변경처럼 실행 중 달라질 수 있는 예상값으로 표현할 수 있어요. 자세한 크기 방식은 `NSCollectionLayoutDimension` 문서에서 확인할 수 있어요.
 
-item은 화면에 그려질 뷰 하나의 크기·간격·배치 청사진이에요. 보통 셀을 나타내지만 header·footer 같은 supplementary view 또는 다른 장식 요소를 나타낼 수도 있어요.
-
-모든 item은 width와 height dimension으로 명시적인 `layoutSize`를 가져요. 각 dimension은 바깥 container에 대한 비율, 고정 point, 런타임에 측정할 estimated 값으로 표현할 수 있어요. item은 단독으로 section에 들어가지 않고 group에 포함되어 형제 item과의 상대 배치가 정해져요.
+item은 group 안에서 다른 item과 어떤 관계로 배치될지 결정돼요. group 구성 방법은 `NSCollectionLayoutGroup` 문서에서 확인할 수 있어요.
 
 ## 선언과 지원 범위를 확인해요
 

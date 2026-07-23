@@ -17,92 +17,77 @@ description: 'Apple 공식 샘플의 상태 변화, backgroundView와 selectedBa
 | Selection           | 사용자가 item을 선택했다는 지속적인 상태예요.                |
 | Configuration State | 셀 모양을 결정하는 선택·하이라이트 등의 상태 값이에요.       |
 
-## 개요
+## 개요 (Overview)
 
-공식 샘플은 선택되지 않음, 하이라이트, 선택됨 상태로 셀이 바뀔 때 모양을 달리해 현재 상태를 사용자에게 알려 줘요. Collection View는 기본적으로 한 item 선택을 허용하지만 `allowsMultipleSelection`으로 다중 선택을 켜거나 `allowsSelection`으로 선택을 끌 수 있어요.
+이 샘플 앱은 Collection View Cell이 선택되지 않은 상태, 하이라이트된 상태, 선택된 상태 사이를 오갈 때 모양을 바꾸는 방법을 보여 줘요. 사용자가 셀을 탭하면 앱은 셀의 현재 상태를 확인하고, 상태가 전환되고 있다는 사실을 나타내도록 모양을 변경해요.
 
-## 셀 상태가 바뀌는 순서를 이해해요
+샘플의 Collection View는 Collection View의 기본값인 단일 item 선택을 지원해요. Collection View가 여러 item을 선택하도록 설정하거나 선택 자체를 비활성화할 수도 있어요.
 
-`allowsSelection`이 `true`이면 Collection View가 터치 위치를 추적해 셀의 `isHighlighted`와 `isSelected`를 관리해요.
+### Cell 상태 확인하기 (Determine the state of a cell)
 
-1. 선택되지 않은 셀을 누르면 `isHighlighted`가 `true`가 돼요.
-2. 손가락을 떼면 `isHighlighted`가 `false`로 돌아가요.
-3. 셀 안에서 손가락을 뗐다면 `isSelected`가 `true`가 돼요.
-4. 셀 밖에서 뗐다면 선택 상태는 바뀌지 않아요.
+샘플의 Collection View는 자신의 영역 안에서 발생한 탭을 감지해 셀 상태를 결정해요. 그런 다음 현재 상태를 나타내도록 해당 셀의 `isSelected`와 `isHighlighted` 프로퍼티를 설정해요. `allowsSelection`이 `true`이므로 Collection View가 이 동작을 제공해요.
+
+선택되지 않은 셀을 터치하면 최초 touch-down 이벤트로 셀의 `isHighlighted`가 `true`가 돼요. 마지막 touch-up 이벤트에서는 하이라이트 상태가 `false`로 돌아가요. 셀 안에서 손가락을 떼면 Collection View가 `isSelected`를 `true`로 설정하고, 셀 밖에서 떼면 선택 값은 바뀌지 않아요.
 
 <!-- Apple DocC image: collection-view-selection_2x -->
 
 ![선택되지 않은 셀을 누르고 손가락을 뗄 때 하이라이트와 선택 상태가 변하는 순서](./assets/apple-docs/collection-view-selection_2x.png)
 
-## 셀의 시각적 모양을 바꿔요
+### Cell의 시각적 모양 바꾸기 (Change the cell’s visual appearance)
 
-`backgroundView`는 기본 상태의 배경이고 `selectedBackgroundView`는 하이라이트 또는 선택 상태에서 대신 표시할 배경이에요. Collection View는 상태 값만 관리할 뿐 임의의 시각 디자인을 만들지는 않지만, `selectedBackgroundView`를 지정하면 상태에 맞춰 두 배경을 자동으로 전환해요.
+셀의 `backgroundView`는 셀이 처음 표시될 때와 하이라이트되거나 선택되지 않았을 때 배경으로 사용할 뷰를 가리켜요. 셀이 하이라이트 또는 선택 상태로 바뀌면 Collection View는 새 상태를 나타내도록 셀의 상태 프로퍼티를 수정하지만, 셀의 시각적 모양까지 자동으로 바꾸지는 않아요. 다만 `selectedBackgroundView`에 뷰를 지정하면 이 배경 전환을 Collection View가 처리해요.
+
+`selectedBackgroundView`를 지정하면 셀이 하이라이트되거나 선택될 때 기본 배경을 선택 배경으로 교체해요. 앱이 별도의 전환 코드를 실행하지 않아도 Collection View가 상태 변화에 맞춰 셀 모양을 자동으로 변경해요. 공식 샘플은 셀을 선택했을 때 배경색이 빨간색에서 파란색으로 바뀌도록 구성해요.
 
 ```swift
-final class ColorCell: UICollectionViewCell {
-  override init(frame: CGRect) {
-    super.init(frame: frame)
+override func awakeFromNib() {
+    super.awakeFromNib()
 
-    let normalBackground = UIView(frame: bounds)
-    normalBackground.backgroundColor = .systemRed
-    backgroundView = normalBackground
+    let redView = UIView(frame: bounds)
+    redView.backgroundColor = #colorLiteral(red: 1, green: 0, blue: 0, alpha: 1)
+    self.backgroundView = redView
 
-    let selectedBackground = UIView(frame: bounds)
-    selectedBackground.backgroundColor = .systemBlue
-    selectedBackgroundView = selectedBackground
-  }
-
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
+    let blueView = UIView(frame: bounds)
+    blueView.backgroundColor = #colorLiteral(red: 0, green: 0, blue: 1, alpha: 1)
+    self.selectedBackgroundView = blueView
 }
 ```
 
-Storyboard나 nib을 사용한다면 공식 샘플처럼 같은 구성을 `awakeFromNib()`에서 적용할 수도 있어요.
+### 상태 변화를 추가로 표시하기 (Provide additional visual indication of state changes)
 
-## 상태 변화를 더 분명하게 보여 줘요
+선택 배경을 제공하는 방식은 셀 상태에 따라 모양을 바꾸는 간단한 방법이지만, 배경색 이외의 표시도 추가할 수 있어요. 예를 들어 선택된 셀에 체크 표시를 보여 주거나 하이라이트 상태와 선택 상태를 서로 다른 시각 요소로 구분할 수 있어요.
 
-배경 이외에 체크 표시나 아이콘을 추가하려면 선택 delegate를 사용할 수 있어요. 공식 샘플은 선택 시 별 아이콘을 표시하고 선택 해제 시 감춰요.
+Collection View의 delegate 메서드는 선택과 하이라이트 모양을 조정할 여러 기회를 제공해요. 선택 상태를 직접 그리려면 `selectedBackgroundView`를 `nil`로 두고 `collectionView(_:didSelectItemAt:)`에서 셀 모양을 변경할 수 있어요. 공식 샘플은 선택 배경과 함께 이 메서드에서 별 아이콘을 표시하고, `collectionView(_:didDeselectItemAt:)`에서 별을 제거해요.
 
 ```swift
-func collectionView(
-  _ collectionView: UICollectionView,
-  didSelectItemAt indexPath: IndexPath
-) {
-  let cell = collectionView.cellForItem(at: indexPath) as? PhotoCell
-  cell?.showSelectionIcon()
+func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    if let cell = collectionView.cellForItem(at: indexPath) as? CustomCollectionViewCell {
+        cell.showIcon()
+    }
 }
 
-func collectionView(
-  _ collectionView: UICollectionView,
-  didDeselectItemAt indexPath: IndexPath
-) {
-  let cell = collectionView.cellForItem(at: indexPath) as? PhotoCell
-  cell?.hideSelectionIcon()
+func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+    if let cell = collectionView.cellForItem(at: indexPath) as? CustomCollectionViewCell {
+        cell.hideIcon()
+    }
 }
 ```
 
-하이라이트만 별도로 표현하려면 `didHighlightItemAt`과 `didUnhighlightItemAt`을 사용해요. `selectedBackgroundView`가 선택 배경을 담당한다면 짧은 터치 피드백은 `contentView`에 적용할 수 있어요.
+하이라이트 상태를 직접 그리려면 `collectionView(_:didHighlightItemAt:)`과 `collectionView(_:didUnhighlightItemAt:)`을 사용해요. 공식 샘플은 두 메서드에서 하이라이트 배경을 서로 다른 빨간색 음영으로 표시해요. 이 앱의 셀은 파란색 `selectedBackgroundView`도 사용하므로, delegate는 변경 사항이 보이도록 셀의 `contentView`에 하이라이트 색상을 적용해요.
 
 ```swift
-func collectionView(
-  _ collectionView: UICollectionView,
-  didHighlightItemAt indexPath: IndexPath
-) {
-  collectionView.cellForItem(at: indexPath)?
-    .contentView.backgroundColor = .systemRed.withAlphaComponent(0.45)
+func collectionView(_ collectionView: UICollectionView, didHighlightItemAt indexPath: IndexPath) {
+    if let cell = collectionView.cellForItem(at: indexPath) {
+        cell.contentView.backgroundColor = #colorLiteral(red: 1, green: 0.4932718873, blue: 0.4739984274, alpha: 1)
+    }
 }
 
-func collectionView(
-  _ collectionView: UICollectionView,
-  didUnhighlightItemAt indexPath: IndexPath
-) {
-  collectionView.cellForItem(at: indexPath)?
-    .contentView.backgroundColor = nil
+func collectionView(_ collectionView: UICollectionView, didUnhighlightItemAt indexPath: IndexPath) {
+    if let cell = collectionView.cellForItem(at: indexPath) {
+        cell.contentView.backgroundColor = nil
+    }
 }
 ```
-
-이 방식은 공식 샘플의 상태 전환을 직접 보여 주기 때문에 이해하기 쉽지만, 재사용으로 셀이 다시 구성될 때 아이콘과 배경을 반드시 초기화해야 해요.
 
 ## Swift-KR 보충: Configuration State로 한곳에서 계산해요
 
