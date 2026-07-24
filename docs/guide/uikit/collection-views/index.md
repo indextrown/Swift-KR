@@ -38,6 +38,7 @@ description: UICollectionView의 데이터, 셀 재사용, 레이아웃, prefetc
 4. 셀 재사용과 prefetch를 이용한 데이터 준비를 이해해요.
 5. compositional layout으로 배치를 확장해요.
 6. 선택, 다중 선택, 드래그 앤 드롭을 연결해요.
+7. 별도 예제 섹션에서 data source와 layout 조합을 직접 구현해요.
 
 ## Collection View는 역할을 나눠 조합해요
 
@@ -240,6 +241,7 @@ private func renamePhoto(id: Photo.ID, title: String) {
 | 격자·목록·가로 스크롤 배치                | [레이아웃](./layout-guide)                          |
 | 선택과 하이라이트, 다중 선택              | [선택 상태](./selection)                            |
 | 앱 안팎으로 item 이동                     | [드래그 앤 드롭](./drag-and-drop)                   |
+| 네 가지 data source·layout 조합 실습      | [예제](./examples/index)                            |
 | `UICollectionView` 전체 API 확인          | [`UICollectionView`](./uicollectionview)            |
 | Layouts 공식 분류에서 API 찾기            | [Layouts API 모음](./layouts/index)                 |
 | Apple 원문과 Swift-KR 문서 대응 확인      | [공식 문서 인벤토리](./official-document-inventory) |
