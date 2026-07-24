@@ -50,6 +50,130 @@
   },
   {
     "type": "custom-link",
+    "label": "예제",
+    "link": "/guide/uikit/collection-views/examples/index",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "예제 한눈에 보기",
+        "link": "/guide/uikit/collection-views/examples/index"
+      },
+      {
+        "type": "custom-link",
+        "label": "Data Source",
+        "collapsible": true,
+        "collapsed": true,
+        "items": [
+          {
+            "type": "custom-link",
+            "label": "UICollectionViewDataSource",
+            "link": "/guide/uikit/collection-views/examples/data-source"
+          },
+          {
+            "type": "custom-link",
+            "label": "UICollectionViewDiffableDataSource",
+            "link": "/guide/uikit/collection-views/examples/diffable-data-source"
+          },
+          {
+            "type": "custom-link",
+            "label": "UICollectionViewDataSourcePrefetching",
+            "link": "/guide/uikit/collection-views/examples/data-source-prefetching"
+          }
+        ]
+      },
+      {
+        "type": "custom-link",
+        "label": "Delegate",
+        "collapsible": true,
+        "collapsed": true,
+        "items": [
+          {
+            "type": "custom-link",
+            "label": "UICollectionViewDelegate",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "custom-link",
+                "label": "전통적인 방식",
+                "link": "/guide/uikit/collection-views/examples/traditional-delegate"
+              },
+              {
+                "type": "custom-link",
+                "label": "현대적인 방식",
+                "link": "/guide/uikit/collection-views/examples/modern-delegate"
+              }
+            ]
+          },
+          {
+            "type": "custom-link",
+            "label": "UICollectionViewDelegateFlowLayout",
+            "link": "/guide/uikit/collection-views/examples/flow-layout-delegate"
+          },
+          {
+            "type": "custom-link",
+            "label": "UICollectionViewDragDelegate",
+            "link": "/guide/uikit/collection-views/examples/drag-delegate"
+          },
+          {
+            "type": "custom-link",
+            "label": "UICollectionViewDropDelegate",
+            "link": "/guide/uikit/collection-views/examples/drop-delegate"
+          }
+        ]
+      },
+      {
+        "type": "custom-link",
+        "label": "Layout",
+        "collapsible": true,
+        "collapsed": true,
+        "items": [
+          {
+            "type": "custom-link",
+            "label": "UICollectionViewFlowLayout",
+            "link": "/guide/uikit/collection-views/examples/flow-layout"
+          },
+          {
+            "type": "custom-link",
+            "label": "UICollectionViewCompositionalLayout",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "custom-link",
+                "label": "기본 예제",
+                "link": "/guide/uikit/collection-views/examples/compositional-layout"
+              },
+              {
+                "type": "custom-link",
+                "label": "List Layout",
+                "link": "/guide/uikit/collection-views/examples/list-layout"
+              }
+            ]
+          },
+          {
+            "type": "custom-link",
+            "label": "Custom UICollectionViewLayout",
+            "link": "/guide/uikit/collection-views/examples/custom-layout"
+          },
+          {
+            "type": "custom-link",
+            "label": "UICollectionViewTransitionLayout",
+            "link": "/guide/uikit/collection-views/examples/transition-layout"
+          }
+        ]
+      },
+      {
+        "type": "custom-link",
+        "label": "실무 확장 예제",
+        "link": "/guide/uikit/collection-views/examples/practical-recipes"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
     "label": "뷰",
     "collapsible": true,
     "collapsed": true,
