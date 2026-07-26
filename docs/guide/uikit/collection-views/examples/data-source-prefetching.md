@@ -204,6 +204,263 @@ func configureThumbnail(
 
 `IndexPath`는 현재 위치라서 삽입·삭제·정렬 뒤 다른 모델을 가리킬 수 있어요. 안정적인 모델 ID를 task와 cache의 key로 사용하면 item이 이동해도 같은 요청과 결과를 찾을 수 있어요.
 
+## 전체 최종 코드
+
+아래 코드는 [공통 `Photo`와 `PhotoCell`](./index)을 사용하는 전통적인 Data Source에 ID 기반 이미지 cache와 prefetch를 붙인 최종본이에요. `imageURLsByID`에는 서버 응답으로 얻은 실제 URL을 주입하세요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+final class PrefetchPhotoCell: UICollectionViewCell {
+  static let reuseIdentifier = "PrefetchPhotoCell"
+
+  private let thumbnailView = UIImageView()
+  private let titleLabel = UILabel()
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+
+    thumbnailView.contentMode = .scaleAspectFill
+    thumbnailView.clipsToBounds = true
+    titleLabel.font = .preferredFont(forTextStyle: .headline)
+
+    let stack = UIStackView(
+      arrangedSubviews: [thumbnailView, titleLabel]
+    )
+    stack.axis = .vertical
+    stack.spacing = 8
+    stack.translatesAutoresizingMaskIntoConstraints = false
+    contentView.addSubview(stack)
+    NSLayoutConstraint.activate([
+      stack.topAnchor.constraint(
+        equalTo: contentView.topAnchor,
+        constant: 12
+      ),
+      stack.leadingAnchor.constraint(
+        equalTo: contentView.leadingAnchor,
+        constant: 12
+      ),
+      stack.trailingAnchor.constraint(
+        equalTo: contentView.trailingAnchor,
+        constant: -12
+      ),
+      stack.bottomAnchor.constraint(
+        equalTo: contentView.bottomAnchor,
+        constant: -12
+      ),
+    ])
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:)는 사용하지 않아요.")
+  }
+
+  func configure(photo: Photo, thumbnail: UIImage?) {
+    titleLabel.text = photo.title
+    thumbnailView.image =
+      thumbnail ?? UIImage(systemName: "photo")
+  }
+
+  override func prepareForReuse() {
+    super.prepareForReuse()
+    thumbnailView.image = nil
+    titleLabel.text = nil
+  }
+}
+
+@MainActor
+final class PhotoThumbnailStore {
+  private let cache = NSCache<NSUUID, UIImage>()
+  private var tasks: [Photo.ID: Task<Void, Never>] = [:]
+  var onImagePrepared: ((Photo.ID) -> Void)?
+
+  func cachedImage(for id: Photo.ID) -> UIImage? {
+    cache.object(forKey: id as NSUUID)
+  }
+
+  func prepare(id: Photo.ID, url: URL) {
+    guard cachedImage(for: id) == nil, tasks[id] == nil else {
+      return
+    }
+
+    tasks[id] = Task { [weak self] in
+      guard let self else {
+        return
+      }
+      defer {
+        tasks[id] = nil
+      }
+
+      do {
+        let (data, _) = try await URLSession.shared.data(
+          from: url
+        )
+        try Task.checkCancellation()
+        if let image = UIImage(data: data) {
+          cache.setObject(image, forKey: id as NSUUID)
+          onImagePrepared?(id)
+        }
+      } catch is CancellationError {
+        // 화면에서 멀어진 정상적인 취소 흐름이에요.
+      } catch {
+        print("썸네일 준비 실패: \(error)")
+      }
+    }
+  }
+
+  func cancel(id: Photo.ID) {
+    tasks[id]?.cancel()
+  }
+}
+
+@MainActor
+final class PrefetchingPhotoGridViewController:
+  UIViewController
+{
+  private var photos = Photo.samples
+  private var imageURLsByID: [Photo.ID: URL] = [:]
+  private let thumbnailStore = PhotoThumbnailStore()
+
+  private lazy var collectionView = UICollectionView(
+    frame: .zero,
+    collectionViewLayout: makeGridLayout()
+  )
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemBackground
+    collectionView.dataSource = self
+    collectionView.prefetchDataSource = self
+    collectionView.register(
+      PrefetchPhotoCell.self,
+      forCellWithReuseIdentifier:
+        PrefetchPhotoCell.reuseIdentifier
+    )
+    thumbnailStore.onImagePrepared = { [weak self] id in
+      guard
+        let self,
+        let index = photos.firstIndex(
+          where: { $0.id == id }
+        )
+      else {
+        return
+      }
+
+      let indexPath = IndexPath(item: index, section: 0)
+      if collectionView.indexPathsForVisibleItems.contains(
+        indexPath
+      ) {
+        collectionView.reloadItems(at: [indexPath])
+      }
+    }
+
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+  }
+
+  private func makeGridLayout() -> UICollectionViewFlowLayout {
+    let layout = UICollectionViewFlowLayout()
+    layout.itemSize = CGSize(width: 160, height: 160)
+    layout.minimumInteritemSpacing = 12
+    layout.minimumLineSpacing = 12
+    layout.sectionInset = UIEdgeInsets(
+      top: 16,
+      left: 16,
+      bottom: 16,
+      right: 16
+    )
+    return layout
+  }
+
+  private func prepareThumbnail(at indexPath: IndexPath) {
+    guard photos.indices.contains(indexPath.item) else {
+      return
+    }
+
+    let id = photos[indexPath.item].id
+    guard let url = imageURLsByID[id] else {
+      return
+    }
+    thumbnailStore.prepare(id: id, url: url)
+  }
+}
+
+extension PrefetchingPhotoGridViewController:
+  UICollectionViewDataSource
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    photos.count
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    guard let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: PrefetchPhotoCell.reuseIdentifier,
+      for: indexPath
+    ) as? PrefetchPhotoCell else {
+      preconditionFailure("PrefetchPhotoCell 등록을 확인하세요.")
+    }
+
+    let photo = photos[indexPath.item]
+    cell.configure(
+      photo: photo,
+      thumbnail: thumbnailStore.cachedImage(for: photo.id)
+    )
+    prepareThumbnail(at: indexPath)
+    return cell
+  }
+}
+
+extension PrefetchingPhotoGridViewController:
+  UICollectionViewDataSourcePrefetching
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    prefetchItemsAt indexPaths: [IndexPath]
+  ) {
+    indexPaths.forEach(prepareThumbnail)
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cancelPrefetchingForItemsAt indexPaths: [IndexPath]
+  ) {
+    for indexPath in indexPaths {
+      guard photos.indices.contains(indexPath.item) else {
+        continue
+      }
+      thumbnailStore.cancel(id: photos[indexPath.item].id)
+    }
+  }
+}
+```
+
+</details>
+
 ## 참고 자료
 
 - [Apple Developer Documentation — UICollectionViewDataSourcePrefetching](https://developer.apple.com/documentation/uikit/uicollectionviewdatasourceprefetching)

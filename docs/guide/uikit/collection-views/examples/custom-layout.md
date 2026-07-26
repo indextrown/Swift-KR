@@ -251,6 +251,269 @@ Content size와 화면 영역·특정 item에 대한 layout attributes를 제공
 
 Custom layout과 다른 layout 사이를 gesture로 전환하려면 [`UICollectionViewTransitionLayout` 예제](./transition-layout)를 읽어 보세요.
 
+## 전체 최종 코드
+
+아래 코드는 태그 셀, 배열 기반 Data Source, 너비 delegate, attributes cache를 사용하는 Custom Layout을 모두 합친 최종본이에요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+protocol TagCloudLayoutDelegate: AnyObject {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    widthForItemAt indexPath: IndexPath
+  ) -> CGFloat
+}
+
+final class TagCloudLayout: UICollectionViewLayout {
+  weak var delegate: (any TagCloudLayoutDelegate)?
+  var itemHeight: CGFloat = 44
+  var horizontalSpacing: CGFloat = 8
+  var verticalSpacing: CGFloat = 10
+  var sectionInset = UIEdgeInsets(
+    top: 16,
+    left: 16,
+    bottom: 16,
+    right: 16
+  )
+
+  private var cachedAttributes: [
+    UICollectionViewLayoutAttributes
+  ] = []
+  private var contentHeight: CGFloat = 0
+
+  override func prepare() {
+    super.prepare()
+    guard let collectionView else {
+      return
+    }
+
+    cachedAttributes.removeAll(keepingCapacity: true)
+    let availableMaxX =
+      collectionView.bounds.width
+      - collectionView.adjustedContentInset.left
+      - collectionView.adjustedContentInset.right
+      - sectionInset.right
+    let maximumWidth = max(
+      availableMaxX - sectionInset.left,
+      1
+    )
+    var x = sectionInset.left
+    var y = sectionInset.top
+
+    for section in 0..<collectionView.numberOfSections {
+      for item in 0..<collectionView.numberOfItems(
+        inSection: section
+      ) {
+        let indexPath = IndexPath(
+          item: item,
+          section: section
+        )
+        let requestedWidth = delegate?.collectionView(
+          collectionView,
+          widthForItemAt: indexPath
+        ) ?? 80
+        let width = min(
+          max(requestedWidth, 1),
+          maximumWidth
+        )
+
+        if x + width > availableMaxX,
+          x > sectionInset.left
+        {
+          x = sectionInset.left
+          y += itemHeight + verticalSpacing
+        }
+
+        let attributes = UICollectionViewLayoutAttributes(
+          forCellWith: indexPath
+        )
+        attributes.frame = CGRect(
+          x: x,
+          y: y,
+          width: width,
+          height: itemHeight
+        )
+        cachedAttributes.append(attributes)
+        x += width + horizontalSpacing
+      }
+
+      x = sectionInset.left
+      y += itemHeight + sectionInset.bottom
+    }
+    contentHeight = y
+  }
+
+  override var collectionViewContentSize: CGSize {
+    guard let collectionView else {
+      return .zero
+    }
+    return CGSize(
+      width: collectionView.bounds.width,
+      height: max(contentHeight, collectionView.bounds.height)
+    )
+  }
+
+  override func layoutAttributesForElements(
+    in rect: CGRect
+  ) -> [UICollectionViewLayoutAttributes]? {
+    cachedAttributes.filter {
+      $0.frame.intersects(rect)
+    }
+  }
+
+  override func layoutAttributesForItem(
+    at indexPath: IndexPath
+  ) -> UICollectionViewLayoutAttributes? {
+    cachedAttributes.first {
+      $0.indexPath == indexPath
+    }
+  }
+
+  override func shouldInvalidateLayout(
+    forBoundsChange newBounds: CGRect
+  ) -> Bool {
+    guard let collectionView else {
+      return false
+    }
+    return newBounds.width != collectionView.bounds.width
+  }
+}
+
+final class TagCell: UICollectionViewCell {
+  static let reuseIdentifier = "TagCell"
+  private let label = UILabel()
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+
+    label.translatesAutoresizingMaskIntoConstraints = false
+    contentView.addSubview(label)
+    contentView.backgroundColor = .secondarySystemBackground
+    contentView.layer.cornerRadius = 12
+    NSLayoutConstraint.activate([
+      label.leadingAnchor.constraint(
+        equalTo: contentView.leadingAnchor,
+        constant: 16
+      ),
+      label.trailingAnchor.constraint(
+        equalTo: contentView.trailingAnchor,
+        constant: -16
+      ),
+      label.centerYAnchor.constraint(
+        equalTo: contentView.centerYAnchor
+      ),
+    ])
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:)는 사용하지 않아요.")
+  }
+
+  func configure(title: String) {
+    label.text = title
+  }
+}
+
+@MainActor
+final class TagCloudViewController: UIViewController {
+  private let tags = [
+    "Swift",
+    "UIKit",
+    "Collection View",
+    "Diffable Data Source",
+    "Custom Layout",
+  ]
+
+  private lazy var collectionView: UICollectionView = {
+    let layout = TagCloudLayout()
+    layout.delegate = self
+    return UICollectionView(
+      frame: .zero,
+      collectionViewLayout: layout
+    )
+  }()
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemBackground
+    collectionView.dataSource = self
+    collectionView.register(
+      TagCell.self,
+      forCellWithReuseIdentifier: TagCell.reuseIdentifier
+    )
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+  }
+
+  override func traitCollectionDidChange(
+    _ previousTraitCollection: UITraitCollection?
+  ) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    collectionView.collectionViewLayout.invalidateLayout()
+  }
+}
+
+extension TagCloudViewController:
+  UICollectionViewDataSource
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    tags.count
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    guard let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: TagCell.reuseIdentifier,
+      for: indexPath
+    ) as? TagCell else {
+      preconditionFailure("TagCell 등록을 확인하세요.")
+    }
+    cell.configure(title: tags[indexPath.item])
+    return cell
+  }
+}
+
+extension TagCloudViewController: TagCloudLayoutDelegate {
+  func collectionView(
+    _ collectionView: UICollectionView,
+    widthForItemAt indexPath: IndexPath
+  ) -> CGFloat {
+    let font = UIFont.preferredFont(forTextStyle: .body)
+    let textWidth = (tags[indexPath.item] as NSString).size(
+      withAttributes: [.font: font]
+    ).width
+    return ceil(textWidth) + 32
+  }
+}
+```
+
+</details>
+
 ## 참고 자료
 
 - [Apple Developer Documentation — UICollectionViewLayout](https://developer.apple.com/documentation/uikit/uicollectionviewlayout)

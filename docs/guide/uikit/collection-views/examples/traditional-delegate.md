@@ -288,6 +288,219 @@ Highlight는 사용자가 손가락을 누르고 있는 동안의 일시적인 �
 
 상호작용을 연결했다면 [`UICollectionViewFlowLayout` 예제](./flow-layout)에서 같은 전통적인 화면의 셀 크기와 간격을 반응형으로 구성해 보세요.
 
+## 전체 최종 코드
+
+아래 코드는 [공통 `Photo`와 `PhotoCell`](./index)을 사용해 전통적인 Data Source와 선택·하이라이트·노출·다중 선택·Context Menu를 한 화면에 연결한 최종본이에요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+@MainActor
+final class ClassicInteractivePhotoGridViewController:
+  UIViewController
+{
+  private var photos = Photo.samples
+  private var selectedPhotoIDs: Set<Photo.ID> = []
+  private var exposedPhotoIDs: Set<Photo.ID> = []
+  var onSelectPhoto: ((Photo.ID) -> Void)?
+
+  private lazy var collectionView = UICollectionView(
+    frame: .zero,
+    collectionViewLayout: makeGridLayout()
+  )
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemBackground
+    collectionView.allowsMultipleSelection = true
+    collectionView.dataSource = self
+    collectionView.delegate = self
+    collectionView.register(
+      PhotoCell.self,
+      forCellWithReuseIdentifier: PhotoCell.reuseIdentifier
+    )
+
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+  }
+
+  private func makeGridLayout() -> UICollectionViewFlowLayout {
+    let layout = UICollectionViewFlowLayout()
+    layout.itemSize = CGSize(width: 160, height: 160)
+    layout.minimumInteritemSpacing = 12
+    layout.minimumLineSpacing = 12
+    layout.sectionInset = UIEdgeInsets(
+      top: 16,
+      left: 16,
+      bottom: 16,
+      right: 16
+    )
+    return layout
+  }
+
+  private func toggleFavorite(id: Photo.ID) {
+    guard let index = photos.firstIndex(
+      where: { $0.id == id }
+    ) else {
+      return
+    }
+
+    photos[index].isFavorite.toggle()
+    collectionView.reloadItems(
+      at: [IndexPath(item: index, section: 0)]
+    )
+  }
+
+  private func deletePhoto(id: Photo.ID) {
+    guard let index = photos.firstIndex(
+      where: { $0.id == id }
+    ) else {
+      return
+    }
+
+    photos.remove(at: index)
+    selectedPhotoIDs.remove(id)
+    collectionView.deleteItems(
+      at: [IndexPath(item: index, section: 0)]
+    )
+  }
+}
+
+extension ClassicInteractivePhotoGridViewController:
+  UICollectionViewDataSource
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    photos.count
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    guard let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: PhotoCell.reuseIdentifier,
+      for: indexPath
+    ) as? PhotoCell else {
+      preconditionFailure("PhotoCell 등록을 확인하세요.")
+    }
+    cell.configure(with: photos[indexPath.item])
+    return cell
+  }
+}
+
+extension ClassicInteractivePhotoGridViewController:
+  UICollectionViewDelegate
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    shouldSelectItemAt indexPath: IndexPath
+  ) -> Bool {
+    !photos[indexPath.item].title.isEmpty
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    didSelectItemAt indexPath: IndexPath
+  ) {
+    let id = photos[indexPath.item].id
+    selectedPhotoIDs.insert(id)
+    onSelectPhoto?(id)
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    didDeselectItemAt indexPath: IndexPath
+  ) {
+    selectedPhotoIDs.remove(photos[indexPath.item].id)
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    didHighlightItemAt indexPath: IndexPath
+  ) {
+    UIView.animate(withDuration: 0.12) {
+      collectionView.cellForItem(at: indexPath)?
+        .transform = CGAffineTransform(
+          scaleX: 0.96,
+          y: 0.96
+        )
+    }
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    didUnhighlightItemAt indexPath: IndexPath
+  ) {
+    UIView.animate(withDuration: 0.12) {
+      collectionView.cellForItem(at: indexPath)?
+        .transform = .identity
+    }
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    willDisplay cell: UICollectionViewCell,
+    forItemAt indexPath: IndexPath
+  ) {
+    let id = photos[indexPath.item].id
+    if exposedPhotoIDs.insert(id).inserted {
+      print("첫 사진 노출: \(id)")
+    }
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    contextMenuConfigurationForItemAt indexPath: IndexPath,
+    point: CGPoint
+  ) -> UIContextMenuConfiguration? {
+    let id = photos[indexPath.item].id
+
+    return UIContextMenuConfiguration(
+      identifier: id as NSUUID,
+      previewProvider: nil
+    ) { [weak self] _ in
+      let favorite = UIAction(
+        title: "즐겨찾기 전환",
+        image: UIImage(systemName: "heart")
+      ) { _ in
+        self?.toggleFavorite(id: id)
+      }
+      let delete = UIAction(
+        title: "삭제",
+        image: UIImage(systemName: "trash"),
+        attributes: .destructive
+      ) { _ in
+        self?.deletePhoto(id: id)
+      }
+      return UIMenu(children: [favorite, delete])
+    }
+  }
+}
+```
+
+</details>
+
 ## 참고 자료
 
 - [Apple Developer Documentation — UICollectionViewDelegate](https://developer.apple.com/documentation/uikit/uicollectionviewdelegate)

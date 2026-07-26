@@ -220,6 +220,208 @@ Finish하면 목표 layout이 최종 `collectionViewLayout`이 되고, cancel하
 
 아니요. 현재 layout과 목표 layout 사이의 중간 attributes를 제공하는 임시 layout이에요. 전환을 완료하면 목표 layout이 설치되고, 취소하면 이전 layout으로 돌아가요.
 
+## 전체 최종 코드
+
+아래 코드는 [공통 `Photo`와 `PhotoCell`](./index)을 사용하는 배열 기반 Data Source에 격자·목록 layout, 버튼 전환, pan gesture 기반 interactive transition을 연결한 최종본이에요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+@MainActor
+final class LayoutTransitionViewController: UIViewController {
+  private var photos = Photo.samples
+  private var showsGrid = true
+  private var transitionLayout:
+    UICollectionViewTransitionLayout?
+  private var transitionShouldFinish = false
+
+  private lazy var gridLayout: UICollectionViewFlowLayout = {
+    let layout = UICollectionViewFlowLayout()
+    layout.itemSize = CGSize(width: 160, height: 208)
+    layout.minimumInteritemSpacing = 12
+    layout.minimumLineSpacing = 16
+    layout.sectionInset = UIEdgeInsets(
+      top: 16,
+      left: 16,
+      bottom: 16,
+      right: 16
+    )
+    return layout
+  }()
+
+  private lazy var listLayout: UICollectionViewFlowLayout = {
+    let layout = UICollectionViewFlowLayout()
+    layout.itemSize = CGSize(width: 320, height: 88)
+    layout.minimumLineSpacing = 8
+    layout.sectionInset = UIEdgeInsets(
+      top: 16,
+      left: 16,
+      bottom: 16,
+      right: 16
+    )
+    return layout
+  }()
+
+  private lazy var collectionView = UICollectionView(
+    frame: .zero,
+    collectionViewLayout: gridLayout
+  )
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemBackground
+    collectionView.dataSource = self
+    collectionView.register(
+      PhotoCell.self,
+      forCellWithReuseIdentifier: PhotoCell.reuseIdentifier
+    )
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+
+    navigationItem.rightBarButtonItem = UIBarButtonItem(
+      title: "전환",
+      style: .plain,
+      target: self,
+      action: #selector(toggleLayout)
+    )
+    let pan = UIPanGestureRecognizer(
+      target: self,
+      action: #selector(handleLayoutPan(_:))
+    )
+    collectionView.addGestureRecognizer(pan)
+  }
+
+  @objc
+  private func toggleLayout() {
+    guard transitionLayout == nil else {
+      return
+    }
+    showsGrid.toggle()
+    collectionView.setCollectionViewLayout(
+      showsGrid ? gridLayout : listLayout,
+      animated: true
+    )
+  }
+
+  @objc
+  private func handleLayoutPan(
+    _ gesture: UIPanGestureRecognizer
+  ) {
+    switch gesture.state {
+    case .began:
+      beginLayoutTransition()
+    case .changed:
+      updateLayoutTransition(with: gesture)
+    case .ended:
+      endLayoutTransition(cancelled: false)
+    case .cancelled, .failed:
+      endLayoutTransition(cancelled: true)
+    default:
+      break
+    }
+  }
+
+  private func beginLayoutTransition() {
+    guard transitionLayout == nil else {
+      return
+    }
+
+    let target = showsGrid ? listLayout : gridLayout
+    transitionLayout = collectionView
+      .startInteractiveTransition(
+        to: target
+      ) { [weak self] completed, finished in
+        guard let self else {
+          return
+        }
+        if completed && finished {
+          showsGrid.toggle()
+        }
+        transitionLayout = nil
+        transitionShouldFinish = false
+      }
+  }
+
+  private func updateLayoutTransition(
+    with gesture: UIPanGestureRecognizer
+  ) {
+    guard let transitionLayout else {
+      return
+    }
+
+    let translation = gesture.translation(in: collectionView)
+    let distance = max(collectionView.bounds.width, 1)
+    let progress = min(
+      max(abs(translation.x) / distance, 0),
+      1
+    )
+    transitionLayout.transitionProgress = progress
+    transitionLayout.invalidateLayout()
+
+    let velocity = gesture.velocity(in: collectionView).x
+    transitionShouldFinish =
+      progress > 0.5 || abs(velocity) > 700
+  }
+
+  private func endLayoutTransition(cancelled: Bool) {
+    guard transitionLayout != nil else {
+      return
+    }
+
+    if !cancelled && transitionShouldFinish {
+      collectionView.finishInteractiveTransition()
+    } else {
+      collectionView.cancelInteractiveTransition()
+    }
+  }
+}
+
+extension LayoutTransitionViewController:
+  UICollectionViewDataSource
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    photos.count
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    guard let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: PhotoCell.reuseIdentifier,
+      for: indexPath
+    ) as? PhotoCell else {
+      preconditionFailure("PhotoCell 등록을 확인하세요.")
+    }
+    cell.configure(with: photos[indexPath.item])
+    return cell
+  }
+}
+```
+
+</details>
+
 ## 참고 자료
 
 - [Apple Developer Documentation — UICollectionViewTransitionLayout](https://developer.apple.com/documentation/uikit/uicollectionviewtransitionlayout)

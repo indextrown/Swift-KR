@@ -36,7 +36,7 @@ private lazy var emptyLabel: UILabel = {
 
 private func updateEmptyState() {
   collectionView.backgroundView =
-    photoIDs.isEmpty ? emptyLabel : nil
+    photos.isEmpty ? emptyLabel : nil
 }
 ```
 
@@ -218,7 +218,7 @@ func collectionView(
   guard
     !isLoadingNextPage,
     hasNextPage,
-    indexPath.item >= max(0, photoIDs.count - 5)
+    indexPath.item >= max(0, photos.count - 5)
   else {
     return
   }
@@ -244,12 +244,12 @@ private func loadNextPage() {
       let page = try await self.photoRepository.fetchNextPage()
       self.hasNextPage = page.hasNextPage
 
-      for photo in page.photos {
-        self.photosByID[photo.id] = photo
-        if !self.photoIDs.contains(photo.id) {
-          self.photoIDs.append(photo.id)
+      var knownIDs = Set(self.photos.map(\.id))
+      self.photos.append(
+        contentsOf: page.photos.filter {
+          knownIDs.insert($0.id).inserted
         }
-      }
+      )
       self.applyCurrentSnapshot()
     } catch {
       self.presentPaginationError(error)
@@ -322,13 +322,20 @@ private func configureReordering() {
   dataSource.reorderingHandlers.didReorder = {
     [weak self] transaction in
 
-    self?.photoIDs =
-      transaction.finalSnapshot.itemIdentifiers
+    guard let self else {
+      return
+    }
+
+    let photosByID = Dictionary(
+      uniqueKeysWithValues: photos.map { ($0.id, $0) }
+    )
+    photos = transaction.finalSnapshot.itemIdentifiers
+      .compactMap { photosByID[$0] }
   }
 }
 ```
 
-Snapshot만 바뀌고 `photoIDs`를 갱신하지 않으면 다음 데이터 갱신 때 이전 순서로 돌아가요. 영구 저장이 필요하면 새 ID 순서를 repository에 전달하고 실패 시 복구 정책을 정하세요.
+Snapshot만 바뀌고 `photos` 배열 순서를 갱신하지 않으면 다음 데이터 갱신 때 이전 순서로 돌아가요. 여기서 `photosByID`는 재정렬 순간에만 만드는 읽기용 index이며, 별도의 가변 데이터 원본이 아니에요. 영구 저장이 필요하면 새 ID 순서를 repository에 전달하고 실패 시 복구 정책을 정하세요.
 
 여러 section을 사용한다면 `transaction.finalSnapshot.itemIdentifiers(inSection:)`로 section별 순서를 가져와 각 backing store에 반영해요.
 

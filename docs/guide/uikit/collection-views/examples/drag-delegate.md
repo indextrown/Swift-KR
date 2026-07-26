@@ -196,6 +196,176 @@ func collectionView(
 
 Drag item을 만들었다면 [`UICollectionViewDropDelegate` 예제](./drop-delegate)에서 내부 재배치와 외부 데이터 삽입을 구현해 보세요.
 
+## 전체 최종 코드
+
+아래 코드는 [공통 `Photo`와 `PhotoCell`](./index)을 사용해 단일·다중 선택 drag, session item 추가, 외부 전달용 provider와 내부 전달용 ID, preview를 연결한 최종본이에요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+@MainActor
+final class DraggablePhotoGridViewController:
+  UIViewController
+{
+  private var photos = Photo.samples
+
+  private lazy var collectionView = UICollectionView(
+    frame: .zero,
+    collectionViewLayout: makeGridLayout()
+  )
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemBackground
+    collectionView.allowsMultipleSelection = true
+    collectionView.dataSource = self
+    collectionView.dragDelegate = self
+    collectionView.dragInteractionEnabled = true
+    collectionView.register(
+      PhotoCell.self,
+      forCellWithReuseIdentifier: PhotoCell.reuseIdentifier
+    )
+
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+  }
+
+  private func makeGridLayout() -> UICollectionViewFlowLayout {
+    let layout = UICollectionViewFlowLayout()
+    layout.itemSize = CGSize(width: 160, height: 160)
+    layout.minimumInteritemSpacing = 12
+    layout.minimumLineSpacing = 12
+    layout.sectionInset = UIEdgeInsets(
+      top: 16,
+      left: 16,
+      bottom: 16,
+      right: 16
+    )
+    return layout
+  }
+
+  private func makeDragItem(for photo: Photo) -> UIDragItem {
+    let provider = NSItemProvider(
+      object: photo.title as NSString
+    )
+    let item = UIDragItem(itemProvider: provider)
+    item.localObject = photo.id
+    return item
+  }
+}
+
+extension DraggablePhotoGridViewController:
+  UICollectionViewDataSource
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    photos.count
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    guard let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: PhotoCell.reuseIdentifier,
+      for: indexPath
+    ) as? PhotoCell else {
+      preconditionFailure("PhotoCell 등록을 확인하세요.")
+    }
+    cell.configure(with: photos[indexPath.item])
+    return cell
+  }
+}
+
+extension DraggablePhotoGridViewController:
+  UICollectionViewDragDelegate
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    itemsForBeginning session: UIDragSession,
+    at indexPath: IndexPath
+  ) -> [UIDragItem] {
+    let selected =
+      collectionView.indexPathsForSelectedItems ?? []
+    let sourceIndexPaths = selected.contains(indexPath)
+      ? selected
+      : [indexPath]
+
+    return sourceIndexPaths.compactMap { path in
+      guard photos.indices.contains(path.item) else {
+        return nil
+      }
+      let photo = photos[path.item]
+      return photo.title.isEmpty
+        ? nil
+        : makeDragItem(for: photo)
+    }
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    itemsForAddingTo session: UIDragSession,
+    at indexPath: IndexPath,
+    point: CGPoint
+  ) -> [UIDragItem] {
+    guard photos.indices.contains(indexPath.item) else {
+      return []
+    }
+
+    let photo = photos[indexPath.item]
+    let existingIDs = Set(
+      session.items.compactMap {
+        $0.localObject as? Photo.ID
+      }
+    )
+    return existingIDs.contains(photo.id)
+      ? []
+      : [makeDragItem(for: photo)]
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    dragPreviewParametersForItemAt indexPath: IndexPath
+  ) -> UIDragPreviewParameters? {
+    guard let cell = collectionView.cellForItem(
+      at: indexPath
+    ) else {
+      return nil
+    }
+
+    let parameters = UIDragPreviewParameters()
+    parameters.visiblePath = UIBezierPath(
+      roundedRect: cell.bounds,
+      cornerRadius: 14
+    )
+    parameters.backgroundColor = .clear
+    return parameters
+  }
+}
+```
+
+</details>
+
 ## 참고 자료
 
 - [Apple Developer Documentation — UICollectionViewDragDelegate](https://developer.apple.com/documentation/uikit/uicollectionviewdragdelegate)

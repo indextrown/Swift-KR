@@ -271,6 +271,191 @@ Section provider index는 현재 snapshot의 section 순서로 해석해요. 위
 
 아니요. 단순한 기존 표라면 `UITableView`도 충분해요. 같은 화면에서 목록과 카드·격자를 조합하거나 Diffable Collection View 구성 방식을 통일할 때 List Layout의 이점이 커져요.
 
+## 전체 최종 코드
+
+아래 코드는 List Layout, List Cell Registration, accessory, Diffable snapshot, swipe action을 하나의 설정 화면에 연결한 최종본이에요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+private enum SettingsSection: Hashable {
+  case account
+  case display
+}
+
+private enum SettingsItem: Hashable {
+  case profile
+  case notifications
+  case darkMode
+
+  var title: String {
+    switch self {
+    case .profile:
+      return "프로필"
+    case .notifications:
+      return "알림"
+    case .darkMode:
+      return "화면 모드"
+    }
+  }
+
+  var symbolName: String {
+    switch self {
+    case .profile:
+      return "person.crop.circle"
+    case .notifications:
+      return "bell"
+    case .darkMode:
+      return "circle.lefthalf.filled"
+    }
+  }
+}
+
+@MainActor
+final class SettingsListViewController: UIViewController {
+  private var resetItems: Set<SettingsItem> = []
+
+  private lazy var collectionView = UICollectionView(
+    frame: .zero,
+    collectionViewLayout: makeListLayout()
+  )
+
+  private lazy var cellRegistration =
+    UICollectionView.CellRegistration<
+      UICollectionViewListCell,
+      SettingsItem
+    > { [weak self] cell, _, item in
+      var content = cell.defaultContentConfiguration()
+      content.text = item.title
+      content.secondaryText =
+        self?.resetItems.contains(item) == true
+          ? "기본값"
+          : nil
+      content.image = UIImage(systemName: item.symbolName)
+      cell.contentConfiguration = content
+
+      switch item {
+      case .profile:
+        cell.accessories = [.disclosureIndicator()]
+      case .notifications:
+        cell.accessories = [
+          .label(text: "켜짐"),
+          .disclosureIndicator(),
+        ]
+      case .darkMode:
+        cell.accessories = [.checkmark()]
+      }
+    }
+
+  private lazy var dataSource =
+    UICollectionViewDiffableDataSource<
+      SettingsSection,
+      SettingsItem
+    >(
+      collectionView: collectionView
+    ) { [weak self] collectionView, indexPath, item in
+      guard let self else {
+        return nil
+      }
+      return collectionView.dequeueConfiguredReusableCell(
+        using: cellRegistration,
+        for: indexPath,
+        item: item
+      )
+    }
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemGroupedBackground
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+
+    applyInitialSnapshot()
+  }
+
+  private func makeListLayout()
+    -> UICollectionViewCompositionalLayout
+  {
+    var configuration = UICollectionLayoutListConfiguration(
+      appearance: .insetGrouped
+    )
+    configuration.showsSeparators = true
+    configuration.trailingSwipeActionsConfigurationProvider = {
+      [weak self] indexPath in
+      guard
+        let self,
+        let item = dataSource.itemIdentifier(
+          for: indexPath
+        )
+      else {
+        return nil
+      }
+
+      let reset = UIContextualAction(
+        style: .normal,
+        title: "초기화"
+      ) { [weak self] _, _, completion in
+        self?.reset(item)
+        completion(true)
+      }
+      reset.backgroundColor = .systemOrange
+      return UISwipeActionsConfiguration(actions: [reset])
+    }
+
+    return UICollectionViewCompositionalLayout.list(
+      using: configuration
+    )
+  }
+
+  private func applyInitialSnapshot() {
+    var snapshot = NSDiffableDataSourceSnapshot<
+      SettingsSection,
+      SettingsItem
+    >()
+    snapshot.appendSections([.account, .display])
+    snapshot.appendItems(
+      [.profile, .notifications],
+      toSection: .account
+    )
+    snapshot.appendItems(
+      [.darkMode],
+      toSection: .display
+    )
+    dataSource.apply(
+      snapshot,
+      animatingDifferences: false
+    )
+  }
+
+  private func reset(_ item: SettingsItem) {
+    resetItems.insert(item)
+    var snapshot = dataSource.snapshot()
+    snapshot.reconfigureItems([item])
+    dataSource.apply(snapshot, animatingDifferences: true)
+  }
+}
+```
+
+</details>
+
 ## 참고 자료
 
 - [Apple Developer Documentation — UICollectionViewCompositionalLayout](https://developer.apple.com/documentation/uikit/uicollectionviewcompositionallayout)
