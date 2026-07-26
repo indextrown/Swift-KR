@@ -310,6 +310,187 @@ Flow Layout 화면의 선택·하이라이트·메뉴는 [전통적인 `UICollec
 
 Item 크기와 section 간격을 delegate 역할에 집중해 다시 살펴보려면 [`UICollectionViewDelegateFlowLayout` 예제](./flow-layout-delegate)를 읽어 보세요.
 
+## 전체 최종 코드
+
+아래 코드는 [공통 `Photo`와 `PhotoCell`](./index)을 사용해 반응형 열 계산, 고정 header, 회전 시 invalidation을 한 화면에 합친 최종본이에요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+final class FlowGalleryHeaderView: UICollectionReusableView {
+  static let reuseIdentifier = "FlowGalleryHeaderView"
+  private let titleLabel = UILabel()
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+
+    titleLabel.font = .preferredFont(forTextStyle: .title2)
+    titleLabel.text = "모든 사진"
+    titleLabel.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(titleLabel)
+    NSLayoutConstraint.activate([
+      titleLabel.leadingAnchor.constraint(
+        equalTo: leadingAnchor,
+        constant: 16
+      ),
+      titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+    ])
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:)는 사용하지 않아요.")
+  }
+}
+
+@MainActor
+final class FlowPhotoGridViewController: UIViewController {
+  private var photos = Photo.samples
+
+  private lazy var collectionView = UICollectionView(
+    frame: .zero,
+    collectionViewLayout: makeFlowLayout()
+  )
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemBackground
+    collectionView.dataSource = self
+    collectionView.delegate = self
+    collectionView.register(
+      PhotoCell.self,
+      forCellWithReuseIdentifier: PhotoCell.reuseIdentifier
+    )
+    collectionView.register(
+      FlowGalleryHeaderView.self,
+      forSupplementaryViewOfKind:
+        UICollectionView.elementKindSectionHeader,
+      withReuseIdentifier:
+        FlowGalleryHeaderView.reuseIdentifier
+    )
+
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+  }
+
+  override func viewWillTransition(
+    to size: CGSize,
+    with coordinator: UIViewControllerTransitionCoordinator
+  ) {
+    super.viewWillTransition(to: size, with: coordinator)
+    coordinator.animate { [weak self] _ in
+      self?.collectionView.collectionViewLayout
+        .invalidateLayout()
+    }
+  }
+
+  private func makeFlowLayout() -> UICollectionViewFlowLayout {
+    let layout = UICollectionViewFlowLayout()
+    layout.scrollDirection = .vertical
+    layout.minimumInteritemSpacing = 12
+    layout.minimumLineSpacing = 16
+    layout.sectionInset = UIEdgeInsets(
+      top: 16,
+      left: 16,
+      bottom: 16,
+      right: 16
+    )
+    layout.headerReferenceSize = CGSize(width: 0, height: 52)
+    layout.sectionHeadersPinToVisibleBounds = true
+    return layout
+  }
+}
+
+extension FlowPhotoGridViewController:
+  UICollectionViewDataSource
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    photos.count
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    guard let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: PhotoCell.reuseIdentifier,
+      for: indexPath
+    ) as? PhotoCell else {
+      preconditionFailure("PhotoCell 등록을 확인하세요.")
+    }
+    cell.configure(with: photos[indexPath.item])
+    return cell
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    viewForSupplementaryElementOfKind kind: String,
+    at indexPath: IndexPath
+  ) -> UICollectionReusableView {
+    collectionView.dequeueReusableSupplementaryView(
+      ofKind: kind,
+      withReuseIdentifier:
+        FlowGalleryHeaderView.reuseIdentifier,
+      for: indexPath
+    )
+  }
+}
+
+extension FlowPhotoGridViewController:
+  UICollectionViewDelegateFlowLayout
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    sizeForItemAt indexPath: IndexPath
+  ) -> CGSize {
+    let inset: CGFloat = 16
+    let spacing: CGFloat = 12
+    let minimumWidth: CGFloat = 150
+    let availableWidth =
+      collectionView.bounds.width
+      - collectionView.adjustedContentInset.left
+      - collectionView.adjustedContentInset.right
+      - inset * 2
+    let columns = max(
+      1,
+      Int(
+        (availableWidth + spacing)
+          / (minimumWidth + spacing)
+      )
+    )
+    let width = floor(
+      (availableWidth - spacing * CGFloat(columns - 1))
+        / CGFloat(columns)
+    )
+    return CGSize(width: width, height: width)
+  }
+}
+```
+
+</details>
+
 ## 참고 자료
 
 - [Apple Developer Documentation — UICollectionViewFlowLayout](https://developer.apple.com/documentation/uikit/uicollectionviewflowlayout)

@@ -233,6 +233,243 @@ private func loadExternalItem(
 
 `session.localDragSession`과 `UIDragItem.localObject`를 사용할 수 있으면 같은 앱 내부 흐름으로 처리할 수 있어요. 외부 데이터는 `NSItemProvider`가 제공하는 등록 타입을 검사하고 비동기로 로드해 새 모델을 만들어요.
 
+## 전체 최종 코드
+
+아래 코드는 [공통 `Photo`와 `PhotoCell`](./index)을 사용해 drag 시작, 내부 재배치, 외부 문자열 drop과 placeholder 처리를 한 화면에 합친 최종본이에요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+@MainActor
+final class DropPhotoGridViewController: UIViewController {
+  private var photos = Photo.samples
+
+  private lazy var collectionView = UICollectionView(
+    frame: .zero,
+    collectionViewLayout: makeGridLayout()
+  )
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemBackground
+    collectionView.dataSource = self
+    collectionView.dragDelegate = self
+    collectionView.dropDelegate = self
+    collectionView.dragInteractionEnabled = true
+    collectionView.register(
+      PhotoCell.self,
+      forCellWithReuseIdentifier: PhotoCell.reuseIdentifier
+    )
+
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+  }
+
+  private func makeGridLayout() -> UICollectionViewFlowLayout {
+    let layout = UICollectionViewFlowLayout()
+    layout.itemSize = CGSize(width: 160, height: 160)
+    layout.minimumInteritemSpacing = 12
+    layout.minimumLineSpacing = 12
+    layout.sectionInset = UIEdgeInsets(
+      top: 16,
+      left: 16,
+      bottom: 16,
+      right: 16
+    )
+    return layout
+  }
+
+  private func resolvedDestination(
+    from coordinator: UICollectionViewDropCoordinator
+  ) -> IndexPath {
+    let item = min(
+      coordinator.destinationIndexPath?.item ?? photos.count,
+      photos.count
+    )
+    return IndexPath(item: item, section: 0)
+  }
+
+  private func loadExternalItem(
+    _ item: UICollectionViewDropItem,
+    destination: IndexPath,
+    coordinator: UICollectionViewDropCoordinator
+  ) {
+    let placeholder = UICollectionViewDropPlaceholder(
+      insertionIndexPath: destination,
+      reuseIdentifier: PhotoCell.reuseIdentifier
+    )
+    let context = coordinator.drop(
+      item.dragItem,
+      to: placeholder
+    )
+
+    item.dragItem.itemProvider.loadObject(
+      ofClass: NSString.self
+    ) { [weak self] object, error in
+      DispatchQueue.main.async {
+        guard
+          let self,
+          error == nil,
+          let title = object as? String
+        else {
+          context.deletePlaceholder()
+          return
+        }
+
+        let photo = Photo(
+          id: UUID(),
+          title: title,
+          symbolName: "photo.fill",
+          isFavorite: false
+        )
+        context.commitInsertion { indexPath in
+          self.photos.insert(photo, at: indexPath.item)
+        }
+      }
+    }
+  }
+}
+
+extension DropPhotoGridViewController:
+  UICollectionViewDataSource
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    photos.count
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    guard let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: PhotoCell.reuseIdentifier,
+      for: indexPath
+    ) as? PhotoCell else {
+      preconditionFailure("PhotoCell 등록을 확인하세요.")
+    }
+    cell.configure(with: photos[indexPath.item])
+    return cell
+  }
+}
+
+extension DropPhotoGridViewController:
+  UICollectionViewDragDelegate
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    itemsForBeginning session: UIDragSession,
+    at indexPath: IndexPath
+  ) -> [UIDragItem] {
+    guard photos.indices.contains(indexPath.item) else {
+      return []
+    }
+
+    let photo = photos[indexPath.item]
+    let provider = NSItemProvider(
+      object: photo.title as NSString
+    )
+    let item = UIDragItem(itemProvider: provider)
+    item.localObject = photo.id
+    return [item]
+  }
+}
+
+extension DropPhotoGridViewController:
+  UICollectionViewDropDelegate
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    canHandle session: UIDropSession
+  ) -> Bool {
+    session.localDragSession != nil
+      || session.canLoadObjects(ofClass: NSString.self)
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    dropSessionDidUpdate session: UIDropSession,
+    withDestinationIndexPath destinationIndexPath: IndexPath?
+  ) -> UICollectionViewDropProposal {
+    UICollectionViewDropProposal(
+      operation:
+        session.localDragSession == nil ? .copy : .move,
+      intent: .insertAtDestinationIndexPath
+    )
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    performDropWith coordinator: UICollectionViewDropCoordinator
+  ) {
+    var destination = resolvedDestination(from: coordinator)
+
+    for item in coordinator.items {
+      guard
+        let source = item.sourceIndexPath,
+        let id = item.dragItem.localObject as? Photo.ID,
+        let sourceIndex = photos.firstIndex(
+          where: { $0.id == id }
+        )
+      else {
+        loadExternalItem(
+          item,
+          destination: destination,
+          coordinator: coordinator
+        )
+        destination = IndexPath(
+          item: destination.item + 1,
+          section: destination.section
+        )
+        continue
+      }
+
+      let photo = photos.remove(at: sourceIndex)
+      let adjustedItem = sourceIndex < destination.item
+        ? destination.item - 1
+        : destination.item
+      let target = min(max(adjustedItem, 0), photos.count)
+      photos.insert(photo, at: target)
+
+      let targetIndexPath = IndexPath(
+        item: target,
+        section: 0
+      )
+      collectionView.moveItem(
+        at: source,
+        to: targetIndexPath
+      )
+      coordinator.drop(
+        item.dragItem,
+        toItemAt: targetIndexPath
+      )
+    }
+  }
+}
+```
+
+</details>
+
 ## 참고 자료
 
 - [Apple Developer Documentation — UICollectionViewDropDelegate](https://developer.apple.com/documentation/uikit/uicollectionviewdropdelegate)

@@ -270,6 +270,146 @@ Collection View는 update 전후 data source가 보고한 item 개수와 삽입�
 
 원격 이미지가 있다면 [`UICollectionViewDataSourcePrefetching` 예제](./data-source-prefetching)에서 곧 보일 item의 작업을 미리 준비해 보세요.
 
+## 전체 최종 코드
+
+아래 코드는 [공통 `Photo`와 `PhotoCell`](./index)을 사용해 초기 표시, 선택, 삽입, 삭제, 재배치를 한 화면에 합친 최종본이에요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+@MainActor
+final class ClassicPhotoGridViewController: UIViewController {
+  private var photos = Photo.samples
+  var onSelectPhoto: ((Photo.ID) -> Void)?
+
+  private lazy var collectionView = UICollectionView(
+    frame: .zero,
+    collectionViewLayout: makeGridLayout()
+  )
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    view.backgroundColor = .systemBackground
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemBackground
+    collectionView.dataSource = self
+    collectionView.delegate = self
+    collectionView.register(
+      PhotoCell.self,
+      forCellWithReuseIdentifier: PhotoCell.reuseIdentifier
+    )
+
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+  }
+
+  private func makeGridLayout() -> UICollectionViewFlowLayout {
+    let layout = UICollectionViewFlowLayout()
+    layout.minimumInteritemSpacing = 12
+    layout.minimumLineSpacing = 12
+    layout.sectionInset = UIEdgeInsets(
+      top: 16,
+      left: 16,
+      bottom: 16,
+      right: 16
+    )
+    layout.itemSize = CGSize(width: 160, height: 160)
+    return layout
+  }
+
+  func append(_ photo: Photo) {
+    let indexPath = IndexPath(item: photos.count, section: 0)
+    photos.append(photo)
+    collectionView.insertItems(at: [indexPath])
+  }
+
+  func deletePhoto(id: Photo.ID) {
+    guard let index = photos.firstIndex(
+      where: { $0.id == id }
+    ) else {
+      return
+    }
+
+    photos.remove(at: index)
+    collectionView.deleteItems(
+      at: [IndexPath(item: index, section: 0)]
+    )
+  }
+}
+
+extension ClassicPhotoGridViewController:
+  UICollectionViewDataSource
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    photos.count
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    guard let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: PhotoCell.reuseIdentifier,
+      for: indexPath
+    ) as? PhotoCell else {
+      preconditionFailure("PhotoCell 등록을 확인하세요.")
+    }
+
+    cell.configure(with: photos[indexPath.item])
+    return cell
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    canMoveItemAt indexPath: IndexPath
+  ) -> Bool {
+    true
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    moveItemAt sourceIndexPath: IndexPath,
+    to destinationIndexPath: IndexPath
+  ) {
+    let photo = photos.remove(at: sourceIndexPath.item)
+    photos.insert(photo, at: destinationIndexPath.item)
+  }
+}
+
+extension ClassicPhotoGridViewController:
+  UICollectionViewDelegate
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    didSelectItemAt indexPath: IndexPath
+  ) {
+    onSelectPhoto?(photos[indexPath.item].id)
+  }
+}
+```
+
+</details>
+
 ## 참고 자료
 
 - [Apple Developer Documentation — UICollectionViewDataSource](https://developer.apple.com/documentation/uikit/uicollectionviewdatasource)

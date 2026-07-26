@@ -267,7 +267,7 @@ Header도 셀과 마찬가지로 재사용되므로 구성 메서드가 현재 s
 final class CompositionalPhotoGalleryViewController:
   UIViewController
 {
-  private var photosByID: [Photo.ID: Photo] = [:]
+  private var photos: [Photo] = []
   private var dataSource:
     UICollectionViewDiffableDataSource<
       GallerySection,
@@ -319,7 +319,11 @@ extension CompositionalPhotoGalleryViewController {
       PhotoCell,
       GalleryItemID
     > { [weak self] cell, _, itemID in
-      guard let photo = self?.photosByID[itemID.photoID] else {
+      guard
+        let photo = self?.photos.first(
+          where: { $0.id == itemID.photoID }
+        )
+      else {
         return
       }
       cell.configure(with: photo)
@@ -370,15 +374,13 @@ Supplementary Registration은 provider 안에서 매번 만들지 않고 provide
 
 ```swift
 extension CompositionalPhotoGalleryViewController {
-  private func show(_ photos: [Photo]) {
-    photosByID = Dictionary(
-      uniqueKeysWithValues: photos.map { ($0.id, $0) }
-    )
+  private func show(_ newPhotos: [Photo]) {
+    photos = newPhotos
 
-    let featuredIDs = photos.prefix(3).map {
+    let featuredIDs = newPhotos.prefix(3).map {
       GalleryItemID.featured($0.id)
     }
-    let libraryIDs = photos.map {
+    let libraryIDs = newPhotos.map {
       GalleryItemID.library($0.id)
     }
 
@@ -448,6 +450,329 @@ Diffable snapshot 안에서 item identifier는 유일해야 하기 때문이에�
 Compositional Layout의 여러 section에서 선택한 item을 안정적인 모델 ID로 해석하는 방법은 [현대적인 `UICollectionViewDelegate` 예제](./modern-delegate)에서 이어서 확인할 수 있어요.
 
 설정 화면처럼 표준 목록이 필요하다면 [Collection View List Layout 예제](./list-layout)에서 list cell, accessory와 swipe action을 연결해 보세요.
+
+## 전체 최종 코드
+
+아래 최종본은 [공통 `Photo`와 `PhotoCell`](./index)을 사용해 추천 가로 카드, 반응형 격자, header, Diffable snapshot을 모두 연결해요. 모델 원본은 `[Photo]` 하나만 유지하고 두 section의 화면 역할은 `GalleryItemID`로 구분해요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+private enum GallerySection: Int, CaseIterable {
+  case featured
+  case library
+
+  var title: String {
+    switch self {
+    case .featured:
+      return "추천 사진"
+    case .library:
+      return "모든 사진"
+    }
+  }
+}
+
+private enum GalleryItemID: Hashable {
+  case featured(Photo.ID)
+  case library(Photo.ID)
+
+  var photoID: Photo.ID {
+    switch self {
+    case let .featured(id), let .library(id):
+      return id
+    }
+  }
+}
+
+private func makeSectionHeader()
+  -> NSCollectionLayoutBoundarySupplementaryItem
+{
+  let size = NSCollectionLayoutSize(
+    widthDimension: .fractionalWidth(1),
+    heightDimension: .estimated(52)
+  )
+  return NSCollectionLayoutBoundarySupplementaryItem(
+    layoutSize: size,
+    elementKind: UICollectionView.elementKindSectionHeader,
+    alignment: .top
+  )
+}
+
+private func makeFeaturedSection()
+  -> NSCollectionLayoutSection
+{
+  let itemSize = NSCollectionLayoutSize(
+    widthDimension: .fractionalWidth(1),
+    heightDimension: .fractionalHeight(1)
+  )
+  let item = NSCollectionLayoutItem(layoutSize: itemSize)
+  let groupSize = NSCollectionLayoutSize(
+    widthDimension: .fractionalWidth(0.82),
+    heightDimension: .absolute(220)
+  )
+  let group = NSCollectionLayoutGroup.horizontal(
+    layoutSize: groupSize,
+    subitems: [item]
+  )
+  let section = NSCollectionLayoutSection(group: group)
+  section.orthogonalScrollingBehavior = .groupPagingCentered
+  section.interGroupSpacing = 12
+  section.contentInsets = NSDirectionalEdgeInsets(
+    top: 8,
+    leading: 16,
+    bottom: 24,
+    trailing: 16
+  )
+  section.boundarySupplementaryItems = [
+    makeSectionHeader(),
+  ]
+  return section
+}
+
+private func makeLibrarySection(
+  environment: NSCollectionLayoutEnvironment
+) -> NSCollectionLayoutSection {
+  let width =
+    environment.container.effectiveContentSize.width
+  let columnCount: Int
+  switch width {
+  case 900...:
+    columnCount = 5
+  case 600...:
+    columnCount = 3
+  default:
+    columnCount = 2
+  }
+
+  let itemSize = NSCollectionLayoutSize(
+    widthDimension: .fractionalWidth(1),
+    heightDimension: .fractionalHeight(1)
+  )
+  let item = NSCollectionLayoutItem(layoutSize: itemSize)
+  item.contentInsets = NSDirectionalEdgeInsets(
+    top: 6,
+    leading: 6,
+    bottom: 6,
+    trailing: 6
+  )
+  let groupSize = NSCollectionLayoutSize(
+    widthDimension: .fractionalWidth(1),
+    heightDimension: .fractionalWidth(
+      1 / CGFloat(columnCount)
+    )
+  )
+  let group = NSCollectionLayoutGroup.horizontal(
+    layoutSize: groupSize,
+    subitem: item,
+    count: columnCount
+  )
+  let section = NSCollectionLayoutSection(group: group)
+  section.contentInsets = NSDirectionalEdgeInsets(
+    top: 8,
+    leading: 10,
+    bottom: 24,
+    trailing: 10
+  )
+  section.boundarySupplementaryItems = [
+    makeSectionHeader(),
+  ]
+  return section
+}
+
+private func makeGalleryLayout()
+  -> UICollectionViewCompositionalLayout
+{
+  let configuration =
+    UICollectionViewCompositionalLayoutConfiguration()
+  configuration.interSectionSpacing = 16
+
+  return UICollectionViewCompositionalLayout(
+    sectionProvider: { sectionIndex, environment in
+      guard let section = GallerySection(
+        rawValue: sectionIndex
+      ) else {
+        return nil
+      }
+      switch section {
+      case .featured:
+        return makeFeaturedSection()
+      case .library:
+        return makeLibrarySection(environment: environment)
+      }
+    },
+    configuration: configuration
+  )
+}
+
+final class CompositionalGalleryHeaderView:
+  UICollectionReusableView
+{
+  private let titleLabel = UILabel()
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+
+    titleLabel.font = .preferredFont(forTextStyle: .title2)
+    titleLabel.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(titleLabel)
+    NSLayoutConstraint.activate([
+      titleLabel.topAnchor.constraint(
+        equalTo: topAnchor,
+        constant: 8
+      ),
+      titleLabel.leadingAnchor.constraint(
+        equalTo: leadingAnchor,
+        constant: 16
+      ),
+      titleLabel.trailingAnchor.constraint(
+        lessThanOrEqualTo: trailingAnchor,
+        constant: -16
+      ),
+      titleLabel.bottomAnchor.constraint(
+        equalTo: bottomAnchor,
+        constant: -8
+      ),
+    ])
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:)는 사용하지 않아요.")
+  }
+
+  func configure(title: String) {
+    titleLabel.text = title
+  }
+}
+
+@MainActor
+final class CompositionalPhotoGalleryViewController:
+  UIViewController
+{
+  private var photos: [Photo] = []
+  private var dataSource:
+    UICollectionViewDiffableDataSource<
+      GallerySection,
+      GalleryItemID
+    >!
+
+  private lazy var collectionView = UICollectionView(
+    frame: .zero,
+    collectionViewLayout: makeGalleryLayout()
+  )
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    configureCollectionView()
+    configureDataSource()
+    show(Photo.samples)
+  }
+
+  private func configureCollectionView() {
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemBackground
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+  }
+
+  private func configureDataSource() {
+    let cellRegistration = UICollectionView.CellRegistration<
+      PhotoCell,
+      GalleryItemID
+    > { [weak self] cell, _, itemID in
+      guard let photo = self?.photos.first(
+        where: { $0.id == itemID.photoID }
+      ) else {
+        return
+      }
+      cell.configure(with: photo)
+    }
+
+    dataSource = UICollectionViewDiffableDataSource(
+      collectionView: collectionView
+    ) { collectionView, indexPath, itemID in
+      collectionView.dequeueConfiguredReusableCell(
+        using: cellRegistration,
+        for: indexPath,
+        item: itemID
+      )
+    }
+
+    let headerRegistration =
+      UICollectionView.SupplementaryRegistration<
+        CompositionalGalleryHeaderView
+      >(
+        elementKind:
+          UICollectionView.elementKindSectionHeader
+      ) { [weak self] header, _, indexPath in
+        guard let section =
+          self?.dataSource.sectionIdentifier(
+            for: indexPath.section
+          )
+        else {
+          return
+        }
+        header.configure(title: section.title)
+      }
+
+    dataSource.supplementaryViewProvider = {
+      collectionView,
+      _,
+      indexPath in
+
+      collectionView.dequeueConfiguredReusableSupplementary(
+        using: headerRegistration,
+        for: indexPath
+      )
+    }
+  }
+
+  private func show(_ newPhotos: [Photo]) {
+    photos = newPhotos
+
+    var snapshot = NSDiffableDataSourceSnapshot<
+      GallerySection,
+      GalleryItemID
+    >()
+    snapshot.appendSections([.featured, .library])
+    snapshot.appendItems(
+      newPhotos.prefix(3).map {
+        GalleryItemID.featured($0.id)
+      },
+      toSection: .featured
+    )
+    snapshot.appendItems(
+      newPhotos.map {
+        GalleryItemID.library($0.id)
+      },
+      toSection: .library
+    )
+    dataSource.apply(
+      snapshot,
+      animatingDifferences: false
+    )
+  }
+}
+```
+
+</details>
 
 ## 참고 자료
 

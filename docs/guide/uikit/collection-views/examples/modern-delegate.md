@@ -13,13 +13,13 @@ description: 'Diffable Data Source 기반 UICollectionView에서 delegate의 Ind
 
 ## 먼저 알아둘 용어
 
-| 용어            | 쉬운 뜻                                                                         |
-| --------------- | ------------------------------------------------------------------------------- |
-| item identifier | item이 이동해도 같은 데이터임을 나타내는 안정적인 `Hashable` 값이에요.          |
-| snapshot        | 현재 화면의 section과 item 순서를 표현한 값이에요.                              |
-| reconfigure     | 기존 item의 정체성과 셀 상태를 유지하면서 표시 내용만 다시 구성하는 갱신이에요. |
-| backing store   | identifier로 실제 최신 모델을 찾는 저장소예요. 이 예제에서는 `photosByID`예요.  |
-| delegate        | Collection View의 선택·표시·메뉴 같은 상호작용을 전달받는 객체예요.             |
+| 용어            | 쉬운 뜻                                                                                |
+| --------------- | -------------------------------------------------------------------------------------- |
+| item identifier | item이 이동해도 같은 데이터임을 나타내는 안정적인 `Hashable` 값이에요.                 |
+| snapshot        | 현재 화면의 section과 item 순서를 표현한 값이에요.                                     |
+| reconfigure     | 기존 item의 정체성과 셀 상태를 유지하면서 표시 내용만 다시 구성하는 갱신이에요.        |
+| backing store   | 화면에 표시할 실제 최신 모델을 보관하는 저장소예요. 이 예제에서는 `photos` 배열이에요. |
+| delegate        | Collection View의 선택·표시·메뉴 같은 상호작용을 전달받는 객체예요.                    |
 
 ## Delegate 연결은 전통적인 방식과 같아요
 
@@ -57,7 +57,7 @@ extension DiffablePhotoGridViewController:
   ) -> Bool {
     guard
       let id = photoID(at: indexPath),
-      let photo = photosByID[id]
+      let photo = photo(for: id)
     else {
       return false
     }
@@ -67,7 +67,7 @@ extension DiffablePhotoGridViewController:
 }
 ```
 
-Snapshot에는 ID가 있지만 backing store에서 모델을 찾지 못한다면 아직 두 상태가 동기화되지 않은 거예요. 선택을 허용하지 않고 모델과 snapshot 갱신 순서를 먼저 확인하세요.
+Snapshot에는 ID가 있지만 `photos` 배열에서 모델을 찾지 못한다면 배열을 바꾼 뒤 새 snapshot을 적용하는 순서가 지켜지지 않은 거예요. 선택을 허용하지 않고 모델과 snapshot 갱신 순서를 먼저 확인하세요.
 
 ## 선택으로 모델을 바꾸고 item만 다시 구성해요
 
@@ -88,11 +88,11 @@ func collectionView(
 
 ```swift
 private func toggleFavorite(id: Photo.ID) {
-  guard photosByID[id] != nil else {
+  guard let index = index(of: id) else {
     return
   }
 
-  photosByID[id]?.isFavorite.toggle()
+  photos[index].isFavorite.toggle()
 
   var snapshot = dataSource.snapshot()
   guard snapshot.indexOfItem(id) != nil else {
@@ -311,6 +311,250 @@ Snapshot 안의 화면 identifier는 각각 유일해야 해요. 화면 역할�
 ## 다음 예제로 이동해요
 
 Delegate 상호작용을 연결했다면 [`UICollectionViewCompositionalLayout` 예제](./compositional-layout)에서 추천 카드와 반응형 격자를 한 화면에 구성해 보세요.
+
+## 전체 최종 코드
+
+아래 코드는 [공통 `Photo`와 `PhotoCell`](./index)을 사용해 단일 `[Photo]` 배열, Diffable Data Source, 선택·다중 선택·노출·Context Menu를 모두 연결한 최종본이에요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+@MainActor
+final class ModernInteractivePhotoGridViewController:
+  UIViewController
+{
+  private enum Section {
+    case main
+  }
+
+  private var photos = Photo.samples
+  private var selectedPhotoIDs: Set<Photo.ID> = []
+  private var exposedPhotoIDs: Set<Photo.ID> = []
+  private var dataSource:
+    UICollectionViewDiffableDataSource<Section, Photo.ID>!
+
+  private lazy var collectionView = UICollectionView(
+    frame: .zero,
+    collectionViewLayout: makeGridLayout()
+  )
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    configureCollectionView()
+    configureDataSource()
+    applySnapshot(animatingDifferences: false)
+  }
+
+  private func makeGridLayout() -> UICollectionViewFlowLayout {
+    let layout = UICollectionViewFlowLayout()
+    layout.itemSize = CGSize(width: 160, height: 160)
+    layout.minimumInteritemSpacing = 12
+    layout.minimumLineSpacing = 12
+    layout.sectionInset = UIEdgeInsets(
+      top: 16,
+      left: 16,
+      bottom: 16,
+      right: 16
+    )
+    return layout
+  }
+
+  private func configureCollectionView() {
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemBackground
+    collectionView.allowsMultipleSelection = true
+    collectionView.delegate = self
+
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+  }
+
+  private func configureDataSource() {
+    let registration = UICollectionView.CellRegistration<
+      PhotoCell,
+      Photo.ID
+    > { [weak self] cell, _, id in
+      guard let photo = self?.photo(for: id) else {
+        return
+      }
+      cell.configure(with: photo)
+    }
+
+    dataSource = UICollectionViewDiffableDataSource(
+      collectionView: collectionView
+    ) { collectionView, indexPath, id in
+      collectionView.dequeueConfiguredReusableCell(
+        using: registration,
+        for: indexPath,
+        item: id
+      )
+    }
+  }
+
+  private func index(of id: Photo.ID) -> Int? {
+    photos.firstIndex { $0.id == id }
+  }
+
+  private func photo(for id: Photo.ID) -> Photo? {
+    guard let index = index(of: id) else {
+      return nil
+    }
+    return photos[index]
+  }
+
+  private func photoID(at indexPath: IndexPath) -> Photo.ID? {
+    dataSource.itemIdentifier(for: indexPath)
+  }
+
+  private func applySnapshot(
+    animatingDifferences: Bool = true
+  ) {
+    var snapshot =
+      NSDiffableDataSourceSnapshot<Section, Photo.ID>()
+    snapshot.appendSections([.main])
+    snapshot.appendItems(photos.map(\.id))
+    dataSource.apply(
+      snapshot,
+      animatingDifferences: animatingDifferences
+    ) { [weak self] in
+      self?.restoreSelection()
+    }
+  }
+
+  private func toggleFavorite(id: Photo.ID) {
+    guard let index = index(of: id) else {
+      return
+    }
+    photos[index].isFavorite.toggle()
+
+    var snapshot = dataSource.snapshot()
+    guard snapshot.indexOfItem(id) != nil else {
+      return
+    }
+    snapshot.reconfigureItems([id])
+    dataSource.apply(snapshot, animatingDifferences: true)
+  }
+
+  private func deletePhoto(id: Photo.ID) {
+    photos.removeAll { $0.id == id }
+    selectedPhotoIDs.remove(id)
+    applySnapshot()
+  }
+
+  private func restoreSelection() {
+    selectedPhotoIDs = selectedPhotoIDs.filter {
+      dataSource.indexPath(for: $0) != nil
+    }
+
+    for id in selectedPhotoIDs {
+      guard let indexPath = dataSource.indexPath(for: id) else {
+        continue
+      }
+      collectionView.selectItem(
+        at: indexPath,
+        animated: false,
+        scrollPosition: []
+      )
+    }
+  }
+}
+
+extension ModernInteractivePhotoGridViewController:
+  UICollectionViewDelegate
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    shouldSelectItemAt indexPath: IndexPath
+  ) -> Bool {
+    guard
+      let id = photoID(at: indexPath),
+      let photo = photo(for: id)
+    else {
+      return false
+    }
+    return !photo.title.isEmpty
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    didSelectItemAt indexPath: IndexPath
+  ) {
+    guard let id = photoID(at: indexPath) else {
+      return
+    }
+    selectedPhotoIDs.insert(id)
+    toggleFavorite(id: id)
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    didDeselectItemAt indexPath: IndexPath
+  ) {
+    guard let id = photoID(at: indexPath) else {
+      return
+    }
+    selectedPhotoIDs.remove(id)
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    willDisplay cell: UICollectionViewCell,
+    forItemAt indexPath: IndexPath
+  ) {
+    guard let id = photoID(at: indexPath) else {
+      return
+    }
+    if exposedPhotoIDs.insert(id).inserted {
+      print("첫 사진 노출: \(id)")
+    }
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    contextMenuConfigurationForItemAt indexPath: IndexPath,
+    point: CGPoint
+  ) -> UIContextMenuConfiguration? {
+    guard let id = photoID(at: indexPath) else {
+      return nil
+    }
+
+    return UIContextMenuConfiguration(
+      identifier: id as NSUUID,
+      previewProvider: nil
+    ) { [weak self] _ in
+      let favorite = UIAction(title: "즐겨찾기 전환") { _ in
+        self?.toggleFavorite(id: id)
+      }
+      let delete = UIAction(
+        title: "삭제",
+        attributes: .destructive
+      ) { _ in
+        self?.deletePhoto(id: id)
+      }
+      return UIMenu(children: [favorite, delete])
+    }
+  }
+}
+```
+
+</details>
 
 ## 참고 자료
 

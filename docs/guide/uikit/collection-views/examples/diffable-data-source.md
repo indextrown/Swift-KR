@@ -11,15 +11,15 @@ description: 'UICollectionViewDiffableDataSource와 Cell Registration을 연결�
 
 ## 먼저 알아둘 용어
 
-| 용어          | 쉬운 뜻                                                                        |
-| ------------- | ------------------------------------------------------------------------------ |
-| identifier    | item이 이동해도 같은 데이터임을 구분하는 `Hashable` 값이에요.                  |
-| snapshot      | 특정 시점의 section과 item 순서를 나타내는 값이에요.                           |
-| cell provider | item identifier를 받아 구성된 셀을 반환하는 closure예요.                       |
-| backing store | identifier로 실제 최신 모델을 찾는 저장소예요. 이 예제에서는 `photosByID`예요. |
-| reconfigure   | item 정체성과 셀을 유지하면서 표시 내용을 다시 구성하는 갱신이에요.            |
+| 용어          | 쉬운 뜻                                                                                 |
+| ------------- | --------------------------------------------------------------------------------------- |
+| identifier    | item이 이동해도 같은 데이터임을 구분하는 `Hashable` 값이에요.                           |
+| snapshot      | 특정 시점의 section과 item 순서를 나타내는 값이에요.                                    |
+| cell provider | item identifier를 받아 구성된 셀을 반환하는 closure예요.                                |
+| backing store | 화면에 표시할 실제 최신 모델을 보관하는 저장소예요. 이 예제에서는 `[Photo]` 배열이에요. |
+| reconfigure   | item 정체성과 셀을 유지하면서 표시 내용을 다시 구성하는 갱신이에요.                     |
 
-## 모델 저장소와 화면 순서를 분리해요
+## 모델과 화면 순서를 한 배열에서 관리해요
 
 ```swift
 @MainActor
@@ -28,8 +28,7 @@ final class DiffablePhotoGridViewController: UIViewController {
     case main
   }
 
-  private var photosByID: [Photo.ID: Photo] = [:]
-  private var photoIDs: [Photo.ID] = []
+  private var photos: [Photo] = []
 
   private var dataSource:
     UICollectionViewDiffableDataSource<Section, Photo.ID>!
@@ -49,7 +48,34 @@ final class DiffablePhotoGridViewController: UIViewController {
 }
 ```
 
-`photosByID`는 ID로 최신 모델을 찾고, `photoIDs`는 화면에 보여 줄 순서를 보관해요. 제목이나 즐겨찾기 여부가 바뀌어도 `Photo.ID`는 유지돼요.
+`photos` 배열이 모델 내용과 화면 순서를 함께 나타내는 단일 진실 공급원이에요. Snapshot에는 배열 자체가 아니라 `photos.map(\.id)`로 얻은 안정적인 ID만 넣어요. 제목이나 즐겨찾기 여부가 바뀌어도 `Photo.ID`는 유지돼요.
+
+ID로 모델을 찾을 때는 작은 helper를 사용해요.
+
+```swift
+private func index(of id: Photo.ID) -> Int? {
+  photos.firstIndex { $0.id == id }
+}
+
+private func photo(for id: Photo.ID) -> Photo? {
+  guard let index = index(of: id) else {
+    return nil
+  }
+  return photos[index]
+}
+```
+
+### Dictionary와 ID 배열을 따로 두지 않는 이유
+
+`[Photo.ID: Photo]`는 ID 조회가 평균 O(1)이고 `[Photo.ID]`는 화면 순서를 표현하기 좋아요. 하지만 삽입·삭제·이동 때 두 저장소를 항상 함께 수정해야 하므로 한쪽만 바뀌는 버그가 생길 수 있어요.
+
+| 방식                               | 장점                                   | 비용                                               |
+| ---------------------------------- | -------------------------------------- | -------------------------------------------------- |
+| 단일 `[Photo]`                     | 원본이 하나라 갱신 순서가 단순해요.    | ID 조회가 O(n)이에요.                              |
+| Dictionary + 순서 배열             | ID 조회가 평균 O(1)이에요.             | 두 가변 저장소의 삽입·삭제·이동을 동기화해야 해요. |
+| 배열 + 필요할 때 계산한 Dictionary | 원본은 하나고 일괄 조회도 빠르게 해요. | Index를 다시 만드는 비용과 시점을 관리해야 해요.   |
+
+사진 수가 작고 학습이 목적인 이 예제에서는 배열 하나가 더 적합해요. 수천 개 모델을 반복 조회해 실제 병목이 확인되면, 배열을 원본으로 유지한 채 읽기 전용 ID index를 계산하거나 순서와 조회를 함께 책임지는 별도 store 타입을 도입하세요.
 
 ## Flow Layout을 준비해요
 
@@ -112,7 +138,7 @@ extension DiffablePhotoGridViewController {
       PhotoCell,
       Photo.ID
     > { [weak self] cell, _, photoID in
-      guard let photo = self?.photosByID[photoID] else {
+      guard let photo = self?.photo(for: photoID) else {
         return
       }
 
@@ -141,13 +167,10 @@ Cell Registration은 셀 타입과 구성 코드를 묶어요. `dequeueConfigure
 ```swift
 extension DiffablePhotoGridViewController {
   private func show(
-    _ photos: [Photo],
+    _ newPhotos: [Photo],
     animatingDifferences: Bool = true
   ) {
-    photosByID = Dictionary(
-      uniqueKeysWithValues: photos.map { ($0.id, $0) }
-    )
-    photoIDs = photos.map(\.id)
+    photos = newPhotos
 
     applyCurrentSnapshot(
       animatingDifferences: animatingDifferences
@@ -160,7 +183,10 @@ extension DiffablePhotoGridViewController {
     var snapshot =
       NSDiffableDataSourceSnapshot<Section, Photo.ID>()
     snapshot.appendSections([.main])
-    snapshot.appendItems(photoIDs, toSection: .main)
+    snapshot.appendItems(
+      photos.map(\.id),
+      toSection: .main
+    )
 
     dataSource.apply(
       snapshot,
@@ -177,18 +203,16 @@ extension DiffablePhotoGridViewController {
 ```swift
 extension DiffablePhotoGridViewController {
   func append(_ photo: Photo) {
-    guard photosByID[photo.id] == nil else {
+    guard index(of: photo.id) == nil else {
       return
     }
 
-    photosByID[photo.id] = photo
-    photoIDs.append(photo.id)
+    photos.append(photo)
     applyCurrentSnapshot()
   }
 
   func deletePhoto(id: Photo.ID) {
-    photosByID[id] = nil
-    photoIDs.removeAll { $0 == id }
+    photos.removeAll { $0.id == id }
     applyCurrentSnapshot()
   }
 }
@@ -201,11 +225,11 @@ extension DiffablePhotoGridViewController {
 ```swift
 extension DiffablePhotoGridViewController {
   func toggleFavorite(id: Photo.ID) {
-    guard photosByID[id] != nil else {
+    guard let index = index(of: id) else {
       return
     }
 
-    photosByID[id]?.isFavorite.toggle()
+    photos[index].isFavorite.toggle()
 
     var snapshot = dataSource.snapshot()
     guard snapshot.indexOfItem(id) != nil else {
@@ -256,17 +280,15 @@ extension DiffablePhotoGridViewController {
     before destinationID: Photo.ID
   ) {
     guard
-      let sourceIndex = photoIDs.firstIndex(of: id),
-      let destinationIndex = photoIDs.firstIndex(
-        of: destinationID
-      )
+      let sourceIndex = index(of: id),
+      let destinationIndex = index(of: destinationID)
     else {
       return
     }
 
-    photoIDs.remove(at: sourceIndex)
-    photoIDs.insert(
-      id,
+    let photo = photos.remove(at: sourceIndex)
+    photos.insert(
+      photo,
       at: sourceIndex < destinationIndex
         ? destinationIndex - 1
         : destinationIndex
@@ -294,8 +316,8 @@ extension DiffablePhotoGridViewController {
 | ----------------------------------- | ------------------------------------------------------------------------ |
 | snapshot 적용 중 중복 예외가 나요.  | section과 item identifier가 각각 유일한지 확인해요.                      |
 | 내용 변경 뒤 선택이 사라져요.       | 바뀌는 모델 전체가 아니라 `Photo.ID`를 identifier로 사용했는지 확인해요. |
-| 셀 provider에서 모델을 찾지 못해요. | snapshot을 적용하기 전에 `photosByID`를 최신 상태로 갱신했는지 확인해요. |
-| 삭제한 item이 다시 나타나요.        | `photosByID`와 `photoIDs` 양쪽에서 제거했는지 확인해요.                  |
+| 셀 provider에서 모델을 찾지 못해요. | snapshot의 ID가 현재 `photos` 배열에도 존재하는지 확인해요.              |
+| 삭제한 item이 다시 나타나요.        | `photos`에서 제거한 뒤 배열 기준으로 새 snapshot을 적용했는지 봐요.      |
 | 셀이 전혀 표시되지 않아요.          | `configureDataSource()` 뒤 초기 snapshot을 적용했는지 확인해요.          |
 
 ## 면접에서 이어질 수 있는 질문
@@ -314,6 +336,198 @@ extension DiffablePhotoGridViewController {
 - 곧 보일 이미지 작업을 미리 시작하려면 [`UICollectionViewDataSourcePrefetching` 예제](./data-source-prefetching)를 읽어 보세요.
 - section마다 다른 배치를 만들려면 [`UICollectionViewCompositionalLayout` 예제](./compositional-layout)로 이동하세요.
 - 새로고침과 prefetch는 [실무 확장 예제](./practical-recipes)에서 이어서 구현해요.
+
+## 전체 최종 코드
+
+아래 최종본은 [공통 `Photo`와 `PhotoCell`](./index)을 사용해 단일 `[Photo]` 배열, Cell Registration, snapshot, 삽입·삭제·내용 변경·이동을 모두 연결해요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+@MainActor
+final class DiffablePhotoGridViewController: UIViewController {
+  private enum Section {
+    case main
+  }
+
+  private var photos: [Photo] = []
+  private var dataSource:
+    UICollectionViewDiffableDataSource<Section, Photo.ID>!
+
+  private lazy var collectionView = UICollectionView(
+    frame: .zero,
+    collectionViewLayout: makeGridLayout()
+  )
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    configureCollectionView()
+    configureDataSource()
+    show(Photo.samples, animatingDifferences: false)
+  }
+
+  private func index(of id: Photo.ID) -> Int? {
+    photos.firstIndex { $0.id == id }
+  }
+
+  private func photo(for id: Photo.ID) -> Photo? {
+    guard let index = index(of: id) else {
+      return nil
+    }
+    return photos[index]
+  }
+
+  private func makeGridLayout() -> UICollectionViewFlowLayout {
+    let layout = UICollectionViewFlowLayout()
+    layout.minimumInteritemSpacing = 12
+    layout.minimumLineSpacing = 12
+    layout.sectionInset = UIEdgeInsets(
+      top: 16,
+      left: 16,
+      bottom: 16,
+      right: 16
+    )
+    layout.itemSize = CGSize(width: 160, height: 160)
+    return layout
+  }
+
+  private func configureCollectionView() {
+    view.backgroundColor = .systemBackground
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemBackground
+    collectionView.delegate = self
+
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+  }
+
+  private func configureDataSource() {
+    let registration = UICollectionView.CellRegistration<
+      PhotoCell,
+      Photo.ID
+    > { [weak self] cell, _, photoID in
+      guard let photo = self?.photo(for: photoID) else {
+        return
+      }
+      cell.configure(with: photo)
+    }
+
+    dataSource = UICollectionViewDiffableDataSource(
+      collectionView: collectionView
+    ) { collectionView, indexPath, photoID in
+      collectionView.dequeueConfiguredReusableCell(
+        using: registration,
+        for: indexPath,
+        item: photoID
+      )
+    }
+  }
+
+  private func show(
+    _ newPhotos: [Photo],
+    animatingDifferences: Bool = true
+  ) {
+    photos = newPhotos
+    applyCurrentSnapshot(
+      animatingDifferences: animatingDifferences
+    )
+  }
+
+  private func applyCurrentSnapshot(
+    animatingDifferences: Bool = true
+  ) {
+    var snapshot =
+      NSDiffableDataSourceSnapshot<Section, Photo.ID>()
+    snapshot.appendSections([.main])
+    snapshot.appendItems(photos.map(\.id), toSection: .main)
+    dataSource.apply(
+      snapshot,
+      animatingDifferences: animatingDifferences
+    )
+  }
+
+  func append(_ photo: Photo) {
+    guard index(of: photo.id) == nil else {
+      return
+    }
+    photos.append(photo)
+    applyCurrentSnapshot()
+  }
+
+  func deletePhoto(id: Photo.ID) {
+    photos.removeAll { $0.id == id }
+    applyCurrentSnapshot()
+  }
+
+  func toggleFavorite(id: Photo.ID) {
+    guard let index = index(of: id) else {
+      return
+    }
+    photos[index].isFavorite.toggle()
+
+    var snapshot = dataSource.snapshot()
+    guard snapshot.indexOfItem(id) != nil else {
+      return
+    }
+    snapshot.reconfigureItems([id])
+    dataSource.apply(snapshot, animatingDifferences: true)
+  }
+
+  func movePhoto(
+    id: Photo.ID,
+    before destinationID: Photo.ID
+  ) {
+    guard
+      let sourceIndex = index(of: id),
+      let destinationIndex = index(of: destinationID)
+    else {
+      return
+    }
+
+    let photo = photos.remove(at: sourceIndex)
+    let insertionIndex = sourceIndex < destinationIndex
+      ? destinationIndex - 1
+      : destinationIndex
+    photos.insert(photo, at: insertionIndex)
+    applyCurrentSnapshot()
+  }
+}
+
+extension DiffablePhotoGridViewController:
+  UICollectionViewDelegate
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    didSelectItemAt indexPath: IndexPath
+  ) {
+    guard let id = dataSource.itemIdentifier(
+      for: indexPath
+    ) else {
+      return
+    }
+    toggleFavorite(id: id)
+  }
+}
+```
+
+</details>
 
 ## 참고 자료
 

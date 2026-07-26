@@ -189,6 +189,226 @@ Delegate 값은 해당 항목의 Flow Layout 기본 프로퍼티보다 우선해
 
 아니요. 고정된 크기라면 `UICollectionViewFlowLayout.itemSize`를 설정하는 편이 더 단순해요. 화면 너비나 section, 모델에 따라 값이 달라질 때 delegate가 유용해요.
 
+## 전체 최종 코드
+
+아래 코드는 [공통 `Photo`와 `PhotoCell`](./index)을 사용해 화면 너비에 따른 열 계산, section 여백과 간격, header·footer 제공을 합친 최종본이에요.
+
+<details>
+<summary>전체 코드 펼쳐보기</summary>
+
+```swift
+import UIKit
+
+final class GallerySupplementaryView:
+  UICollectionReusableView
+{
+  static let reuseIdentifier = "GallerySupplementaryView"
+  private let label = UILabel()
+
+  override init(frame: CGRect) {
+    super.init(frame: frame)
+
+    label.font = .preferredFont(forTextStyle: .headline)
+    label.translatesAutoresizingMaskIntoConstraints = false
+    addSubview(label)
+    NSLayoutConstraint.activate([
+      label.leadingAnchor.constraint(
+        equalTo: leadingAnchor,
+        constant: 16
+      ),
+      label.centerYAnchor.constraint(equalTo: centerYAnchor),
+    ])
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:)는 사용하지 않아요.")
+  }
+
+  func configure(text: String) {
+    label.text = text
+  }
+}
+
+@MainActor
+final class ResponsiveDelegateGridViewController:
+  UIViewController
+{
+  private var photos = Photo.samples
+
+  private lazy var collectionView = UICollectionView(
+    frame: .zero,
+    collectionViewLayout: UICollectionViewFlowLayout()
+  )
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    collectionView.backgroundColor = .systemBackground
+    collectionView.dataSource = self
+    collectionView.delegate = self
+    collectionView.register(
+      PhotoCell.self,
+      forCellWithReuseIdentifier: PhotoCell.reuseIdentifier
+    )
+    collectionView.register(
+      GallerySupplementaryView.self,
+      forSupplementaryViewOfKind:
+        UICollectionView.elementKindSectionHeader,
+      withReuseIdentifier:
+        GallerySupplementaryView.reuseIdentifier
+    )
+    collectionView.register(
+      GallerySupplementaryView.self,
+      forSupplementaryViewOfKind:
+        UICollectionView.elementKindSectionFooter,
+      withReuseIdentifier:
+        GallerySupplementaryView.reuseIdentifier
+    )
+
+    view.addSubview(collectionView)
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+  }
+}
+
+extension ResponsiveDelegateGridViewController:
+  UICollectionViewDataSource
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    photos.count
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    guard let cell = collectionView.dequeueReusableCell(
+      withReuseIdentifier: PhotoCell.reuseIdentifier,
+      for: indexPath
+    ) as? PhotoCell else {
+      preconditionFailure("PhotoCell 등록을 확인하세요.")
+    }
+    cell.configure(with: photos[indexPath.item])
+    return cell
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    viewForSupplementaryElementOfKind kind: String,
+    at indexPath: IndexPath
+  ) -> UICollectionReusableView {
+    let view = collectionView.dequeueReusableSupplementaryView(
+      ofKind: kind,
+      withReuseIdentifier:
+        GallerySupplementaryView.reuseIdentifier,
+      for: indexPath
+    )
+    guard let supplementaryView =
+      view as? GallerySupplementaryView
+    else {
+      return view
+    }
+
+    supplementaryView.configure(
+      text: kind == UICollectionView.elementKindSectionHeader
+        ? "사진"
+        : "총 \(photos.count)장"
+    )
+    return supplementaryView
+  }
+}
+
+extension ResponsiveDelegateGridViewController:
+  UICollectionViewDelegateFlowLayout
+{
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    sizeForItemAt indexPath: IndexPath
+  ) -> CGSize {
+    let inset: CGFloat = 16
+    let spacing: CGFloat = 12
+    let minimumWidth: CGFloat = 150
+    let availableWidth =
+      collectionView.bounds.width
+      - collectionView.adjustedContentInset.left
+      - collectionView.adjustedContentInset.right
+      - inset * 2
+    let columns = max(
+      1,
+      Int(
+        (availableWidth + spacing)
+          / (minimumWidth + spacing)
+      )
+    )
+    let width = floor(
+      (availableWidth - spacing * CGFloat(columns - 1))
+        / CGFloat(columns)
+    )
+    return CGSize(width: width, height: width + 48)
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    insetForSectionAt section: Int
+  ) -> UIEdgeInsets {
+    UIEdgeInsets(top: 16, left: 16, bottom: 24, right: 16)
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    minimumLineSpacingForSectionAt section: Int
+  ) -> CGFloat {
+    16
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    minimumInteritemSpacingForSectionAt section: Int
+  ) -> CGFloat {
+    12
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    referenceSizeForHeaderInSection section: Int
+  ) -> CGSize {
+    CGSize(width: collectionView.bounds.width, height: 52)
+  }
+
+  func collectionView(
+    _ collectionView: UICollectionView,
+    layout collectionViewLayout: UICollectionViewLayout,
+    referenceSizeForFooterInSection section: Int
+  ) -> CGSize {
+    CGSize(width: collectionView.bounds.width, height: 32)
+  }
+}
+```
+
+</details>
+
 ## 참고 자료
 
 - [Apple Developer Documentation — UICollectionViewDelegateFlowLayout](https://developer.apple.com/documentation/uikit/uicollectionviewdelegateflowlayout)
