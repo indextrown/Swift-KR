@@ -335,16 +335,49 @@ for change in difference {
 
 DifferenceKit은 UIKit 목록의 batch update에 맞춘 외부 라이브러리예요. `Differentiable`로 안정적인 identity와 내용 동일성 판단을 분리하고, 한 번에 적용하면 충돌할 수 있는 변경 조합을 `StagedChangeset` 여러 단계로 나눠 적용해요.
 
-| 기준             | `Collection.difference(from:)`                                       | DifferenceKit                                                                             |
-| ---------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 제공 위치        | Swift 표준 라이브러리                                                | 외부 Swift Package                                                                        |
-| 비교 기준        | `Equatable` element 또는 비교 closure                                | `differenceIdentifier`와 `isContentEqual(to:)`를 분리한 `Differentiable`                  |
-| 기본 결과        | 삽입·삭제 `CollectionDifference`                                     | 삽입·삭제·이동·갱신을 담은 `Changeset`과 `StagedChangeset`                                |
-| 이동 처리        | 기본으로 추론하지 않으며 `inferringMoves()`가 필요해요.              | 안정적인 identifier를 기준으로 이동을 계산해요. 중복 identifier는 최선의 결과만 보장해요. |
-| section 지원     | 직접 2차원 구조와 `IndexPath` 변환을 설계해야 해요.                  | 선형·sectioned collection을 모두 지원해요.                                                |
-| UIKit batch 적용 | 명령 순서와 모델 갱신을 직접 설계해야 해요.                          | 충돌 가능 조합을 최소 단계로 분리하고, 각 단계에 맞춰 data source를 갱신해요.             |
-| 계산 특성        | 최악 O(n × m)                                                        | Paul Heckel 기반 최적화로 O(n)이지만 항상 가장 짧은 diff를 고르지는 않아요.               |
-| 적합한 경우      | Swift 값 비교, 작은 목록의 단순한 diff, 별도 의존성을 피하고 싶을 때 | 여러 삽입·삭제·이동이 섞인 UIKit 목록을 Diffable Data Source 없이 애니메이션할 때         |
+### 알고리즘부터 비교해요
+
+Swift 표준 라이브러리의 현재 소스 구현은 내부적으로 **Myers diff algorithm**을 사용해요. Myers 알고리즘은 두 순서 컬렉션을 삽입과 삭제만으로 바꿀 때 필요한 **최소 편집 경로(shortest edit script)**를 찾는 알고리즘이에요. 다만 공개 API가 보장하는 성능은 병적인 입력에서 최악 O(n × m)이고, 구현 알고리즘 자체에 의존해 앱의 동작을 설계하면 안 돼요.
+
+DifferenceKit은 **Paul Heckel 알고리즘을 Swift 컬렉션에 맞게 최적화한 방식**을 사용해요. 이 방식은 안정적인 identifier를 먼저 연결해 이동과 내용 변경을 목록 UI에 맞게 표현하고 O(n)을 목표로 해요. 대신 항상 가장 적은 수의 삽입·삭제 조합, 즉 최단 edit script를 선택한다고 보장하지는 않아요.
+
+| 비교 기준                 | `Collection.difference(from:)`                                                                                                                                 | DifferenceKit                                                                                                                                        |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 제공 위치                 | Swift 5.1부터 제공하는 표준 라이브러리 API예요. 별도 의존성이 없어요.                                                                                          | 외부 Swift Package예요. UIKit용 extension까지 쓰려면 패키지를 추가해야 해요.                                                                         |
+| 현재 구현 알고리즘        | Myers diff algorithm이에요. 두 순서의 차이를 삽입·삭제 edit script로 계산해요.                                                                                 | Paul Heckel 기반 알고리즘이에요. identifier를 활용해 목록 UI의 이동과 갱신을 계산해요.                                                               |
+| 알고리즘이 우선하는 목표  | 삽입·삭제로 표현되는 최소 편집 경로를 찾는 데 초점이 있어요.                                                                                                   | 큰 목록의 빠른 변화 계산과 UI batch update 적용에 초점이 있어요.                                                                                     |
+| 공개 성능 계약            | 병적인 입력의 최악 시간 복잡도는 O(n × m)예요. 공통 element가 많거나 element가 `Hashable`이면 더 빠를 수 있어요.                                               | 문서상 O(n)이에요. 단, 항상 가장 짧은 diff를 계산하지는 않아요.                                                                                      |
+| “같은 element”의 기준     | `Equatable` 또는 `difference(from:by:)`의 동등성 closure 하나예요.                                                                                             | `differenceIdentifier`는 정체성, `isContentEqual(to:)`는 표시 내용 동일성을 따로 표현해요.                                                           |
+| ID와 내용 변경 분리       | 기본 API에는 없어요. ID만 비교하면 내용 변경을 감지하지 못하고, 모델 전체를 비교하면 내용 변경이 remove + insert처럼 보일 수 있어요.                           | ID가 같고 내용만 다르면 update로 표현할 수 있어 셀을 다시 구성하기 쉬워요.                                                                           |
+| 기본 결과 타입            | `CollectionDifference`예요. `.remove`와 `.insert` change만 담아요.                                                                                             | `Changeset`과 여러 단계의 `StagedChangeset`이에요. 삭제·삽입·이동·내용 갱신 정보를 담아요.                                                           |
+| 이동 처리                 | 기본 `difference(from:)`는 move를 추론하지 않아요. `inferringMoves()`가 한 번씩만 제거·삽입된 `Hashable` element를 연결해요.                                   | 같은 `differenceIdentifier`를 기준으로 이동을 계산해요. 중복 identifier는 잘못된 모델이므로 금지해야 해요.                                           |
+| 중복 값                   | 같은 값이 여러 번 있으면 어느 값이 이동했는지 모호할 수 있어요. `inferringMoves()`도 한 번씩만 나타난 값에만 안전하게 연결해요.                                | 중복 element 자체는 다룰 수 있지만, 같은 identifier가 중복되면 move는 최선의 결과만 나와요. 목록 item에는 고유 ID가 필요해요.                        |
+| change 순서와 offset      | remove offset은 원본 배열 기준, insert offset은 최종 배열 기준이에요. 순회하면 remove를 높은 offset부터, insert를 낮은 offset부터 제공해 배열 적용이 안전해요. | 각 `Changeset`이 그 stage 뒤의 `data`와 함께 와요. 이전 stage의 data를 data source에 반영한 뒤 다음 stage를 적용해요.                                |
+| section 모델              | 1차원 차이만 제공해요. section이 있으면 2차원 모델, section 변화, `IndexPath` 변환을 직접 설계해야 해요.                                                       | 선형 collection과 sectioned collection을 모두 지원해요. section과 item 변경을 함께 다룰 수 있어요.                                                   |
+| UIKit batch update 안전성 | `CollectionDifference`는 UIKit API가 아니에요. offset을 `IndexPath`로 바꾸고, model 갱신·삭제·삽입·이동 순서를 개발자가 보장해야 해요.                         | 한 batch에 함께 넣으면 충돌할 수 있는 변경 조합을 최소 stage로 나눠 `UICollectionView`에 적용해요. 각 stage 직전 data source 배열을 동기화해야 해요. |
+| 잘 맞는 문제              | 값 목록의 비교·패치, undo/redo, 작은 목록의 단순한 diff처럼 UI와 무관한 순서 컬렉션 차이예요.                                                                  | Diffable Data Source 없이 기존 `UICollectionViewDataSource`를 유지하면서 복합 삽입·삭제·이동을 애니메이션해야 하는 목록 UI예요.                      |
+
+### `CollectionDifference`는 UI 명령 목록이 아니에요
+
+예를 들어 이전 배열이 `[A, B, C]`이고 새 배열이 `[B, C, D]`라면, `CollectionDifference`는 원본 offset 0의 `A` 제거와 최종 offset 2의 `D` 삽입을 나타내요. 이 결과는 배열에 적용하기 좋은 순서로 제공되지만, UIKit이 원하는 section·item의 `IndexPath`, 셀 내용 갱신, 여러 변경의 batch 분할까지 자동으로 해결하지는 않아요.
+
+```swift
+let oldIDs = ["A", "B", "C"]
+let newIDs = ["B", "C", "D"]
+
+let difference = newIDs.difference(from: oldIDs)
+
+for change in difference {
+  switch change {
+  case let .remove(offset, element, _):
+    print("원본 offset \(offset)의 \(element)를 제거")
+  case let .insert(offset, element, _):
+    print("최종 offset \(offset)에 \(element)를 삽입")
+  }
+}
+```
+
+따라서 `CollectionDifference`는 “두 배열의 차이를 계산하는 표준 도구”로 보고, 복잡한 Collection View 애니메이션을 자동으로 만들어 주는 도구로 기대하면 안 돼요. UI까지 직접 연결하려면 변화 조합을 충분히 테스트하거나 DifferenceKit처럼 UIKit batch update를 지원하는 도구를 사용하세요.
 
 DifferenceKit도 배열을 자동으로 소유하지 않아요. 매 stage 직전에 data source가 읽는 배열을 그 stage의 `data`로 동기화해야 해요.
 
@@ -413,5 +446,7 @@ Collection View는 data source에 update 전후 item 수를 물어봐요. 배열
 - [Apple Developer Documentation — performBatchUpdates(_:completion:)](<https://developer.apple.com/documentation/uikit/uicollectionview/performbatchupdates(_:completion:)>)
 - [Apple Developer Documentation — Array.difference(from:)](<https://developer.apple.com/documentation/swift/array/difference(from:)>)
 - [Apple Developer Documentation — CollectionDifference](https://developer.apple.com/documentation/swift/collectiondifference)
+- [Swift Evolution — SE-0240 Ordered Collection Diffing](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0240-ordered-collection-diffing.md)
+- [Swift Standard Library Source — CollectionDifference](https://github.com/swiftlang/swift/blob/main/stdlib/public/core/CollectionDifference.swift)
 - [DifferenceKit — UICollectionView Extension Reference](https://ra1028.github.io/DifferenceKit/Extensions/UICollectionView.html)
 - [DifferenceKit — StagedChangeset Reference](https://ra1028.github.io/DifferenceKit/Structs/StagedChangeset.html)
