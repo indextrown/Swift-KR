@@ -34,22 +34,23 @@ Data Source는 무엇을 표시할지, Delegate는 사용자와 item의 상호�
 
 ## 어떤 예제부터 읽어야 하나요
 
-| 역할        | 구현하려는 내용                                | 예제 문서                                                            |
-| ----------- | ---------------------------------------------- | -------------------------------------------------------------------- |
-| Data Source | 배열로 item 개수와 셀 제공하기                 | [`UICollectionViewDataSource`](./data-source)                        |
-| Data Source | snapshot으로 삽입·삭제·내용 변경하기           | [`UICollectionViewDiffableDataSource`](./diffable-data-source)       |
-| Data Source | 곧 보일 이미지 작업을 미리 시작하기            | [`UICollectionViewDataSourcePrefetching`](./data-source-prefetching) |
-| Delegate    | 배열 기반 선택·하이라이트·메뉴 처리하기        | [전통적인 `UICollectionViewDelegate`](./traditional-delegate)        |
-| Delegate    | identifier 기반 선택·상호작용 처리하기         | [현대적인 `UICollectionViewDelegate`](./modern-delegate)             |
-| Delegate    | Flow Layout의 item 크기·간격을 동적으로 정하기 | [`UICollectionViewDelegateFlowLayout`](./flow-layout-delegate)       |
-| Delegate    | Item을 들어 올려 drag 시작하기                 | [`UICollectionViewDragDelegate`](./drag-delegate)                    |
-| Delegate    | 내부 재배치와 외부 drop 처리하기               | [`UICollectionViewDropDelegate`](./drop-delegate)                    |
-| Layout      | 균일한 목록·반응형 격자 만들기                 | [`UICollectionViewFlowLayout`](./flow-layout)                        |
-| Layout      | 가로 카드와 격자를 한 화면에 조합하기          | [`UICollectionViewCompositionalLayout`](./compositional-layout)      |
-| Layout      | 설정 화면과 표준 목록 만들기                   | [Collection View List Layout](./list-layout)                         |
-| Layout      | 직접 layout attributes를 계산하기              | [Custom `UICollectionViewLayout`](./custom-layout)                   |
-| Layout      | 두 layout 사이를 gesture로 전환하기            | [`UICollectionViewTransitionLayout`](./transition-layout)            |
-| 공통 확장   | 빈 상태·새로고침·페이지네이션 추가하기         | [실무 확장 예제](./practical-recipes)                                |
+| 역할        | 구현하려는 내용                                | 예제 문서                                                                         |
+| ----------- | ---------------------------------------------- | --------------------------------------------------------------------------------- |
+| Data Source | 배열로 item 개수와 셀 제공하기                 | [`UICollectionViewDataSource`](./data-source)                                     |
+| Data Source | 배열 직접 관리로 전체·부분 갱신 비교하기       | [`reloadData()`와 `performBatchUpdates`](./reload-data-and-perform-batch-updates) |
+| Data Source | snapshot으로 삽입·삭제·내용 변경하기           | [`UICollectionViewDiffableDataSource`](./diffable-data-source)                    |
+| Data Source | 곧 보일 이미지 작업을 미리 시작하기            | [`UICollectionViewDataSourcePrefetching`](./data-source-prefetching)              |
+| Delegate    | 배열 기반 선택·하이라이트·메뉴 처리하기        | [전통적인 `UICollectionViewDelegate`](./traditional-delegate)                     |
+| Delegate    | identifier 기반 선택·상호작용 처리하기         | [현대적인 `UICollectionViewDelegate`](./modern-delegate)                          |
+| Delegate    | Flow Layout의 item 크기·간격을 동적으로 정하기 | [`UICollectionViewDelegateFlowLayout`](./flow-layout-delegate)                    |
+| Delegate    | Item을 들어 올려 drag 시작하기                 | [`UICollectionViewDragDelegate`](./drag-delegate)                                 |
+| Delegate    | 내부 재배치와 외부 drop 처리하기               | [`UICollectionViewDropDelegate`](./drop-delegate)                                 |
+| Layout      | 균일한 목록·반응형 격자 만들기                 | [`UICollectionViewFlowLayout`](./flow-layout)                                     |
+| Layout      | 가로 카드와 격자를 한 화면에 조합하기          | [`UICollectionViewCompositionalLayout`](./compositional-layout)                   |
+| Layout      | 설정 화면과 표준 목록 만들기                   | [Collection View List Layout](./list-layout)                                      |
+| Layout      | 직접 layout attributes를 계산하기              | [Custom `UICollectionViewLayout`](./custom-layout)                                |
+| Layout      | 두 layout 사이를 gesture로 전환하기            | [`UICollectionViewTransitionLayout`](./transition-layout)                         |
+| 공통 확장   | 빈 상태·새로고침·페이지네이션 추가하기         | [실무 확장 예제](./practical-recipes)                                             |
 
 처음이라면 전통적인 흐름이나 현대적인 흐름 하나를 먼저 완성한 뒤, 필요한 prefetch·drag and drop·고급 layout 예제로 확장하세요.
 
