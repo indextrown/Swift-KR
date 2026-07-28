@@ -1,6 +1,6 @@
 ---
 title: Swift로 이해하는 Strategy 패턴
-description: Swift의 프로토콜과 클로저로 교체 가능한 알고리즘을 설계하고, 조건문·State 패턴·의존성 주입과의 차이 및 적용 기준을 설명합니다.
+description: Swift의 프로토콜과 클로저로 교체 가능한 알고리즘을 설계하고, 조건문·State 패턴·의존성 주입과의 차이 및 Apple·Kakao·Google 로그인 적용 방법을 설명합니다.
 ---
 
 # Swift로 이해하는 Strategy 패턴
@@ -294,6 +294,208 @@ func calculatorUsesInjectedStrategy() {
 
 실제 할인 규칙이나 서버 상태와 무관하게 원하는 결과를 만들 수 있으므로 테스트가 빠르고 일정해져요.
 
+## 실전: Apple·Kakao·Google 로그인을 Strategy·Repository·UseCase로 나눠요
+
+소셜 로그인은 Strategy 패턴이 잘 맞는 예예요. Apple, Kakao, Google은 모두 “외부 Provider에서 인증을 받고 앱 세션을 시작한다”는 같은 목적을 가지지만, SDK 호출과 인증 결과의 모양은 달라요.
+
+여기서 중요한 점은 **Provider의 SDK token이 곧 우리 앱의 세션은 아니라는 것**이에요. 앱은 Provider가 준 인증 증명을 서버에 전달하고, 서버가 검증한 뒤 우리 서비스 전용 세션을 발급해야 해요. Apple은 identity token과 authorization code를 서버로 전달해 검증하도록 안내하고, Google도 ID token을 이용한 backend 인증 흐름을 안내해요. [Apple의 사용자 검증 문서](https://developer.apple.com/documentation/signinwithapple/verifying-a-user), [Google의 iOS 통합 문서](https://developers.google.com/identity/sign-in/ios/sign-in)를 참고하세요.
+
+### 먼저 알아둘 로그인 용어
+
+| 용어                  | 쉬운 뜻                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Provider              | Apple, Kakao, Google처럼 사용자의 신원을 확인하는 외부 서비스예요.                                                 |
+| 인증 증명(credential) | Provider 인증이 끝났음을 서버에 전달하는 ID token, access token, authorization code 같은 값이에요.                 |
+| 앱 세션               | 서버가 Provider의 증명을 검증한 뒤 발급하는 우리 서비스 전용 로그인 상태예요.                                      |
+| Infrastructure        | 외부 SDK, HTTP, Keychain처럼 앱 밖의 시스템과 직접 통신하는 구현을 두는 계층이에요. Data 계층이라고 부르기도 해요. |
+| Repository            | UseCase가 필요한 데이터 작업을 약속으로 표현하고, 실제 서버·SDK 구현을 감추는 경계예요.                            |
+| UseCase               | 화면이 요청한 “소셜 로그인한다” 같은 애플리케이션 작업을 실행하는 객체예요.                                        |
+
+### Strategy는 보통 Infrastructure에 둬요
+
+이 예제에서 Provider SDK를 호출하는 코드는 외부 구현에 해당하므로 Infrastructure 또는 Data 계층에 둬요. UseCase는 SDK의 구체 타입을 알 필요가 없고, Repository 구현이 선택한 Strategy를 실행해요.
+
+| 위치                    | 역할                                                                | 이 예제의 타입                                                                                    |
+| ----------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Presentation            | 사용자가 누른 로그인 버튼의 Provider를 UseCase에 전달해요.          | `LoginViewModel`, `LoginViewController`                                                           |
+| Application             | 로그인이라는 작업을 시작하고 결과를 화면에 전달해요.                | `SocialLoginUseCase`                                                                              |
+| Domain 또는 Application | UseCase가 필요한 최소 약속과 값이에요.                              | `SocialLoginRepository`, `SocialLoginProvider`, `UserSession`                                     |
+| Infrastructure / Data   | Provider SDK 호출, 서버 세션 요청, Keychain 저장을 실제로 처리해요. | `AppleLoginStrategy`, `KakaoLoginStrategy`, `GoogleLoginStrategy`, `DefaultSocialLoginRepository` |
+
+프로젝트에서 Domain과 Application을 한 폴더로 합쳐도 괜찮아요. 핵심은 **UseCase가 구체 SDK 구현이 아니라 `SocialLoginRepository`라는 약속에 의존하고, 구체 Strategy는 Infrastructure에 머무는 것**이에요.
+
+### Provider 이름은 Strategy로, 세션 생성은 Repository로 표현해요
+
+서버에 세션을 만드는 흐름이 세 Provider에서 같다면 `AppleLoginRepository`, `KakaoLoginRepository`, `GoogleLoginRepository`를 각각 만들 필요는 없어요. Provider별로 달라지는 것은 SDK 인증 방식이므로 그 부분을 Strategy 이름으로 나누는 편이 책임이 분명해요.
+
+```swift
+enum SocialLoginProvider: Hashable {
+  case apple
+  case kakao
+  case google
+}
+
+struct SocialLoginCredential {
+  let provider: SocialLoginProvider
+  let token: String
+}
+
+struct UserSession {
+  let accessToken: String
+  let refreshToken: String
+}
+
+protocol SocialLoginStrategy: AnyObject {
+  var provider: SocialLoginProvider { get }
+
+  func authenticate() async throws -> SocialLoginCredential
+}
+
+protocol SocialLoginRepository {
+  func signIn(
+    using provider: SocialLoginProvider
+  ) async throws -> UserSession
+}
+```
+
+Provider별 타입은 아래처럼 이름만으로도 역할을 드러내요. 아래 구현은 SDK를 실제로 호출하지 않는 **의도적인 자리 표시자**예요.
+
+```swift
+final class AppleLoginStrategy: SocialLoginStrategy {
+  let provider: SocialLoginProvider = .apple
+
+  func authenticate() async throws -> SocialLoginCredential {
+    fatalError("AuthenticationServices 구현은 생략해요.")
+  }
+}
+
+final class KakaoLoginStrategy: SocialLoginStrategy {
+  let provider: SocialLoginProvider = .kakao
+
+  func authenticate() async throws -> SocialLoginCredential {
+    fatalError("Kakao SDK 구현은 생략해요.")
+  }
+}
+
+final class GoogleLoginStrategy: SocialLoginStrategy {
+  let provider: SocialLoginProvider = .google
+
+  func authenticate() async throws -> SocialLoginCredential {
+    fatalError("GoogleSignIn SDK 구현은 생략해요.")
+  }
+}
+```
+
+### Repository 구현은 Strategy와 서버 세션을 연결해요
+
+Repository의 역할은 Provider별 Strategy에서 얻은 인증 증명을 서버에 전달하고, 앱 세션으로 바꾸는 일이에요. 그러므로 Strategy의 map과 서버 통신을 구현체에 감추고, UseCase에는 `signIn(using:)`만 보여줘요.
+
+```swift
+enum SocialLoginError: Error {
+  case unsupportedProvider(SocialLoginProvider)
+}
+
+protocol SessionRemoteDataSource {
+  func createSession(
+    from credential: SocialLoginCredential
+  ) async throws -> UserSession
+}
+
+final class DefaultSocialLoginRepository: SocialLoginRepository {
+  private let strategies: [
+    SocialLoginProvider: any SocialLoginStrategy
+  ]
+  private let remoteDataSource: any SessionRemoteDataSource
+
+  init(
+    strategies: [
+      SocialLoginProvider: any SocialLoginStrategy
+    ],
+    remoteDataSource: any SessionRemoteDataSource
+  ) {
+    self.strategies = strategies
+    self.remoteDataSource = remoteDataSource
+  }
+
+  func signIn(
+    using provider: SocialLoginProvider
+  ) async throws -> UserSession {
+    guard let strategy = strategies[provider] else {
+      throw SocialLoginError.unsupportedProvider(provider)
+    }
+
+    let credential = try await strategy.authenticate()
+    return try await remoteDataSource.createSession(
+      from: credential
+    )
+  }
+}
+```
+
+```text
+로그인 버튼
+  └─ SocialLoginUseCase
+       └─ SocialLoginRepository
+            ├─ AppleLoginStrategy
+            ├─ KakaoLoginStrategy
+            └─ GoogleLoginStrategy
+                 └─ 인증 증명 → 서버 → UserSession
+```
+
+### UseCase는 “무엇을 할지”만 알아요
+
+UseCase는 어떤 SDK가 동작하는지, token의 필드가 무엇인지 알지 못해요. 버튼에서 선택한 Provider를 전달하고, Repository가 만든 앱 세션만 받아요.
+
+```swift
+struct SocialLoginUseCase {
+  private let repository: any SocialLoginRepository
+
+  init(repository: any SocialLoginRepository) {
+    self.repository = repository
+  }
+
+  func execute(
+    provider: SocialLoginProvider
+  ) async throws -> UserSession {
+    try await repository.signIn(using: provider)
+  }
+}
+```
+
+실제 iOS SDK 로그인 화면에는 `UIViewController` 같은 표시 문맥이 필요할 수 있어요. 그 UIKit 의존성은 Strategy 또는 Coordinator에 두고 UseCase에 전달하지 마세요. 표시 문맥을 매번 받아야 하는 구조라면 Coordinator가 Strategy를 실행한 뒤 인증 증명을 UseCase에 넘기는 형태로 한 단계 더 분리할 수도 있어요.
+
+### 조립 지점에서 Provider 구현을 연결해요
+
+구체 Strategy는 앱을 시작할 때 한 곳에서만 만들어요. 이 지점만 Apple·Kakao·Google SDK에 대해 알고, 나머지 계층은 프로토콜에만 의존해요.
+
+```swift
+func makeSocialLoginUseCase(
+  remoteDataSource: any SessionRemoteDataSource
+) -> SocialLoginUseCase {
+  let repository = DefaultSocialLoginRepository(
+    strategies: [
+      .apple: AppleLoginStrategy(),
+      .kakao: KakaoLoginStrategy(),
+      .google: GoogleLoginStrategy()
+    ],
+    remoteDataSource: remoteDataSource
+  )
+
+  return SocialLoginUseCase(repository: repository)
+}
+```
+
+Provider별로 서버 endpoint, 세션 형식, 오류 정책까지 완전히 달라진다면 Repository 구현도 나눌 수 있어요. 하지만 SDK 인증 방식만 다른 경우에는 `AppleLoginStrategy`·`KakaoLoginStrategy`·`GoogleLoginStrategy`와 하나의 `DefaultSocialLoginRepository`가 더 단순해요.
+
+### SDK 연동 전에 확인할 점
+
+- Apple은 identity token 또는 authorization code를 서버에서 검증하는 흐름을 준비해야 해요.
+- Google은 앱 등록과 URL redirect 설정을 마친 뒤 서버에서 ID token을 검증해야 해요.
+- Kakao는 Kakao Talk과 Kakao Account 로그인 가능 여부, URL 반환 설정과 allowlist를 확인해야 해요.
+- 어느 Provider든 클라이언트가 받은 token을 곧바로 앱 세션으로 믿지 말고, 서버 검증 뒤에 앱 세션을 발급해야 해요.
+
+실제 SDK 설정과 token 검증 세부 사항은 [Apple Sign in with Apple](https://developer.apple.com/documentation/signinwithapple/authenticating-users-with-sign-in-with-apple), [Google Sign-In for iOS](https://developers.google.com/identity/sign-in/ios/sign-in), [Kakao Login iOS](https://developers.kakao.com/docs/en/kakaologin/ios) 공식 문서를 따르세요.
+
 ## Strategy와 State는 교체 이유가 달라요
 
 Strategy와 State는 여러 구현에 같은 동작을 요청한다는 점에서 코드 모양이 비슷할 수 있어요. 차이는 누가, 왜 구현을 바꾸는지에 있어요.
@@ -366,3 +568,8 @@ Strategy 타입과 조립 코드가 늘어나고, 실제 동작을 찾기 위해
 - [The Swift Programming Language — Protocols](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/protocols/)
 - [The Swift Programming Language — Closures](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/closures/)
 - [The Swift Programming Language — Generics](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/generics/)
+- [Apple Developer Documentation — Authenticating users with Sign in with Apple](https://developer.apple.com/documentation/signinwithapple/authenticating-users-with-sign-in-with-apple)
+- [Apple Developer Documentation — Verifying a user](https://developer.apple.com/documentation/signinwithapple/verifying-a-user)
+- [Google for Developers — Integrating Google Sign-In into your iOS or macOS app](https://developers.google.com/identity/sign-in/ios/sign-in)
+- [Kakao Developers — Kakao Login iOS](https://developers.kakao.com/docs/en/kakaologin/ios)
+- [Kakao Developers — Kakao Login Concepts](https://developers.kakao.com/docs/en/kakaologin/common)

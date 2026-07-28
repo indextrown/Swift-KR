@@ -73,6 +73,11 @@
           },
           {
             "type": "custom-link",
+            "label": "reloadData()와 performBatchUpdates",
+            "link": "/guide/uikit/collection-views/examples/reload-data-and-perform-batch-updates"
+          },
+          {
+            "type": "custom-link",
             "label": "UICollectionViewDiffableDataSource",
             "link": "/guide/uikit/collection-views/examples/diffable-data-source"
           },
