@@ -11,6 +11,21 @@
   },
   {
     "type": "file",
+    "name": "generics",
+    "label": "제네릭"
+  },
+  {
+    "type": "file",
+    "name": "opaque-types",
+    "label": "some과 불투명 타입"
+  },
+  {
+    "type": "file",
+    "name": "existential-types",
+    "label": "any와 실존 타입"
+  },
+  {
+    "type": "file",
     "name": "property-wrappers",
     "label": "Property Wrapper"
   },
