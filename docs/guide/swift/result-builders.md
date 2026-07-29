@@ -36,6 +36,8 @@ SwiftUI에서 `VStack` 안에 여러 View를 나란히 적거나 조건에 따�
 - Result Builder와 일반 배열, Builder 디자인 패턴의 차이
 - Result Builder가 잘 맞는 경우와 사용하지 않아도 되는 경우
 - 오류가 생겼을 때 빠진 결과 조합 메서드를 찾는 방법
+- PopPangListKit이 UIKit 목록을 SwiftUI처럼 선언하는 실전 구조
+- UI가 아닌 입력 검증 규칙에 Result Builder를 적용하는 방법
 
 ## 배열을 직접 조립해도 올바르게 동작해요
 
@@ -626,9 +628,637 @@ Result Builder는 복잡성을 없애지 않아요. 호출부의 조립 복잡�
 
 짧은 배열을 한 번 만들거나 조기 반환과 상태 변경이 핵심이라면 일반 함수와 배열이 더 직접적이에요. 호출부의 반복되는 조립 코드가 충분하고, 허용할 표현식과 조합 규칙이 명확할 때 Result Builder를 검토하는 편이 좋아요.
 
+## 실전 예제: PopPangListKit은 UIKit 목록을 SwiftUI처럼 선언해요
+
+[PopPangListKit](https://github.com/team-PopPang/PopPangListKit)은 `UICollectionView` 화면을 `List → Section → Cell` 구조로 표현하는 선언형 목록 프레임워크예요. SwiftUI의 `List`처럼 화면에 필요한 구조를 중첩해 작성하지만, 실제 렌더링과 업데이트는 UIKit의 `UICollectionView`가 담당해요.
+
+이 예제는 PopPangListKit 저장소의 `def8d460` 커밋에서 확인한 공개 API를 기준으로 해요. 라이브러리가 발전하면 세부 시그니처가 달라질 수 있으므로 실제 프로젝트에 적용할 때는 [최신 README](https://github.com/team-PopPang/PopPangListKit#readme)도 함께 확인해야 해요.
+
+### 먼저 목록 구성에 필요한 역할을 구분해요
+
+| 용어                      | 이 예제에서 하는 일                                                                                                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `UICollectionView`        | UIKit에서 재사용 가능한 Cell을 세로 목록, 가로 목록, 그리드로 보여 주는 View예요.                                                                                   |
+| adapter                   | 화면의 데이터와 `UICollectionViewDataSource`, `UICollectionViewDelegate` 같은 UIKit 인터페이스 사이를 연결하는 객체예요.                                            |
+| snapshot                  | 특정 시점에 화면이 가져야 할 Section과 Cell의 전체 상태예요. 이전 snapshot과 새 snapshot을 비교하면 삽입, 삭제, 이동, 내용 변경을 찾을 수 있어요.                   |
+| `Component`               | 하나의 데이터 Item과 이를 표시할 `UIView`의 생성·업데이트·크기 규칙을 묶는 PopPangListKit 프로토콜이에요.                                                           |
+| `List`, `Section`, `Cell` | 화면 전체, 구역, 개별 항목을 나타내는 값이에요. SwiftUI의 같은 이름을 가진 타입과는 별개이며, PopPangListKit에서는 `CollectionViewAdapter`에 전달할 snapshot이에요. |
+
+PopPangListKit의 역할을 한 흐름으로 연결하면 다음과 같아요.
+
+```text
+List { ... } 클로저
+  └─ SectionsBuilder → [Section]
+       └─ Section { ... } 클로저
+            └─ CellsBuilder → [Cell]
+                 ↓
+            List snapshot
+                 ↓
+      CollectionViewAdapter.apply
+                 ↓
+  diff 계산 → UICollectionView 업데이트
+```
+
+Result Builder가 담당하는 범위는 위 흐름의 `[Section]`과 `[Cell]` 조합까지예요. diff를 계산하거나 Cell을 재사용하고 화면을 갱신하는 일은 `CollectionViewAdapter`의 책임이에요.
+
+### 화면에 표시할 Item과 Component를 먼저 만들어요
+
+팝업 스토어 목록을 만든다고 가정할게요. `Popup`은 화면 데이터이고, `PopupRowComponent`는 `Popup`을 `PopupRowView`에 연결해요.
+
+```swift
+import PopPangListKit
+import UIKit
+
+struct Popup: Identifiable, Equatable {
+  let id: UUID
+  let title: String
+  let location: String
+}
+
+final class PopupRowView: UIView {
+  func configure(with popup: Popup) {
+    accessibilityLabel = "\(popup.title), \(popup.location)"
+
+    // 실제 앱에서는 UILabel 계층과 Auto Layout 제약을 갱신해요.
+  }
+}
+
+struct PopupRowComponent: Component {
+  let item: Popup
+
+  var layoutMode: ContentLayoutMode {
+    .flexibleHeight(estimatedHeight: 72)
+  }
+
+  func renderContent(
+    coordinator: Void
+  ) -> PopupRowView {
+    PopupRowView()
+  }
+
+  func render(
+    in content: PopupRowView,
+    coordinator: Void
+  ) {
+    content.configure(with: item)
+  }
+}
+```
+
+`renderContent(coordinator:)`는 표시할 View를 처음 만들고, `render(in:coordinator:)`는 새 Item을 기존 View에 반영해요. 화면을 다시 그릴 때마다 View 계층을 새로 만들지 않고 재사용할 수 있는 경계예요.
+
+목록이 비었거나 공지 문구를 보여 줄 때 사용할 간단한 Component도 준비해요.
+
+```swift
+struct MessageComponent: Component {
+  let item: String
+
+  var layoutMode: ContentLayoutMode {
+    .flexibleHeight(estimatedHeight: 52)
+  }
+
+  func renderContent(
+    coordinator: Void
+  ) -> UILabel {
+    let label = UILabel()
+    label.numberOfLines = 0
+    return label
+  }
+
+  func render(
+    in content: UILabel,
+    coordinator: Void
+  ) {
+    content.text = item
+  }
+}
+```
+
+두 Component 모두 Item이 `Equatable`이에요. PopPangListKit은 같은 ID의 Cell에서 Item이 달라졌는지 판단해 필요한 콘텐츠를 갱신해요.
+
+### Result Builder 없이도 같은 snapshot을 만들 수 있어요
+
+PopPangListKit의 `List`, `Section`, `Cell`은 배열을 받는 초기화 메서드도 제공해요. 따라서 Result Builder 없이 일반 Swift 코드만으로 같은 snapshot을 만들 수 있어요.
+
+```swift
+@MainActor
+func makePopupListWithoutBuilder(
+  popups: [Popup],
+  showsNotice: Bool,
+  onSelect: @escaping (Popup) -> Void
+) -> List {
+  var sections: [Section] = []
+
+  if showsNotice {
+    let noticeCell = Cell(
+      id: "notice",
+      component: MessageComponent(
+        item: "이번 주에 새로운 팝업이 열렸어요."
+      )
+    )
+
+    let noticeSection = Section(
+      id: "notice",
+      cells: [noticeCell]
+    )
+    .withSectionLayout(
+      VerticalLayout(spacing: 0)
+    )
+
+    sections.append(noticeSection)
+  }
+
+  var popupCells: [Cell] = []
+
+  if popups.isEmpty {
+    popupCells.append(
+      Cell(
+        id: "empty",
+        component: MessageComponent(
+          item: "표시할 팝업이 없어요."
+        )
+      )
+    )
+  } else {
+    for popup in popups {
+      let cell = Cell(
+        id: popup.id,
+        component: PopupRowComponent(item: popup)
+      )
+      .didSelect { _ in
+        onSelect(popup)
+      }
+
+      popupCells.append(cell)
+    }
+  }
+
+  let popupSection = Section(
+    id: "popups",
+    cells: popupCells
+  )
+  .withSectionLayout(
+    VerticalLayout(spacing: 8)
+      .insets(
+        NSDirectionalEdgeInsets(
+          top: 16,
+          leading: 20,
+          bottom: 24,
+          trailing: 20
+        )
+      )
+  )
+
+  sections.append(popupSection)
+  return List(sections: sections)
+}
+```
+
+이 코드는 틀리지 않았고 실행 순서도 직접 보여 줘요. 다만 두 단계의 계층을 만들기 위해 다음 조립 코드가 화면 구조 사이에 반복돼요.
+
+- `var sections`, `var popupCells`처럼 중간 배열을 선언해요.
+- 각 값을 만든 뒤 올바른 부모 배열에 `append`해야 해요.
+- 공지 Section과 팝업 Section의 관계가 멀리 떨어져 보여요.
+- 조건과 반복이 “무엇을 보여 줄지”뿐 아니라 “어느 배열에 넣을지”까지 함께 처리해요.
+
+화면이 짧고 한 번만 만들어진다면 이 비용은 크지 않아요. 하지만 여러 화면이 같은 `List → Section → Cell` 계층을 반복한다면 조립 규칙을 Result Builder로 재사용할 가치가 생겨요.
+
+### List와 Section의 초기화 메서드가 Builder 경계를 만들어요
+
+PopPangListKit의 실제 [`List`](https://github.com/team-PopPang/PopPangListKit/blob/def8d46068b8e595381de159305702a5e18a6c55/Sources/PopPangListKit/CollectionReusable/35.%20List.swift)는 `SectionsBuilder`, [`Section`](https://github.com/team-PopPang/PopPangListKit/blob/def8d46068b8e595381de159305702a5e18a6c55/Sources/PopPangListKit/CollectionReusable/10.%20Section.swift)은 `CellsBuilder`를 클로저 매개변수에 적용해요.
+
+```swift
+public struct List {
+  public init(
+    @SectionsBuilder _ sections: () -> [Section]
+  ) {
+    self.sections = sections()
+  }
+}
+
+public struct Section {
+  public init(
+    id: some Hashable,
+    @CellsBuilder _ cells: () -> [Cell]
+  ) {
+    // 실제 구현은 Cell ID에 Section 범위를 적용해 저장해요.
+  }
+}
+```
+
+위 코드는 학습에 필요한 시그니처만 남긴 개념 코드예요. 실제 구현은 이벤트 저장소와 Section 범위의 Cell ID 처리도 담당해요.
+
+두 Builder는 입력 계층만 다르고 조합 원리는 같아요.
+
+| 블록에 작성한 문법 | `CellsBuilder`의 결과               | `SectionsBuilder`의 결과                 |
+| ------------------ | ----------------------------------- | ---------------------------------------- |
+| 단일 표현식        | `Cell`을 `[Cell]`로 바꿔요.         | `Section`을 `[Section]`으로 바꿔요.      |
+| 여러 표현식        | 여러 `[Cell]`을 하나로 합쳐요.      | 여러 `[Section]`을 하나로 합쳐요.        |
+| `if`               | 없어진 갈래를 빈 `[Cell]`로 바꿔요. | 없어진 갈래를 빈 `[Section]`으로 바꿔요. |
+| `if-else`          | 선택된 Cell 배열을 유지해요.        | 선택된 Section 배열을 유지해요.          |
+| `for`              | 반복마다 만든 `[Cell]`을 펼쳐요.    | 반복마다 만든 `[Section]`을 펼쳐요.      |
+
+즉, Builder는 `Cell`과 `Section`을 만드는 방법을 알지 못해요. 블록에서 이미 만들어진 값을 각 계층의 배열로 바꾸고 합치는 방법만 알아요.
+
+### 선언형 문법에서는 최종 화면 구조가 바로 보여요
+
+같은 입력을 PopPangListKit의 Builder 초기화 메서드로 작성해 볼게요.
+
+```swift
+@MainActor
+func makePopupList(
+  popups: [Popup],
+  showsNotice: Bool,
+  onSelect: @escaping (Popup) -> Void
+) -> List {
+  List {
+    if showsNotice {
+      Section(id: "notice") {
+        Cell(
+          id: "notice",
+          component: MessageComponent(
+            item: "이번 주에 새로운 팝업이 열렸어요."
+          )
+        )
+      }
+      .withSectionLayout(
+        VerticalLayout(spacing: 0)
+      )
+    }
+
+    Section(id: "popups") {
+      if popups.isEmpty {
+        Cell(
+          id: "empty",
+          component: MessageComponent(
+            item: "표시할 팝업이 없어요."
+          )
+        )
+      } else {
+        for popup in popups {
+          Cell(
+            id: popup.id,
+            component: PopupRowComponent(item: popup)
+          )
+          .didSelect { _ in
+            onSelect(popup)
+          }
+        }
+      }
+    }
+    .withSectionLayout(
+      VerticalLayout(spacing: 8)
+        .insets(
+          NSDirectionalEdgeInsets(
+            top: 16,
+            leading: 20,
+            bottom: 24,
+            trailing: 20
+          )
+        )
+    )
+  }
+}
+```
+
+이제 `List` 블록에는 Section이, 각 `Section` 블록에는 Cell이 중첩돼요. `showsNotice`와 `popups.isEmpty`는 항목을 포함할 조건만 설명하고, `for`는 각 팝업이 Cell 하나가 된다는 관계를 보여 줘요.
+
+Builder를 사용해도 `if` 조건과 `for` 반복은 실행 시점에 평가돼요. 달라진 것은 제어 흐름이 아니라 각 갈래와 반복의 결과를 배열에 넣는 코드가 Builder로 이동했다는 점이에요.
+
+### for 한 부분을 build 메서드로 펼쳐 봐요
+
+팝업을 반복하는 부분만 개념적으로 변환하면 다음과 같아요.
+
+```swift
+let repeatedCells: [[Cell]] = popups.map { popup in
+  CellsBuilder.buildExpression(
+    Cell(
+      id: popup.id,
+      component: PopupRowComponent(item: popup)
+    )
+  )
+}
+
+let cells = CellsBuilder.buildBlock(
+  CellsBuilder.buildArray(repeatedCells)
+)
+
+let section = Section(
+  id: "popups",
+  cells: cells
+)
+
+let sections = SectionsBuilder.buildBlock(
+  SectionsBuilder.buildExpression(section)
+)
+
+let list = List(sections: sections)
+```
+
+실제 컴파일러가 위 지역 변수 이름을 그대로 만드는 것은 아니에요. 다만 `for`의 각 반복이 `[Cell]`을 만들고, `buildArray(_:)`이 `[[Cell]]`을 `[Cell]`로 펼친 뒤, 바깥 Builder가 `Section`을 `[Section]`으로 바꾼다는 타입 흐름을 확인할 수 있어요.
+
+### CollectionViewAdapter는 완성된 snapshot을 화면에 반영해요
+
+View Controller는 `UICollectionView`, layout adapter, `CollectionViewAdapter`를 한 번 연결하고 상태가 달라질 때 새 `List`를 적용해요.
+
+```swift
+@MainActor
+final class PopupListViewController: UIViewController {
+  private var popups: [Popup] = []
+  private var showsNotice = true
+
+  private let layoutAdapter =
+    CollectionViewLayoutAdapter()
+
+  private lazy var collectionView =
+    UICollectionView(layoutAdapter: layoutAdapter)
+
+  private lazy var adapter = CollectionViewAdapter(
+    configuration: .init(),
+    collectionView: collectionView,
+    layoutAdapter: layoutAdapter
+  )
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    collectionView.translatesAutoresizingMaskIntoConstraints =
+      false
+    view.addSubview(collectionView)
+
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(
+        equalTo: view.topAnchor
+      ),
+      collectionView.leadingAnchor.constraint(
+        equalTo: view.leadingAnchor
+      ),
+      collectionView.trailingAnchor.constraint(
+        equalTo: view.trailingAnchor
+      ),
+      collectionView.bottomAnchor.constraint(
+        equalTo: view.bottomAnchor
+      ),
+    ])
+
+    render()
+  }
+
+  func render() {
+    let list = makePopupList(
+      popups: popups,
+      showsNotice: showsNotice
+    ) { [weak self] popup in
+      self?.openPopup(popup)
+    }
+
+    adapter.apply(list)
+  }
+
+  private func openPopup(_ popup: Popup) {
+    // 실제 앱에서는 상세 화면으로 이동해요.
+  }
+}
+```
+
+`render()`를 다시 호출하면 Builder는 현재 상태로 새 snapshot을 만들어요. [`CollectionViewAdapter`](https://github.com/team-PopPang/PopPangListKit/blob/def8d46068b8e595381de159305702a5e18a6c55/Sources/PopPangListKit/Adapter/52.%20CollectionViewAdapter.swift)는 이전 snapshot과 새 snapshot의 차이를 계산해 필요한 Cell만 삽입, 삭제, 이동, 갱신해요.
+
+여기서 책임을 혼동하지 않는 것이 중요해요.
+
+| 타입·기능                     | 책임                                                                            |
+| ----------------------------- | ------------------------------------------------------------------------------- |
+| `CellsBuilder`                | Cell 표현식, 조건, 반복 결과를 `[Cell]`로 합쳐요.                               |
+| `SectionsBuilder`             | Section 표현식, 조건, 반복 결과를 `[Section]`으로 합쳐요.                       |
+| `Component`                   | Item을 어떤 `UIView`로 만들고 재사용 시 어떻게 갱신할지 정의해요.               |
+| `Section`의 layout modifier   | 해당 Section을 세로 목록, 가로 목록, 그리드 중 어떤 형태로 배치할지 정해요.     |
+| `CollectionViewAdapter.apply` | 새 `List` snapshot을 이전 상태와 비교해 `UICollectionView` 업데이트로 연결해요. |
+
+Result Builder만으로 목록 프레임워크가 완성되는 것은 아니에요. Builder는 호출부에서 구조를 읽기 쉽게 만드는 입력 계층이고, identity, diff, View 재사용, layout은 별도의 타입이 맡아야 해요.
+
+### SwiftUI List와 문법은 닮았지만 결과 타입은 달라요
+
+SwiftUI의 [`List`](https://developer.apple.com/documentation/swiftui/list)도 Result Builder가 적용된 View 클로저를 받아 행과 Section을 선언형으로 구성해요. PopPangListKit은 이 작성 경험을 UIKit 목록 snapshot에 적용해요.
+
+| 비교 기준       | SwiftUI `List`                               | PopPangListKit `List`                                    | UIKit을 직접 구성하는 방식                     |
+| --------------- | -------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------- |
+| 블록의 결과     | SwiftUI View 구조예요.                       | `[Section]`과 `[Cell]`로 이루어진 snapshot이에요.        | 개발자가 관리하는 배열과 data source 상태예요. |
+| 화면 렌더러     | SwiftUI 런타임이 View를 갱신해요.            | `CollectionViewAdapter`와 `UICollectionView`가 갱신해요. | View Controller와 data source가 직접 갱신해요. |
+| 조건·반복 표현  | View Builder 문법 안에 작성해요.             | Sections/Cells Builder 문법 안에 작성해요.               | 배열 수정과 data source 분기를 직접 작성해요.  |
+| UIKit 제어 범위 | SwiftUI가 제공하는 API 경계 안에서 제어해요. | Compositional Layout과 UIKit Component를 사용해요.       | UIKit API 전체를 직접 제어해요.                |
+
+문법이 닮았다는 것은 내부 구현이 같다는 뜻이 아니에요. 공통점은 “중첩된 결과 구조를 Result Builder 블록으로 표현한다”는 API 설계 방식이에요.
+
+### snapshot만 검사하면 Builder 결과를 화면 없이 테스트할 수 있어요
+
+Builder가 만든 결과는 `List`, `Section`, `Cell` 값이므로 adapter를 실행하기 전에 구조를 검사할 수 있어요.
+
+```swift
+import Testing
+
+@Test
+@MainActor
+func noticeAndPopupSectionsAreBuiltInOrder() {
+  let popups = [
+    Popup(
+      id: UUID(),
+      title: "성수 북마켓",
+      location: "서울 성동구"
+    ),
+    Popup(
+      id: UUID(),
+      title: "해운대 디자인숍",
+      location: "부산 해운대구"
+    ),
+  ]
+
+  let list = makePopupList(
+    popups: popups,
+    showsNotice: true,
+    onSelect: { _ in }
+  )
+
+  #expect(
+    list.sections.map(\.id) == [
+      AnyHashable("notice"),
+      AnyHashable("popups"),
+    ]
+  )
+  #expect(list.sections[1].cells.count == 2)
+  #expect(
+    list.sections[1].cells[0].id ==
+      AnyHashable(popups[0].id)
+  )
+}
+```
+
+이 테스트는 diff나 실제 Cell 렌더링까지 확인하지 않아요. 대신 조건과 반복이 의도한 Section·Cell 계층을 만들었는지 빠르게 검증해요. `CollectionViewAdapter`의 업데이트와 `Component` 렌더링은 각각 별도 통합 테스트로 나누는 편이 실패 원인을 찾기 쉬워요.
+
+### 이 사례에서 Result Builder가 유용한 이유를 정리해요
+
+PopPangListKit 사례에는 Result Builder가 잘 맞는 조건이 여러 개 모여 있어요.
+
+1. 화면마다 `List → Section → Cell`이라는 같은 계층을 반복해요.
+2. 각 블록에서 허용할 값이 `Section`과 `Cell`로 명확해요.
+3. 조건문과 반복문이 최종 화면 구조를 직접 설명해요.
+4. Builder의 결과인 `[Section]`, `[Cell]`을 독립적으로 검사할 수 있어요.
+5. 렌더링과 업데이트는 adapter에 분리되어 Builder가 부수 효과를 만들지 않아요.
+
+반대로 Cell 몇 개를 한 번만 표시하거나 목록 갱신 과정 자체를 세밀하게 명령하는 것이 핵심이라면 일반 배열과 UIKit 코드가 더 직접적일 수 있어요. Result Builder를 도입하는 기준은 SwiftUI와 비슷해 보이는지가 아니라, **반복되는 계층 조립 규칙을 여러 호출부에서 재사용할 수 있는지**예요.
+
+## 두 번째 실전 예제: 입력 검증 규칙도 선언형으로 조합할 수 있어요
+
+Result Builder는 UI 전용 기능이 아니에요. 같은 종류의 규칙을 조건과 반복으로 모아 하나의 값으로 만들 때도 사용할 수 있어요.
+
+회원 가입 폼의 검증 규칙을 조합해 볼게요.
+
+```swift
+struct SignUpForm {
+  let email: String
+  let password: String
+  let nickname: String?
+}
+
+struct ValidationRule {
+  let message: String
+  let isSatisfied: (SignUpForm) -> Bool
+}
+
+@resultBuilder
+enum ValidationRulesBuilder {
+  static func buildExpression(
+    _ expression: ValidationRule
+  ) -> [ValidationRule] {
+    [expression]
+  }
+
+  static func buildBlock(
+    _ components: [ValidationRule]...
+  ) -> [ValidationRule] {
+    components.flatMap { $0 }
+  }
+
+  static func buildOptional(
+    _ component: [ValidationRule]?
+  ) -> [ValidationRule] {
+    component ?? []
+  }
+
+  static func buildArray(
+    _ components: [[ValidationRule]]
+  ) -> [ValidationRule] {
+    components.flatMap { $0 }
+  }
+}
+
+struct FormValidator {
+  let rules: [ValidationRule]
+
+  init(
+    @ValidationRulesBuilder rules: () -> [ValidationRule]
+  ) {
+    self.rules = rules()
+  }
+
+  func messages(
+    for form: SignUpForm
+  ) -> [String] {
+    rules.compactMap { rule in
+      rule.isSatisfied(form) ? nil : rule.message
+    }
+  }
+}
+```
+
+프로젝트 설정에 따라 닉네임 필수 규칙을 추가하고, 금지어마다 규칙을 반복해서 만들 수 있어요.
+
+```swift
+func makeSignUpValidator(
+  requiresNickname: Bool,
+  bannedWords: [String]
+) -> FormValidator {
+  FormValidator {
+    ValidationRule(
+      message: "올바른 이메일을 입력해 주세요.",
+      isSatisfied: { $0.email.contains("@") }
+    )
+
+    ValidationRule(
+      message: "비밀번호는 8자 이상이어야 해요.",
+      isSatisfied: { $0.password.count >= 8 }
+    )
+
+    if requiresNickname {
+      ValidationRule(
+        message: "닉네임을 입력해 주세요.",
+        isSatisfied: {
+          !($0.nickname ?? "").isEmpty
+        }
+      )
+    }
+
+    for word in bannedWords {
+      ValidationRule(
+        message: "닉네임에 \(word)을 사용할 수 없어요.",
+        isSatisfied: {
+          !($0.nickname ?? "")
+            .lowercased()
+            .contains(word.lowercased())
+        }
+      )
+    }
+  }
+}
+```
+
+호출 결과를 확인해 볼게요.
+
+```swift
+let validator = makeSignUpValidator(
+  requiresNickname: true,
+  bannedWords: ["admin"]
+)
+
+let messages = validator.messages(
+  for: SignUpForm(
+    email: "invalid-email",
+    password: "short",
+    nickname: "Admin User"
+  )
+)
+
+assert(
+  messages == [
+    "올바른 이메일을 입력해 주세요.",
+    "비밀번호는 8자 이상이어야 해요.",
+    "닉네임에 admin을 사용할 수 없어요.",
+  ]
+)
+```
+
+이 예제에서도 Result Builder는 검증을 실행하지 않아요. `ValidationRule`을 `[ValidationRule]`로 조합할 뿐이고, 실제 실행 순서와 오류 수집은 `FormValidator`가 담당해요.
+
+규칙이 독립적이고 여러 설정에서 조합을 재사용한다면 이 구조가 유용해요. 반면 앞 규칙의 결과에 따라 뒤 규칙이 상태를 바꾸거나 즉시 중단해야 한다면 일반 함수의 `guard`와 명시적인 제어 흐름이 더 읽기 쉬울 수 있어요.
+
+두 실전 예제에서 공통으로 확인할 수 있는 기준은 다음과 같아요.
+
+```text
+표현식과 조건·반복 → Result Builder가 값의 목록을 구성
+구성된 값의 목록   → 별도의 실행기가 렌더링하거나 검증
+```
+
+Result Builder는 “무엇을 구성할지”를 선언하는 계층에 두고, “어떻게 실행할지”는 adapter, renderer, validator 같은 별도 타입에 두면 역할이 선명해져요.
+
 ## 참고 자료
 
 - [The Swift Programming Language — Result Builders](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/advancedoperators/#Result-Builders)
 - [The Swift Programming Language — resultBuilder](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes/#resultBuilder)
 - [Swift Evolution SE-0289 — Result Builders](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0289-result-builders.md)
 - [Apple Developer — ViewBuilder](https://developer.apple.com/documentation/swiftui/viewbuilder)
+- [Apple Developer — List](https://developer.apple.com/documentation/swiftui/list)
+- [Apple Developer — UICollectionView](https://developer.apple.com/documentation/uikit/uicollectionview)
+- [PopPangListKit 공식 저장소](https://github.com/team-PopPang/PopPangListKit)
+- [PopPangListKit — List](https://github.com/team-PopPang/PopPangListKit/blob/def8d46068b8e595381de159305702a5e18a6c55/Sources/PopPangListKit/CollectionReusable/35.%20List.swift)
+- [PopPangListKit — Section](https://github.com/team-PopPang/PopPangListKit/blob/def8d46068b8e595381de159305702a5e18a6c55/Sources/PopPangListKit/CollectionReusable/10.%20Section.swift)
+- [PopPangListKit — CellsBuilder](https://github.com/team-PopPang/PopPangListKit/blob/def8d46068b8e595381de159305702a5e18a6c55/Sources/PopPangListKit/Builder/33.%20CellsBuilder.swift)
+- [PopPangListKit — SectionsBuilder](https://github.com/team-PopPang/PopPangListKit/blob/def8d46068b8e595381de159305702a5e18a6c55/Sources/PopPangListKit/Builder/34.%20SectionsBuilder.swift)
+- [PopPangListKit — CollectionViewAdapter](https://github.com/team-PopPang/PopPangListKit/blob/def8d46068b8e595381de159305702a5e18a6c55/Sources/PopPangListKit/Adapter/52.%20CollectionViewAdapter.swift)
