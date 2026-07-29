@@ -23,5 +23,20 @@
     "type": "file",
     "name": "existential-types",
     "label": "any와 실존 타입"
+  },
+  {
+    "type": "file",
+    "name": "property-wrappers",
+    "label": "Property Wrapper"
+  },
+  {
+    "type": "file",
+    "name": "result-builders",
+    "label": "Result Builder"
+  },
+  {
+    "type": "file",
+    "name": "macros",
+    "label": "매크로"
   }
 ]
