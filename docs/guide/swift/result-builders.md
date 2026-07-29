@@ -1,6 +1,6 @@
 ---
 title: Swift로 이해하는 Result Builder
-description: Swift Result Builder가 여러 표현식을 하나의 값으로 조합하는 원리와 @resultBuilder 구현, 조건문·반복문 지원, 적용 기준을 설명합니다.
+description: Swift Result Builder가 여러 표현식을 하나의 값으로 조합하는 원리와 조건문·반복문 지원, 매크로 협업 사례, 적용 기준을 설명합니다.
 pageType: doc-wide
 outline: false
 ---
@@ -37,6 +37,7 @@ SwiftUI에서 `VStack` 안에 여러 View를 나란히 적거나 조건에 따�
 - Result Builder가 잘 맞는 경우와 사용하지 않아도 되는 경우
 - 오류가 생겼을 때 빠진 결과 조합 메서드를 찾는 방법
 - PopPangListKit이 UIKit 목록을 SwiftUI처럼 선언하는 실전 구조
+- KarrotListKit이 Result Builder와 매크로의 책임을 나누는 방법
 - UI가 아닌 입력 검증 규칙에 Result Builder를 적용하는 방법
 
 ## 배열을 직접 조립해도 올바르게 동작해요
@@ -628,7 +629,7 @@ Result Builder는 복잡성을 없애지 않아요. 호출부의 조립 복잡�
 
 짧은 배열을 한 번 만들거나 조기 반환과 상태 변경이 핵심이라면 일반 함수와 배열이 더 직접적이에요. 호출부의 반복되는 조립 코드가 충분하고, 허용할 표현식과 조합 규칙이 명확할 때 Result Builder를 검토하는 편이 좋아요.
 
-## 실전 예제: PopPangListKit은 UIKit 목록을 SwiftUI처럼 선언해요
+## 첫 번째 실전 예제: PopPangListKit은 UIKit 목록을 SwiftUI처럼 선언해요
 
 [PopPangListKit](https://github.com/team-PopPang/PopPangListKit)은 `UICollectionView` 화면을 `List → Section → Cell` 구조로 표현하는 선언형 목록 프레임워크예요. SwiftUI의 `List`처럼 화면에 필요한 구조를 중첩해 작성하지만, 실제 렌더링과 업데이트는 UIKit의 `UICollectionView`가 담당해요.
 
@@ -1105,7 +1106,409 @@ PopPangListKit 사례에는 Result Builder가 잘 맞는 조건이 여러 개 �
 
 반대로 Cell 몇 개를 한 번만 표시하거나 목록 갱신 과정 자체를 세밀하게 명령하는 것이 핵심이라면 일반 배열과 UIKit 코드가 더 직접적일 수 있어요. Result Builder를 도입하는 기준은 SwiftUI와 비슷해 보이는지가 아니라, **반복되는 계층 조립 규칙을 여러 호출부에서 재사용할 수 있는지**예요.
 
-## 두 번째 실전 예제: 입력 검증 규칙도 선언형으로 조합할 수 있어요
+## 두 번째 실전 예제: KarrotListKit은 Result Builder와 매크로의 책임을 나눠요
+
+[KarrotListKit](https://github.com/daangn/KarrotListKit)은 `List → Section → Cell` 계층을 Result Builder로 구성하는 UIKit 목록 프레임워크예요. PopPangListKit 사례와 비슷한 선언형 목록 구조에 더해, Component의 반복되는 modifier 메서드를 Swift 매크로로 생성하는 사례도 제공해요.
+
+이 예제는 KarrotListKit 저장소의 [`d608169`](https://github.com/daangn/KarrotListKit/tree/d608169605ec440000267ea05fe71787f0b08bf0) 커밋을 기준으로 해요. 특히 [`AddComponentModifierMacro.swift`](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Sources/KarrotListKitMacros/AddComponentModifierMacro.swift)와 [`VerticalLayoutItemComponent.swift`](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Examples/KarrotListKitSampleApp/KarrotListKitSampleApp/Samples/VerticalLayout/VerticalLayoutItemComponent.swift)의 실제 구현을 살펴봐요.
+
+### 먼저 Result Builder와 매크로가 해결하는 반복을 구분해요
+
+Result Builder와 매크로는 모두 컴파일러가 코드를 변환한다는 공통점이 있지만, 입력과 결과가 달라요.
+
+| 구분                 | KarrotListKit에서 받는 입력                   | 만들어 내는 결과                            | 이 예제에서 줄이는 반복                        |
+| -------------------- | --------------------------------------------- | ------------------------------------------- | ---------------------------------------------- |
+| Result Builder       | `List`, `Section`의 클로저 안에 작성한 표현식 | `[Section]`, `[Cell]`                       | 조건·반복 결과를 배열에 `append`하는 코드      |
+| attached peer 매크로 | `@AddComponentModifier`가 붙은 프로퍼티 선언  | 프로퍼티 옆에 추가되는 modifier 메서드 선언 | 값을 복사하고 핸들러를 저장한 뒤 반환하는 코드 |
+| adapter              | Builder가 완성한 `List` 값                    | `UICollectionView` 업데이트                 | identity 비교, diff 적용, Cell 갱신            |
+
+Result Builder는 이미 만들어진 `Cell`을 목록으로 모아요. 매크로는 그 `Cell`에 넣을 Component를 편하게 설정하는 메서드를 만들어요. 둘 중 하나가 다른 하나를 대체하는 관계가 아니에요.
+
+이 절에서 새로 나오는 용어도 먼저 정리해 볼게요.
+
+| 용어            | 쉬운 뜻                                                                                                                          |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 매크로          | 입력 코드를 읽고 컴파일할 Swift 코드를 생성하는 기능이에요. 생성된 코드는 컴파일러의 타입 검사도 받아요.                         |
+| attached macro  | `@AddComponentModifier`처럼 특정 선언에 속성 형태로 붙는 매크로예요.                                                             |
+| peer macro      | 매크로가 붙은 선언과 같은 범위에 새 선언을 추가하는 attached macro 역할이에요. 여기서는 프로퍼티 옆에 메서드를 추가해요.         |
+| modifier 메서드 | 원본 값을 직접 바꾸기보다 설정이 반영된 새 값을 반환해 `.onTap { ... }`처럼 연결해서 호출할 수 있는 메서드예요.                  |
+| macro expansion | 매크로 사용 코드를 매크로가 생성한 선언으로 펼친 결과예요. Xcode의 **Expand Macro** 기능이나 매크로 테스트에서 확인할 수 있어요. |
+| SwiftSyntax     | Swift 소스 코드를 문법 노드로 읽고 새 코드를 구성할 때 사용하는 라이브러리예요. KarrotListKit의 매크로 구현 target에서 사용해요. |
+
+Swift의 attached macro는 선언에 붙어서 같은 범위의 선언, 타입 멤버, 접근자 등을 추가할 수 있어요. `@AddComponentModifier`는 그중 peer 역할을 선택해 프로퍼티와 나란한 메서드를 하나 생성해요.
+
+### 공개 매크로 선언은 사용할 문법과 구현 target을 연결해요
+
+KarrotListKit 모듈에 공개된 매크로 인터페이스는 다음과 같아요.
+
+```swift
+@attached(peer, names: arbitrary)
+public macro AddComponentModifier() = #externalMacro(
+  module: "KarrotListKitMacros",
+  type: "AddComponentModifierMacro"
+)
+```
+
+각 부분의 의미는 다음과 같아요.
+
+- `@attached(peer, ...)`는 속성을 붙인 프로퍼티와 같은 범위에 새 선언을 추가한다는 뜻이에요.
+- `names: arbitrary`는 생성할 메서드 이름이 입력 프로퍼티 이름에 따라 달라져 미리 하나로 고정할 수 없다는 뜻이에요.
+- `#externalMacro`는 실제 확장 로직이 `KarrotListKitMacros` target의 `AddComponentModifierMacro` 타입에 있다는 연결 정보예요.
+
+앱에서 `import KarrotListKit`만 하면 `@AddComponentModifier`를 사용할 수 있고, 구현에 필요한 `SwiftSyntax` 타입을 앱 코드에서 직접 다룰 필요는 없어요.
+
+### Component는 선택적 클로저에 매크로를 붙여요
+
+공식 샘플의 `VerticalLayoutItemComponent`에는 인자 모양이 다른 네 개의 선택적 클로저 프로퍼티가 있어요.
+
+```swift
+import KarrotListKit
+
+struct VerticalLayoutItemComponent: Component {
+  typealias ViewModel = VerticalLayoutItemView.ViewModel
+
+  let viewModel: ViewModel
+
+  @AddComponentModifier
+  var onTapButtonHandler: (() -> Void)?
+
+  @AddComponentModifier
+  var onTapButtonWithValueHandler: ((Int) -> Void)?
+
+  @AddComponentModifier
+  var onTapButtonWithValuesHandler:
+    ((Int, String) -> Void)?
+
+  @AddComponentModifier
+  var onTapButtonWithNamedValuesHandler:
+    ((_ intValue: Int, _ stringValue: String) -> Void)?
+
+  init(viewModel: ViewModel) {
+    self.viewModel = viewModel
+  }
+
+  func renderContent(
+    coordinator: ()
+  ) -> VerticalLayoutItemView {
+    VerticalLayoutItemView(viewModel: viewModel)
+  }
+
+  func render(
+    in content: VerticalLayoutItemView,
+    coordinator: ()
+  ) {
+    content.viewModel = viewModel
+  }
+
+  var layoutMode: ContentLayoutMode {
+    .flexibleHeight(estimatedHeight: 54)
+  }
+}
+```
+
+`@AddComponentModifier`가 없다면 각 프로퍼티마다 다음과 같은 메서드를 직접 작성해야 해요.
+
+```swift
+func onTapButton(
+  _ handler: @escaping () -> Void
+) -> Self {
+  var copy = self
+  copy.onTapButtonHandler = handler
+  return copy
+}
+```
+
+Component가 구조체이므로 `var copy = self`로 복사하고, 복사본에 클로저를 저장한 뒤 `Self`를 반환해요. 원본을 바꾸지 않아서 다른 modifier와 연속해서 호출할 수 있어요.
+
+```swift
+let component = VerticalLayoutItemComponent(
+  viewModel: viewModel
+)
+.onTapButton {
+  print("기본 버튼")
+}
+.onTapButtonWithValue { value in
+  print("전달받은 값:", value)
+}
+```
+
+이 체이닝 API를 네 번 직접 구현하면 본문이 거의 같은 메서드가 반복돼요. 매크로는 프로퍼티의 이름과 클로저 타입만 달라지는 이 규칙을 코드 생성으로 옮겨요.
+
+### 매크로는 입력 형태를 검사한 뒤 메서드 선언을 만들어요
+
+실제 `AddComponentModifierMacro`는 `PeerMacro`를 따르고 `expansion`에서 프로퍼티의 문법 노드를 검사해요. 학습에 필요한 핵심을 줄이면 다음 흐름이에요.
+
+```swift
+public struct AddComponentModifierMacro: PeerMacro {
+  public static func expansion(
+    of node: AttributeSyntax,
+    providingPeersOf declaration:
+      some DeclSyntaxProtocol,
+    in context: some MacroExpansionContext
+  ) throws -> [DeclSyntax] {
+    guard let structDecl = context.lexicalContext
+      .compactMap({
+        $0.as(StructDeclSyntax.self)
+      })
+      .first
+    else {
+      throw KarrotListKitMacroError(...)
+    }
+
+    guard
+      let varDecl = declaration.as(
+        VariableDeclSyntax.self
+      ),
+      varDecl.bindingSpecifier.tokenKind ==
+        .keyword(.var)
+    else {
+      throw KarrotListKitMacroError(...)
+    }
+
+    guard
+      let binding = varDecl.bindings.first,
+      let identifier = binding.pattern.as(
+        IdentifierPatternSyntax.self
+      ),
+      let typeAnnotation = binding.typeAnnotation,
+      let optionalType = typeAnnotation.type.as(
+        OptionalTypeSyntax.self
+      ),
+      let functionType = convertToFunctionType(
+        from: optionalType
+      )
+    else {
+      throw KarrotListKitMacroError(...)
+    }
+
+    let propertyName = identifier.identifier.text
+    let methodName = propertyName
+      .replacingOccurrences(
+        of: "Handler",
+        with: ""
+      )
+    let accessLevel = extractAccessLevel(
+      from: structDecl
+    )
+
+    let method = """
+      \(accessLevel)func \(methodName)(
+        _ handler: @escaping \(functionType)
+      ) -> Self {
+        var copy = self
+        copy.\(propertyName) = handler
+        return copy
+      }
+      """
+
+    return [DeclSyntax(stringLiteral: method)]
+  }
+}
+```
+
+위 코드는 줄바꿈과 오류 메시지를 학습용으로 줄인 버전이에요. 실제 구현의 입력 조건은 다음과 같아요.
+
+1. 프로퍼티가 `struct` 안에 있어야 해요.
+2. `let`이 아니라 `var`여야 해요.
+3. `var handler = ...`처럼 타입을 추론하게 두지 않고 타입 표기를 직접 작성해야 해요.
+4. 타입은 `(() -> Void)?`, `((Int) -> Void)?` 같은 선택적 클로저여야 해요.
+5. 이 커밋의 확장 구현은 `SwiftSyntax600`을 가져올 수 있어야 하고, 그렇지 않으면 진단을 만들어요.
+
+조건을 만족하면 매크로는 다음 값을 추출해요.
+
+- 프로퍼티 이름에서 `Handler` 문자열을 제거해 메서드 이름을 만들어요.
+- 선택적 타입 바깥의 `?`를 제외하고 클로저 타입을 메서드 매개변수에 사용해요.
+- 프로퍼티 자체가 아니라 **프로퍼티를 감싼 구조체의 접근 수준**을 생성 메서드에 적용해요.
+- 반환 타입은 구체적인 Component 타입을 유지하도록 `Self`를 사용해요.
+
+예를 들어 `public struct` 안의 `private var onTapHandler`에 매크로를 붙여도 생성 메서드는 `public func onTap`이 돼요. 매크로가 어떤 접근 수준을 복사하는지 모르면 예상보다 넓은 API가 생길 수 있으므로 확장 결과를 확인해야 해요.
+
+### 네 프로퍼티는 네 modifier 메서드로 확장돼요
+
+공식 [`AddComponentModifierMacroTests.swift`](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Tests/KarrotListKitMacrosTests/AddComponentModifierMacroTests.swift)는 위 네 입력이 다음 모양의 메서드로 확장되는지 검사해요. 샘플의 구조체는 접근 수준을 생략했으므로 메서드도 기본 `internal`이에요.
+
+```swift
+func onTapButton(
+  _ handler: @escaping () -> Void
+) -> Self {
+  var copy = self
+  copy.onTapButtonHandler = handler
+  return copy
+}
+
+func onTapButtonWithValue(
+  _ handler: @escaping (Int) -> Void
+) -> Self {
+  var copy = self
+  copy.onTapButtonWithValueHandler = handler
+  return copy
+}
+
+func onTapButtonWithValues(
+  _ handler: @escaping (Int, String) -> Void
+) -> Self {
+  var copy = self
+  copy.onTapButtonWithValuesHandler = handler
+  return copy
+}
+
+func onTapButtonWithNamedValues(
+  _ handler: @escaping (
+    _ intValue: Int,
+    _ stringValue: String
+  ) -> Void
+) -> Self {
+  var copy = self
+  copy.onTapButtonWithNamedValuesHandler = handler
+  return copy
+}
+```
+
+매크로는 네 메서드를 런타임에 동적으로 찾지 않아요. 컴파일할 때 Swift 선언으로 확장하므로 잘못된 인자 타입이나 존재하지 않는 modifier 호출은 일반 메서드와 마찬가지로 타입 검사에서 오류가 나요.
+
+### 생성된 Component를 Result Builder 블록에서 사용해요
+
+공식 [`VerticalLayoutListView.swift`](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Examples/KarrotListKitSampleApp/KarrotListKitSampleApp/Samples/VerticalLayout/VerticalLayoutListView.swift)는 Result Builder 안에서 같은 Component를 다음처럼 사용해요.
+
+```swift
+collectionViewAdapter.apply(
+  List {
+    Section(id: "Section") {
+      for viewModel in viewModels {
+        Cell(
+          id: viewModel.id,
+          component:
+            VerticalLayoutItemComponent(
+              viewModel: viewModel
+            )
+        )
+      }
+    }
+    .withSectionLayout(.vertical)
+  }
+)
+```
+
+이 호출부에서는 `SectionsBuilder`가 `Section`을 `[Section]`으로, `CellsBuilder`가 `for`에서 만들어진 `Cell`을 `[Cell]`로 합쳐요. 매크로가 생성한 modifier까지 함께 호출하는 학습용 변형은 다음과 같아요.
+
+```swift
+import Foundation
+
+func makeList(
+  viewModels:
+    [VerticalLayoutItemComponent.ViewModel],
+  onTap: @escaping (UUID) -> Void,
+  onTapValue: @escaping (UUID, Int) -> Void
+) -> List {
+  List {
+    Section(id: "Section") {
+      for viewModel in viewModels {
+        Cell(
+          id: viewModel.id,
+          component:
+            VerticalLayoutItemComponent(
+              viewModel: viewModel
+            )
+            .onTapButton {
+              onTap(viewModel.id)
+            }
+            .onTapButtonWithValue { value in
+              onTapValue(viewModel.id, value)
+            }
+        )
+      }
+    }
+    .withSectionLayout(.vertical)
+  }
+}
+```
+
+이 코드를 이해하기 위한 개념적인 변환 순서는 다음과 같아요. 실제 컴파일러의 내부 처리 순서를 그대로 묘사한 코드는 아니에요.
+
+```text
+@AddComponentModifier가 붙은 프로퍼티 선언
+  └─ peer macro가 onTapButton 계열 메서드 선언 생성
+       ↓
+VerticalLayoutItemComponent(...).onTapButton { ... }
+  └─ 핸들러를 저장한 새 Component 값
+       ↓
+Cell(id:component:)
+  └─ Component를 담은 Cell 값
+       ↓
+CellsBuilder
+  └─ for 반복의 Cell들을 [Cell]로 조합
+       ↓
+SectionsBuilder
+  └─ Section들을 [Section]으로 조합
+       ↓
+List → CollectionViewAdapter.apply
+```
+
+여기서 `onTapButton`은 Component 하나를 설정하고, `CellsBuilder`는 여러 Component가 들어 있는 Cell의 순서를 구성해요. 매크로가 `for`를 펼치지 않고, Result Builder가 modifier 메서드를 생성하지도 않아요.
+
+### 핸들러를 저장하는 것과 실행하는 것은 별도 단계예요
+
+중요한 경계가 하나 있어요. 기준 커밋의 `VerticalLayoutItemComponent`는 매크로가 생성한 메서드로 클로저를 **저장할 수 있지만**, `renderContent(coordinator:)`와 `render(in:coordinator:)`에서는 `viewModel`만 View에 전달해요. `VerticalLayoutItemView`에도 이 핸들러를 호출하는 공개 연결 지점이 없어요.
+
+따라서 위 학습용 변형은 “생성된 modifier를 Result Builder 표현식 안에서 타입 안전하게 조합할 수 있다”는 구조를 보여 주지만, 버튼 이벤트가 실제로 실행된다고 주장하는 코드는 아니에요.
+
+실제 앱에서 이벤트까지 연결하려면 View가 콜백을 받아 사용자 동작 때 호출하고, Component가 생성과 재사용 갱신 시점에 저장된 핸들러를 전달해야 해요. 개념적으로는 기존 render 메서드에 다음 책임이 더 필요해요.
+
+```swift
+// VerticalLayoutItemView에 onTapButton 연결 지점을
+// 추가했다고 가정한 학습용 코드예요.
+func renderContent(
+  coordinator: ()
+) -> VerticalLayoutItemView {
+  let content = VerticalLayoutItemView(
+    viewModel: viewModel
+  )
+  content.onTapButton = onTapButtonHandler
+  return content
+}
+
+func render(
+  in content: VerticalLayoutItemView,
+  coordinator: ()
+) {
+  content.viewModel = viewModel
+  content.onTapButton = onTapButtonHandler
+}
+```
+
+재사용된 View에도 새 Component의 핸들러를 다시 전달해야 이전 Item의 클로저가 남지 않아요. 매크로는 이 런타임 연결을 자동으로 만들지 않고, 프로퍼티에 값을 저장하는 modifier 메서드만 생성해요.
+
+기준 커밋의 [`AnyComponent`](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Sources/KarrotListKit/Component/AnyComponent.swift)는 Component의 `viewModel`로 동등성을 비교해요. `viewModel`은 그대로인데 핸들러만 바뀌면 목록 diff가 콘텐츠 변경으로 판단하지 않을 수 있어요. 실제 이벤트 API를 설계할 때는 핸들러의 수명과 갱신 시점도 adapter의 동등성 규칙에 맞춰 별도로 검증해야 해요.
+
+### 두 변환은 서로 다른 층에서 테스트해요
+
+매크로와 Result Builder를 함께 사용해도 테스트는 책임에 따라 나누는 편이 좋아요.
+
+| 테스트 대상                  | 확인할 내용                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| 매크로 확장 테스트           | 입력 프로퍼티마다 올바른 이름, 클로저 타입, 접근 수준, `Self` 반환 메서드가 생성되는지 확인해요. |
+| 매크로 진단 테스트           | `struct` 밖, `let`, 선택적 클로저가 아닌 타입에 붙였을 때 의도한 오류가 나오는지 확인해요.       |
+| Result Builder 결과 테스트   | 조건과 반복이 의도한 Section·Cell 순서와 개수를 만드는지 확인해요.                               |
+| Component와 View 통합 테스트 | 저장한 핸들러가 View에 전달되고 사용자 이벤트에서 한 번 호출되는지 확인해요.                     |
+| adapter 통합 테스트          | 새 `List`를 적용했을 때 삽입, 삭제, 이동, 내용 변경이 `UICollectionView`에 반영되는지 확인해요.  |
+
+KarrotListKit도 [`AddComponentModifierMacroTests`](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Tests/KarrotListKitMacrosTests/AddComponentModifierMacroTests.swift)와 [`ResultBuildersTests`](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Tests/KarrotListKitTests/ResultBuildersTests.swift)를 별도로 두고 있어요. 생성 코드의 모양이 맞는지와 목록 조합 결과가 맞는지는 실패 원인이 다르기 때문이에요.
+
+### Result Builder와 매크로를 함께 쓸 기준을 정리해요
+
+두 기능을 함께 쓰기 좋은 조건은 다음과 같아요.
+
+1. Result Builder로 구성할 `Section`, `Cell` 같은 값의 계층이 반복돼요.
+2. 각 값에 적용할 modifier의 본문도 이름과 타입만 달라질 뿐 같은 규칙을 반복해요.
+3. 매크로가 생성할 API를 한 문장으로 설명할 수 있고 확장 결과를 테스트할 수 있어요.
+4. Builder는 값 조합, 매크로는 선언 생성, adapter는 실행이라는 경계가 분명해요.
+5. 생성된 modifier가 `Self`를 반환해 Builder 표현식 안에서도 구체적인 Component 타입을 유지해요.
+
+반대로 modifier가 한두 개뿐이거나 프로퍼티마다 검증과 부수 효과가 다르다면 메서드를 직접 작성하는 편이 의도가 더 잘 보여요. 매크로를 도입하면 SwiftSyntax 의존성, 확장 오류 진단, 생성 코드 탐색과 테스트 비용도 생겨요.
+
+Result Builder와 매크로를 함께 쓴다는 이유만으로 좋은 DSL이 되지는 않아요. **호출부에서 반복되는 값 조립은 Result Builder로, 선언부에서 규칙적으로 반복되는 API는 매크로로 옮길 때** 두 기능의 역할이 가장 선명해져요.
+
+## 세 번째 실전 예제: 입력 검증 규칙도 선언형으로 조합할 수 있어요
 
 Result Builder는 UI 전용 기능이 아니에요. 같은 종류의 규칙을 조건과 반복으로 모아 하나의 값으로 만들 때도 사용할 수 있어요.
 
@@ -1239,7 +1642,7 @@ assert(
 
 규칙이 독립적이고 여러 설정에서 조합을 재사용한다면 이 구조가 유용해요. 반면 앞 규칙의 결과에 따라 뒤 규칙이 상태를 바꾸거나 즉시 중단해야 한다면 일반 함수의 `guard`와 명시적인 제어 흐름이 더 읽기 쉬울 수 있어요.
 
-두 실전 예제에서 공통으로 확인할 수 있는 기준은 다음과 같아요.
+세 실전 예제에서 공통으로 확인할 수 있는 기준은 다음과 같아요.
 
 ```text
 표현식과 조건·반복 → Result Builder가 값의 목록을 구성
@@ -1252,7 +1655,9 @@ Result Builder는 “무엇을 구성할지”를 선언하는 계층에 두고,
 
 - [The Swift Programming Language — Result Builders](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/advancedoperators/#Result-Builders)
 - [The Swift Programming Language — resultBuilder](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes/#resultBuilder)
+- [The Swift Programming Language — Macros](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/macros/)
 - [Swift Evolution SE-0289 — Result Builders](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0289-result-builders.md)
+- [Swift Evolution SE-0389 — Attached Macros](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0389-attached-macros.md)
 - [Apple Developer — ViewBuilder](https://developer.apple.com/documentation/swiftui/viewbuilder)
 - [Apple Developer — List](https://developer.apple.com/documentation/swiftui/list)
 - [Apple Developer — UICollectionView](https://developer.apple.com/documentation/uikit/uicollectionview)
@@ -1262,3 +1667,13 @@ Result Builder는 “무엇을 구성할지”를 선언하는 계층에 두고,
 - [PopPangListKit — CellsBuilder](https://github.com/team-PopPang/PopPangListKit/blob/def8d46068b8e595381de159305702a5e18a6c55/Sources/PopPangListKit/Builder/33.%20CellsBuilder.swift)
 - [PopPangListKit — SectionsBuilder](https://github.com/team-PopPang/PopPangListKit/blob/def8d46068b8e595381de159305702a5e18a6c55/Sources/PopPangListKit/Builder/34.%20SectionsBuilder.swift)
 - [PopPangListKit — CollectionViewAdapter](https://github.com/team-PopPang/PopPangListKit/blob/def8d46068b8e595381de159305702a5e18a6c55/Sources/PopPangListKit/Adapter/52.%20CollectionViewAdapter.swift)
+- [KarrotListKit 공식 저장소](https://github.com/daangn/KarrotListKit)
+- [KarrotListKit — AddComponentModifier 매크로 인터페이스](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Sources/KarrotListKit/MacroInterface/AddComponentModifier.swift)
+- [KarrotListKit — AddComponentModifierMacro 구현](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Sources/KarrotListKitMacros/AddComponentModifierMacro.swift)
+- [KarrotListKit — VerticalLayoutItemComponent](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Examples/KarrotListKitSampleApp/KarrotListKitSampleApp/Samples/VerticalLayout/VerticalLayoutItemComponent.swift)
+- [KarrotListKit — VerticalLayoutListView](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Examples/KarrotListKitSampleApp/KarrotListKitSampleApp/Samples/VerticalLayout/VerticalLayoutListView.swift)
+- [KarrotListKit — CellsBuilder](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Sources/KarrotListKit/Builder/CellsBuilder.swift)
+- [KarrotListKit — SectionsBuilder](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Sources/KarrotListKit/Builder/SectionsBuilder.swift)
+- [KarrotListKit — AnyComponent](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Sources/KarrotListKit/Component/AnyComponent.swift)
+- [KarrotListKit — AddComponentModifierMacroTests](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Tests/KarrotListKitMacrosTests/AddComponentModifierMacroTests.swift)
+- [KarrotListKit — ResultBuildersTests](https://github.com/daangn/KarrotListKit/blob/d608169605ec440000267ea05fe71787f0b08bf0/Tests/KarrotListKitTests/ResultBuildersTests.swift)
