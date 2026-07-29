@@ -6,7 +6,9 @@
   "scripts": {
     "build": "rspress build",
     "dev": "rspress dev",
+    "docs:check-combine-operators": "node scripts/check-combine-operator-coverage.mjs",
     "docs:check-collection-views": "node scripts/check-collection-view-coverage.mjs",
+    "docs:check-rxswift-operators": "node scripts/check-rxswift-operator-coverage.mjs",
     "format": "prettier --write .",
     "lint": "eslint .",
     "preview": "rspress preview"
