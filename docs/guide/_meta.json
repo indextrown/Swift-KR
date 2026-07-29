@@ -6,6 +6,11 @@
   },
   {
     "type": "dir-section-header",
+    "name": "swiftui",
+    "label": "SwiftUI"
+  },
+  {
+    "type": "dir-section-header",
     "name": "uikit",
     "label": "UIKit"
   },

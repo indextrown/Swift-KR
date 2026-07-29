@@ -6,6 +6,12 @@
     "position": "left"
   },
   {
+    "text": "SwiftUI",
+    "link": "/guide/swiftui/uikit-integration/index",
+    "activeMatch": "/guide/swiftui/",
+    "position": "left"
+  },
+  {
     "text": "UIKit",
     "link": "/guide/uikit/collection-views/index",
     "activeMatch": "/guide/uikit/",
