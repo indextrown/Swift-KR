@@ -8,5 +8,20 @@
     "type": "file",
     "name": "closures",
     "label": "클로저"
+  },
+  {
+    "type": "file",
+    "name": "property-wrappers",
+    "label": "Property Wrapper"
+  },
+  {
+    "type": "file",
+    "name": "result-builders",
+    "label": "Result Builder"
+  },
+  {
+    "type": "file",
+    "name": "macros",
+    "label": "매크로"
   }
 ]
