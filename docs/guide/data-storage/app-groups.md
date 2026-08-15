@@ -469,6 +469,8 @@ struct ReadingProgressWidget: Widget {
 
 Widget View가 `SharedDefaults.store`를 직접 읽게 만들 수도 있지만 timeline entry에 필요한 값을 먼저 넣는 구조가 데이터 시점을 명확하게 해요. `placeholder`, `snapshot`, 실제 timeline이 각각 어떤 값을 렌더링하는지 테스트하기도 쉬워져요.
 
+Widget extension 생성부터 refresh budget, family별 layout, deep link와 App Intent 상호작용까지 이어서 학습하려면 [Swift로 이해하는 WidgetKit](../swiftui/widgetkit/index)을 참고하세요.
+
 [Apple의 Widget interactivity 문서](https://developer.apple.com/documentation/widgetkit/adding-interactivity-to-widgets-and-live-activities)는 Widget 코드가 앱과 분리된 독립 process에서 실행되고, 시스템이 timeline entry 기반 View 표현을 archive해 렌더링한다고 설명해요. Widget이 보이는 동안 앱의 `Binding`이나 `@Observable` 모델에 계속 연결되어 실행되는 구조가 아니에요.
 
 ## 전체 데이터 흐름은 저장과 표시 요청으로 나뉘어요
@@ -774,4 +776,5 @@ unit test에서는 고유한 suite를 전달해 저장값과 entry 결과를 확
 - [Swift-KR — 파일과 App Group container](./file-containers)
 - [Swift-KR — Keychain과 access group](./keychain)
 - [Swift-KR — iCloud key-value storage와 CloudKit](./icloud-cloudkit)
+- [Swift-KR — Swift로 이해하는 WidgetKit](../swiftui/widgetkit/index)
 - [Swift-KR — @Observable과 Observation](../swiftui/state-management/observation)

@@ -12,5 +12,12 @@
     "label": "UIKit 통합",
     "collapsible": true,
     "collapsed": true
+  },
+  {
+    "type": "dir",
+    "name": "widgetkit",
+    "label": "WidgetKit",
+    "collapsible": true,
+    "collapsed": true
   }
 ]
