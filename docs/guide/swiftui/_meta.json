@@ -4,13 +4,13 @@
     "name": "state-management",
     "label": "상태 관리",
     "collapsible": true,
-    "collapsed": false
+    "collapsed": true
   },
   {
     "type": "dir",
     "name": "uikit-integration",
     "label": "UIKit 통합",
     "collapsible": true,
-    "collapsed": false
+    "collapsed": true
   }
 ]
