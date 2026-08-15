@@ -1,0 +1,12 @@
+[
+  {
+    "type": "file",
+    "name": "observable-object",
+    "label": "ObservableObject와 상태 객체"
+  },
+  {
+    "type": "file",
+    "name": "observation",
+    "label": "@Observable과 Observation"
+  }
+]
