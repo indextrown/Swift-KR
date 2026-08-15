@@ -1,0 +1,17 @@
+[
+  {
+    "type": "file",
+    "name": "userdefaults",
+    "label": "UserDefaults"
+  },
+  {
+    "type": "file",
+    "name": "appstorage",
+    "label": "@AppStorage"
+  },
+  {
+    "type": "file",
+    "name": "app-groups",
+    "label": "App Groups와 Widget 공유"
+  }
+]
