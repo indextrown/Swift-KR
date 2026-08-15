@@ -7,7 +7,7 @@
   },
   {
     "text": "SwiftUI",
-    "link": "/guide/swiftui/uikit-integration/index",
+    "link": "/guide/swiftui/state-management/observable-object",
     "activeMatch": "/guide/swiftui/",
     "position": "left"
   },
