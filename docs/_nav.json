@@ -13,7 +13,7 @@
   },
   {
     "text": "데이터 저장",
-    "link": "/guide/data-storage/userdefaults",
+    "link": "/guide/data-storage/storage-overview",
     "activeMatch": "/guide/data-storage/",
     "position": "left"
   },

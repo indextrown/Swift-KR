@@ -15,6 +15,8 @@ Widget extension bundle은 앱 안에 포함되지만 Widget 코드가 앱 프�
 
 이 문서에서는 독서 목표 앱과 Widget을 예로 들어 다음 내용을 설명해요.
 
+- iOS sandbox의 보안 목적과 macOS App Sandbox capability와의 차이
+- bundle container와 data container의 역할과 표준 디렉터리
 - App target, Widget extension, 프로세스와 sandbox의 관계
 - capability, entitlement, provisioning과 group identifier의 역할
 - App Group shared container가 private container와 분리되는 구조
@@ -34,12 +36,96 @@ Widget extension bundle은 앱 안에 포함되지만 Widget 코드가 앱 프�
 | process              | 운영체제가 실행 중인 코드와 메모리를 격리하는 단위예요. 앱과 Widget은 서로 다른 프로세스에서 실행될 수 있어 전역 변수와 메모리 객체를 공유하지 않아요.               |
 | sandbox              | 실행 파일이 접근할 수 있는 파일과 시스템 자원을 제한하는 보안 경계예요. 각 앱과 extension은 기본적으로 자기 container만 접근해요.                                    |
 | container            | 앱이나 extension의 데이터 파일을 보관하도록 운영체제가 관리하는 디렉터리예요. private container와 App Group의 shared container가 따로 있어요.                        |
+| bundle container     | 실행 파일과 framework, 앱에 포함한 resource가 설치되는 영역이에요. 앱이 실행 중에 사용자 데이터를 쓰는 장소가 아니에요.                                              |
+| data container       | `Documents`, `Library`, `tmp`처럼 앱이 실행 중에 private 데이터를 읽고 쓰는 영역이에요.                                                                              |
 | capability           | Xcode의 Signing & Capabilities에서 target이 특정 시스템 기능을 사용하도록 설정하는 항목이에요. App Groups capability를 추가하면 entitlement 설정을 관리할 수 있어요. |
 | entitlement          | 서명된 실행 파일이 특정 권한을 가진다고 운영체제에 증명하는 key-value 정보예요. App Groups는 `com.apple.security.application-groups` 배열을 사용해요.                |
 | App Group identifier | 공유 경계를 식별하는 문자열이에요. iOS에서는 `group.`으로 시작하고 예제에서는 `group.com.example.Reading`을 사용해요.                                                |
 | suite                | `UserDefaults`의 별도 설정 domain이에요. App Group identifier로 suite를 만들면 group 구성원들이 같은 preferences를 읽고 쓸 수 있어요.                                |
 | timeline             | WidgetKit이 특정 시점에 표시할 데이터 snapshot인 `TimelineEntry`의 배열이에요. Widget은 앱 화면의 live state 대신 timeline entry를 렌더링해요.                       |
 | snapshot             | 특정 순간의 데이터를 복사해 고정한 값이에요. Widget provider는 shared store를 읽어 entry snapshot을 만들고 WidgetKit에 넘겨요.                                       |
+
+## sandbox는 손상을 앱의 권한 안에 가두는 보안 경계예요
+
+Sandbox는 단순히 파일 위치를 숨기는 폴더 구조가 아니에요. 운영체제가 프로세스의 파일, 네트워크, 하드웨어와 사용자 데이터 접근을 제한해, 앱이 침해되더라도 다른 앱과 시스템으로 피해가 퍼지는 범위를 줄이는 보안 정책이에요.
+
+Apple의 [App Sandbox](https://developer.apple.com/documentation/security/app-sandbox) 문서는 앱이 entitlement로 요청한 system resource에만 접근하도록 제한해 사용자 데이터와 system resource를 보호한다고 설명해요. 다만 이 페이지에서 capability를 직접 켜는 절차와 Mac App Store 요구 사항은 **macOS 앱**을 대상으로 해요.
+
+iOS에서는 개발자가 macOS의 `com.apple.security.app-sandbox` capability를 별도로 켜는 방식이 아니에요. [Apple Platform Security](https://support.apple.com/guide/security/security-of-runtime-process-sec15bfe098e/web)는 모든 third-party iOS 앱이 sandbox 안에서 실행되고, 앱마다 설치 시 고유한 home directory를 받으며, 자기 영역 밖의 정보는 iOS가 명시적으로 제공하는 service를 통해서만 접근한다고 설명해요.
+
+| 구분             | iOS·iPadOS 앱                                                                        | macOS 앱                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| sandbox 적용     | 설치된 third-party 앱에 system이 자동으로 적용해요.                                  | target에서 App Sandbox capability를 활성화해 적용해요.                                    |
+| 기본 파일 접근   | 앱의 container 안에서 읽고 쓰며 다른 앱 container에 직접 접근할 수 없어요.           | sandboxed 앱은 자기 container와 사용자가 허용하거나 entitlement가 허용한 영역에 접근해요. |
+| 권한 확장        | Photos, Contacts 같은 public system API와 선언한 entitlement·사용자 허가를 사용해요. | entitlement, user-selected file access와 system API를 사용해요.                           |
+| App Group의 역할 | 관련 App·extension이 같은 기기에서 shared container에 접근하게 해요.                 | 같은 team의 관련 process가 group container를 공유할 수 있어요.                            |
+
+두 플랫폼 모두 핵심은 같아요. **경로를 알아내면 접근할 수 있는 구조가 아니라, process의 권한을 운영체제가 검사하는 구조**예요. App Group도 sandbox를 없애는 기능이 아니라 entitlement로 허용된 shared 영역 하나를 추가하는 기능이에요.
+
+## bundle container와 data container는 역할과 위치가 달라요
+
+Apple의 [iOS File System 설명](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html)에 따르면 앱 sandbox에는 역할이 다른 container가 있어요.
+
+```text
+App sandbox
+├─ Bundle Container
+│  └─ Reading.app: 실행 파일, framework, 배포 resource
+│
+└─ Data Container
+   ├─ Documents: 사용자가 만들고 관리하는 문서
+   ├─ Library
+   │  ├─ Application Support: 앱이 관리하는 영속 지원 파일
+   │  └─ Caches: 다시 만들거나 내려받을 수 있는 cache
+   └─ tmp: 작업이 끝나면 버릴 임시 파일
+```
+
+bundle container는 code signing된 실행 파일과 resource를 담고, data container는 앱과 사용자의 runtime 데이터를 담아요. Apple의 [App Container 변경 Technical Note](https://developer.apple.com/library/archive/technotes/tn2406/)가 설명하듯 iOS 8부터 둘의 물리적 위치가 분리됐기 때문에 bundle URL에서 `../Documents` 같은 상대 경로를 계산하면 안 돼요. container의 실제 경로도 구현 세부 사항이므로 launch 사이에 같은 문자열이라고 가정하지 않아요.
+
+목적에 맞는 API로 각각의 URL을 구해요.
+
+```swift
+import Foundation
+
+let bundleURL = Bundle.main.bundleURL
+
+let documentsURL = FileManager.default.urls(
+  for: .documentDirectory,
+  in: .userDomainMask
+).first!
+
+let libraryURL = FileManager.default.urls(
+  for: .libraryDirectory,
+  in: .userDomainMask
+).first!
+
+let temporaryURL = FileManager.default.temporaryDirectory
+```
+
+`Bundle.main.bundleURL`은 현재 target의 bundle을 가리키고, `FileManager`가 반환한 URL은 현재 process의 data container 안에 있어요. App target과 Widget target에서 같은 코드를 실행해도 각 process의 private URL이 반환돼요.
+
+디렉터리 선택과 atomic write, backup 정책은 [파일 저장과 App Group container](./file-containers) 문서에서 더 자세히 설명해요.
+
+## App과 Widget의 sandbox는 분리되고 App Group만 공유돼요
+
+다음 그림은 첨부된 sandbox 구조를 App·Widget 공유 관점으로 다시 구성한 거예요.
+
+![App과 Widget extension이 각자의 bundle·data container를 가진 private sandbox에서 실행되고, 같은 entitlement가 있을 때만 별도의 App Group shared container에 접근하는 구조](./assets/app-group-sandbox-architecture.png)
+
+App sandbox와 Widget extension sandbox 사이의 `서로 접근 불가` 표시는 두 process가 상대의 private container를 직접 열 수 없다는 뜻이에요. 아래쪽 App Group shared container는 둘을 하나의 sandbox로 합치는 공간이 아니라, code signature와 entitlement가 일치할 때 두 process가 각각 접근할 수 있는 **세 번째 container**예요.
+
+그림에서 iCloud container는 생략했어요. iCloud container는 다른 기기와 데이터를 동기화하기 위한 별도 entitlement 경계이고, 같은 기기의 App·Widget 공유를 위한 App Group container와 역할이 달라요. 자세한 차이는 [iCloud key-value storage와 CloudKit](./icloud-cloudkit) 문서에서 확인할 수 있어요.
+
+## 실제 기기의 app container를 Xcode에서 살펴볼 수 있어요
+
+개발 중에는 Xcode로 설치한 앱의 container를 내려받아 실제 구조를 확인할 수 있어요. [Sandbox File System 실습 글](https://velog.io/@yuiop1029/iOS-Sandbox-File-System)에서 소개한 흐름을 현재 Xcode 기준으로 정리하면 다음과 같아요. Xcode version에 따라 메뉴 이름과 위치는 조금 달라질 수 있어요.
+
+1. 개발용 iPhone에서 앱을 한 번 실행해 확인할 데이터를 만들어요.
+2. Xcode의 **Window > Devices and Simulators**를 열어요. 기본 shortcut은 `Shift + Command + 2`예요.
+3. 연결한 device와 설치된 앱을 선택하고 **Download Container**를 실행해요.
+4. 내려받은 `.xcappdata`에서 **Show Package Contents**를 선택해 `Documents`, `Library`, `tmp`를 살펴봐요.
+5. App Group은 private data container와 다른 영역이므로, debug build에서 `containerURL(forSecurityApplicationGroupIdentifier:)`가 반환한 URL과 실제 shared file 읽기 결과를 별도로 확인해요.
+
+이 방법은 학습과 debugging을 위한 관찰 도구예요. 내려받은 directory의 물리적 path를 runtime code에 복사하거나 framework가 관리하는 preferences·cache file을 직접 수정하면 안 돼요. 앱 code에서는 계속 `FileManager`, `UserDefaults`, SwiftData 같은 public API를 사용해요.
 
 ## 앱과 Widget은 같은 bundle 안에 있어도 저장소가 달라요
 
@@ -383,6 +469,8 @@ struct ReadingProgressWidget: Widget {
 
 Widget View가 `SharedDefaults.store`를 직접 읽게 만들 수도 있지만 timeline entry에 필요한 값을 먼저 넣는 구조가 데이터 시점을 명확하게 해요. `placeholder`, `snapshot`, 실제 timeline이 각각 어떤 값을 렌더링하는지 테스트하기도 쉬워져요.
 
+Widget extension 생성부터 refresh budget, family별 layout, deep link와 App Intent 상호작용까지 이어서 학습하려면 [Swift로 이해하는 WidgetKit](../swiftui/widgetkit/index)을 참고하세요.
+
 [Apple의 Widget interactivity 문서](https://developer.apple.com/documentation/widgetkit/adding-interactivity-to-widgets-and-live-activities)는 Widget 코드가 앱과 분리된 독립 process에서 실행되고, 시스템이 timeline entry 기반 View 표현을 archive해 렌더링한다고 설명해요. Widget이 보이는 동안 앱의 `Binding`이나 `@Observable` 모델에 계속 연결되어 실행되는 구조가 아니에요.
 
 ## 전체 데이터 흐름은 저장과 표시 요청으로 나뉘어요
@@ -666,6 +754,11 @@ unit test에서는 고유한 suite를 전달해 저장값과 entry 결과를 확
 
 ## 참고 자료
 
+- [Apple Developer — App Sandbox](https://developer.apple.com/documentation/security/app-sandbox)
+- [Apple Platform Security — Security of runtime process in iOS, iPadOS and visionOS](https://support.apple.com/guide/security/security-of-runtime-process-sec15bfe098e/web)
+- [Apple Developer — Files and directories](https://developer.apple.com/documentation/technologyoverviews/files-and-directories)
+- [Apple Developer Archive — File System Basics](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html)
+- [Apple Developer Archive — Changes To App Containers In iOS 8](https://developer.apple.com/library/archive/technotes/tn2406/)
 - [Apple Developer — Configuring app groups](https://developer.apple.com/documentation/xcode/configuring-app-groups)
 - [Apple Developer — App Groups Entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.security.application-groups)
 - [Apple Developer — UserDefaults init(suiteName:)](<https://developer.apple.com/documentation/foundation/userdefaults/init(suitename:)>)
@@ -676,6 +769,12 @@ unit test에서는 고유한 suite를 전달해 저장값과 entry 결과를 확
 - [Apple Developer — Adding interactivity to widgets and Live Activities](https://developer.apple.com/documentation/widgetkit/adding-interactivity-to-widgets-and-live-activities)
 - [Apple Developer Archive — Sharing data with your containing app](https://developer.apple.com/library/archive/documentation/general/conceptual/extensibilitypg/extensionscenarios.html)
 - [Apple Developer — UserDefaults required reason API](https://developer.apple.com/documentation/bundleresources/app-privacy-configuration/nsprivacyaccessedapitypes/nsprivacyaccessedapitype)
+- [Mcflurry.log — iOS Sandbox File System](https://velog.io/@yuiop1029/iOS-Sandbox-File-System)
+- [Swift-KR — 저장소와 데이터 경계](./storage-overview)
 - [Swift-KR — UserDefaults](./userdefaults)
 - [Swift-KR — @AppStorage](./appstorage)
+- [Swift-KR — 파일과 App Group container](./file-containers)
+- [Swift-KR — Keychain과 access group](./keychain)
+- [Swift-KR — iCloud key-value storage와 CloudKit](./icloud-cloudkit)
+- [Swift-KR — Swift로 이해하는 WidgetKit](../swiftui/widgetkit/index)
 - [Swift-KR — @Observable과 Observation](../swiftui/state-management/observation)

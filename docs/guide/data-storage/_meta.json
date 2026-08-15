@@ -1,6 +1,11 @@
 [
   {
     "type": "file",
+    "name": "storage-overview",
+    "label": "저장소와 데이터 경계"
+  },
+  {
+    "type": "file",
     "name": "userdefaults",
     "label": "UserDefaults"
   },
@@ -11,7 +16,27 @@
   },
   {
     "type": "file",
+    "name": "swiftdata",
+    "label": "SwiftData"
+  },
+  {
+    "type": "file",
+    "name": "file-containers",
+    "label": "파일과 App Group container"
+  },
+  {
+    "type": "file",
     "name": "app-groups",
     "label": "App Groups와 Widget 공유"
+  },
+  {
+    "type": "file",
+    "name": "keychain",
+    "label": "Keychain과 access group"
+  },
+  {
+    "type": "file",
+    "name": "icloud-cloudkit",
+    "label": "iCloud와 CloudKit"
   }
 ]
