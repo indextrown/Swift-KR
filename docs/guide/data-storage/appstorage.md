@@ -444,6 +444,7 @@ View 또는 Scene 계층 전체가 같은 custom `UserDefaults`를 사용해야 
 - [Apple Developer — SceneStorage](https://developer.apple.com/documentation/swiftui/scenestorage)
 - [Apple Developer — UserDefaults](https://developer.apple.com/documentation/foundation/userdefaults)
 - [Apple Developer — Configuring app groups](https://developer.apple.com/documentation/xcode/configuring-app-groups)
+- [Swift-KR — 저장소와 데이터 경계](./storage-overview)
 - [Swift-KR — UserDefaults](./userdefaults)
 - [Swift-KR — App Groups와 Widget 데이터 공유](./app-groups)
 - [Swift-KR — Property Wrapper](../swift/property-wrappers)
