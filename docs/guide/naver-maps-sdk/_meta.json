@@ -1,50 +1,50 @@
 [
   {
     "type": "custom-link",
-    "text": "네이버 지도 SDK 시작하기",
+    "label": "네이버 지도 SDK 시작하기",
     "link": "/guide/naver-maps-sdk/index"
   },
   {
     "type": "custom-link",
-    "text": "설치와 지도 표시",
+    "label": "설치와 지도 표시",
     "link": "/guide/naver-maps-sdk/setup-and-authentication",
     "collapsible": true,
     "collapsed": true,
     "items": [
       {
         "type": "custom-link",
-        "text": "설치와 인증",
+        "label": "설치와 인증",
         "link": "/guide/naver-maps-sdk/setup-and-authentication"
       },
       {
         "type": "custom-link",
-        "text": "SwiftUI 화면 연동",
+        "label": "SwiftUI 화면 연동",
         "link": "/guide/naver-maps-sdk/swiftui-integration"
       }
     ]
   },
   {
     "type": "custom-link",
-    "text": "지도 조작과 정보 표현",
+    "label": "지도 조작과 정보 표현",
     "link": "/guide/naver-maps-sdk/map-camera-interaction",
     "collapsible": true,
     "collapsed": true,
     "items": [
       {
         "type": "custom-link",
-        "text": "좌표와 카메라 조작",
+        "label": "좌표와 카메라 조작",
         "link": "/guide/naver-maps-sdk/map-camera-interaction"
       },
       {
         "type": "custom-link",
-        "text": "지도 요소와 마커 묶기",
+        "label": "지도 요소와 마커 묶기",
         "link": "/guide/naver-maps-sdk/overlays-and-clustering"
       }
     ]
   },
   {
     "type": "custom-link",
-    "text": "사용자 위치와 권한",
+    "label": "사용자 위치와 권한",
     "link": "/guide/naver-maps-sdk/user-location"
   }
 ]
