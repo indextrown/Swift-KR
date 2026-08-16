@@ -1,11 +1,11 @@
 ---
-title: Naver Maps 좌표, 카메라, 상호작용
+title: 네이버 지도 좌표와 카메라 조작
 description: NMGLatLng 좌표와 지도 카메라의 중심·줌·기울기·회전을 이해하고, 카메라 이동·화면 투영·탭 이벤트를 UIKit 전체 예제로 연결합니다.
 pageType: doc-wide
 outline: false
 ---
 
-# Naver Maps 좌표, 카메라, 상호작용
+# 네이버 지도 좌표와 카메라 조작
 
 > 면접용 한 줄 요약: **지도 상태는 중심 좌표만이 아니라 줌·기울기·헤딩을 포함한 카메라로 표현하며, 화면 좌표 변환과 사용자 탭은 `projection`과 전용 델리게이트로 처리합니다.**
 
@@ -208,7 +208,7 @@ func mapView(_ mapView: NMFMapView, didTap symbol: NMFSymbol) -> Bool {
 
 `true`는 해당 객체가 이벤트를 소비한다는 뜻이고, `false`는 지도 탭으로 전달한다는 뜻이에요. 선택 해제 로직을 지도 탭에 두었다면 오버레이가 `true`를 반환할 때 선택이 유지된다는 점까지 의도해야 합니다.
 
-## NAVER 로고를 가리지 않아요
+## 네이버 로고를 가리지 않아요
 
 [사용자 인터페이스 공식 가이드](https://navermaps.github.io/ios-map-sdk/guide-ko/4-1.html)에 따르면 NAVER 로고는 비활성화할 수 없고 앱 UI에 가려져서도 안 됩니다. `logoAlign`과 `logoMargin`으로 위치를 조정하세요. `logoInteractionEnabled`를 끈다면 앱 안에서 `showLegalNotice`와 `showOpenSourceLicense`를 열 수 있는 메뉴를 별도로 제공해야 합니다.
 

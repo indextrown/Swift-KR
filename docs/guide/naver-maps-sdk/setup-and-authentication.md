@@ -1,11 +1,11 @@
 ---
-title: Naver Maps iOS SDK 설치와 인증
+title: 네이버 지도 iOS SDK 설치와 인증
 description: NAVER Cloud Platform 애플리케이션 등록부터 SPM·CocoaPods 설치, NCP Key ID 설정과 401·429·800 인증 오류 진단까지 단계별로 설명합니다.
 pageType: doc-wide
 outline: false
 ---
 
-# Naver Maps iOS SDK 설치와 인증
+# 네이버 지도 iOS SDK 설치와 인증
 
 > 면접용 한 줄 요약: **SDK 설치만으로 지도 인증이 끝나는 것은 아니며, NCP에서 Dynamic Map과 Bundle ID를 등록하고 `NMFNcpKeyId`를 앱 시작 시점에 설정해야 합니다.**
 
@@ -31,7 +31,7 @@ outline: false
 
 ## 2단계: SDK를 설치해요
 
-### Swift Package Manager
+### 스위프트 패키지 매니저로 설치해요
 
 Xcode에서 **File → Add Package Dependencies**를 선택하고 다음 공식 패키지 URL을 입력해요.
 
@@ -45,7 +45,7 @@ https://github.com/navermaps/SPM-NMapsMap
 2026년 8월에 확인한 3.23.3 태그의 `Package.swift`는 iOS 12 이상을 선언합니다. 공식 웹 가이드의 오래된 설치 조건과 다를 수 있으므로, 프로젝트가 실제로 선택한 태그의 [`Package.swift`](https://github.com/navermaps/SPM-NMapsMap/blob/3.23.3/Package.swift)를 기준으로 판단하세요.
 :::
 
-### CocoaPods
+### 코코아팟으로 설치해요
 
 공식 가이드의 Pod 이름은 `NMapsMap`이에요.
 
@@ -66,7 +66,7 @@ CocoaPods를 사용했다면 `.xcodeproj`가 아니라 생성된 `.xcworkspace`�
 
 ## 3단계: NCP Key ID를 설정해요
 
-### 방법 A: `Info.plist`
+### `Info.plist`에서 설정해요
 
 ```xml
 <key>NMFNcpKeyId</key>
@@ -87,7 +87,7 @@ NAVER_MAP_NCP_KEY_ID = your_debug_key_id
 
 `.xcconfig`로 옮겨도 빌드된 앱 안에서 값 자체가 사라지는 것은 아니에요. 이 값은 등록한 Bundle ID로 사용 범위를 제한하고, 저장소에는 실제 운영 값을 커밋하지 않는 방식으로 관리하세요.
 
-### 방법 B: 앱 시작 시점에 코드로 설정해요
+### 앱 시작 시점에 코드로 설정해요
 
 ```swift
 import NMapsMap
@@ -177,7 +177,7 @@ print("실행 중인 Bundle ID: \(actualBundleID)")
 4. Dynamic Map 선택과 쿼터를 확인해요.
 5. 프록시·VPN을 끈 네트워크와 실제 기기에서도 재현되는지 확인해요.
 
-## Client Secret과 혼동하지 않아요
+## 클라이언트 시크릿과 혼동하지 않아요
 
 | 값                          | 사용 위치                        | 앱 번들 포함                         |
 | --------------------------- | -------------------------------- | ------------------------------------ |
