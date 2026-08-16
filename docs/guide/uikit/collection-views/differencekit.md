@@ -1,6 +1,6 @@
 ---
 title: Swift로 이해하는 DifferenceKit
-description: DifferenceKit의 Differentiable과 StagedChangeset을 이해하고 Swift 핵심 프로토콜, CollectionDifference, UIKit diffable data source와 비교합니다.
+description: DifferenceKit의 Differentiable과 StagedChangeset을 이해하고 CollectionDifference·difference(from:)의 기능과 시간 복잡도, UIKit 갱신 방식을 비교합니다.
 ---
 
 # Swift로 이해하는 DifferenceKit
@@ -17,7 +17,9 @@ description: DifferenceKit의 Differentiable과 StagedChangeset을 이해하고 
 - `Differentiable`, `ContentIdentifiable`, `ContentEquatable`의 관계
 - `Equatable`, `Hashable`, `Identifiable`과 다른 점
 - `StagedChangeset`을 `UICollectionView`에 적용하는 방법
-- Swift `CollectionDifference`, UIKit diffable data source와의 차이
+- Swift `difference(from:)`, DifferenceKit diff의 시간 복잡도와 차이
+- `reloadData()`와 부분 batch update를 선택하는 기준
+- UIKit diffable data source와의 차이
 - 오래된 배포 대상과 새 프로젝트에서 선택하는 기준
 
 ## 먼저 알아둘 diff 용어
@@ -365,30 +367,162 @@ section의 `differenceIdentifier`가 같고 제목이 달라지면 `sectionUpdat
 
 Swift 표준 라이브러리에는 `CollectionDifference`가 있어요. `BidirectionalCollection.difference(from:)`으로 두 컬렉션의 삽입과 삭제를 계산하고 `applying(_:)`으로 다른 컬렉션에 적용할 수 있어요.
 
+### difference(from:)은 이전 상태를 목표 상태로 바꾸는 차이를 만들어요
+
+호출 방향을 먼저 읽어야 해요. `after.difference(from: before)`는 `before`가 `after`가 되기 위해 필요한 차이를 반환해요.
+
 ```swift
-let before = ["서울", "부산"]
-let after = ["부산", "제주"]
+let before = [1, 2, 3, 4]
+let after = [1, 3, 4, 5]
+
+let difference = after.difference(from: before)
+```
+
+결과에는 이전 배열의 offset `1`에 있는 `2`를 제거하고, 최종 배열의 offset `3`에 `5`를 삽입하라는 정보가 들어 있어요.
+
+```swift
+for change in difference {
+  switch change {
+  case let .remove(offset, element, _):
+    print("\(offset)의 \(element)를 제거해요")
+
+  case let .insert(offset, element, _):
+    print("\(offset)에 \(element)를 삽입해요")
+  }
+}
+```
+
+`CollectionDifference.Change`는 기본적으로 `insert`와 `remove` 두 case를 가져요. `remove`의 offset은 이전 상태를 기준으로 하고 `insert`의 offset은 모든 변경이 끝난 최종 상태를 기준으로 해요.
+
+계산한 차이는 원래 컬렉션에 적용할 수도 있어요.
+
+```swift
+let result = before.applying(difference)
+
+print(result == after) // true
+```
+
+`applying(_:)`의 결과가 optional인 이유는 diff를 만든 기반 상태와 적용할 컬렉션이 호환되지 않을 수 있기 때문이에요.
+
+[difference(from:)와 applying(_:)을 설명한 글](https://jeong9216.tistory.com/716)도 이전 배열이 새 배열로 바뀌기 위해 필요한 삽입과 삭제를 읽고, 그 차이를 원본에 적용하는 흐름을 작은 정수 배열로 보여 줘요. 이 아이디어는 목록 전체를 무조건 다시 적재하지 않고 바뀐 위치만 갱신하는 출발점이 돼요.
+
+### 이동은 별도로 추론해요
+
+`difference(from:)`은 기본적으로 이동을 추론하지 않아요. 같은 값이 한 번 삭제되고 다른 위치에 한 번 삽입되었다면 `inferringMoves()`로 두 변경의 연관 관계를 만들 수 있어요.
+
+```swift
+let before = ["서울", "부산", "제주"]
+let after = ["제주", "서울", "부산"]
 
 let difference = after
   .difference(from: before)
   .inferringMoves()
-
-let result = before.applying(difference)
 ```
+
+이동이 독립적인 `move` case로 바뀌는 것은 아니에요. 연결된 `remove`와 `insert`의 `associatedWith` offset이 서로를 가리켜요. UI에서 이동 애니메이션을 사용하려면 호출자가 이 연결을 읽어 `moveItem`이나 `moveRow`로 변환해야 해요.
+
+### difference(from:)의 시간 복잡도를 나눠 봐요
+
+기호를 먼저 정할게요.
+
+- `N`은 목표 컬렉션인 `after.count`예요.
+- `M`은 이전 컬렉션인 `before.count`예요.
+- `C`는 계산된 삽입과 삭제의 전체 개수예요.
+
+Swift 공식 문서와 SE-0240에 공개된 복잡도는 다음과 같아요.
+
+| 작업                          | 공개된 시간 복잡도 | 의미                                                                               |
+| ----------------------------- | ------------------ | ---------------------------------------------------------------------------------- |
+| `difference(from:by:)`        | 최악 `O(N × M)`    | 두 컬렉션에 공통 원소가 많으면 더 빠른 실행을 기대할 수 있어요.                    |
+| `difference(from:)`           | 최악 `O(N × M)`    | 공통 원소가 많거나 `Element`가 `Hashable`이면 더 빠를 수 있어요.                   |
+| `inferringMoves()`            | `O(C)`             | `Element: Hashable`일 때 이미 계산한 diff의 변경 수에 선형으로 이동 관계를 찾아요. |
+| `before.applying(difference)` | `O(M + C)`         | 기반 컬렉션 크기와 적용할 변경 수에 비례해 새 컬렉션을 만들어요.                   |
+
+최악 `O(N × M)`은 두 입력을 곱한 만큼의 작업이 항상 발생한다는 뜻이 아니에요. 공통 값이 많은 일반적인 입력에서는 더 빨라질 수 있지만, 공개 API가 보장하는 최악의 상한은 이차 시간이에요. Swift 표준 API 문서는 구체 구현 알고리즘의 이름보다 이 복잡도와 결과 계약을 공개하므로, 특정 내부 알고리즘이 영원히 유지된다고 가정하지 않는 편이 안전해요.
+
+### DifferenceKit은 입력 크기에 선형인 diff를 제공해요
+
+DifferenceKit의 `StagedChangeset(source:target:)` 공식 문서는 Paul Heckel의 diff 알고리즘을 바탕으로 `O(n)`에 변경을 계산한다고 설명해요. 이 문서에서는 전체 입력 크기를 `L`이라고 부를게요. 선형 컬렉션에서는 `L = N + M`이고, section 컬렉션에서는 이전·목표 상태의 모든 section과 item을 합친 크기예요.
+
+| 작업                                  | 공개된 시간 복잡도 | 함께 알아둘 점                                                                                |
+| ------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------- |
+| 선형 컬렉션 `StagedChangeset` 생성    | `O(L)`             | 식별자로 item을 연결하고 삽입, 삭제, 이동, 내용 갱신을 계산해요.                              |
+| section 컬렉션 `StagedChangeset` 생성 | `O(L)`             | section과 그 안의 item 변경을 계산하고 UIKit에 적용할 stage도 만들어요.                       |
+| `collectionView.reload(using:)` 적용  | 별도 Big-O 미공개  | 각 stage의 변경 경로를 실행하며 셀 구성, layout, animation 비용은 Collection View가 부담해요. |
+
+선형 시간의 대가도 있어요. DifferenceKit 공식 문서는 결과가 항상 가장 짧은 변경 집합은 아니며, 같은 식별자가 중복되면 이동을 최선 노력으로 처리한다고 밝혀요. 따라서 `O(L)`만 보고 결과 품질과 실제 화면 비용까지 우월하다고 결론 내리면 안 돼요.
+
+### 두 diff pipeline의 계산 비용을 비교해요
+
+복잡도 차이를 한 흐름으로 보면 다음과 같아요.
+
+```text
+Swift 표준 방식
+difference(from:) 최악 O(N × M)
+  + 선택적인 move 추론 O(C)
+  + 앱이 UIKit 변경 명령으로 변환하고 적용하는 비용
+
+DifferenceKit 방식
+StagedChangeset 생성 O(L)
+  + 안전한 stage별 UIKit batch update 비용
+```
+
+두 Big-O는 **diff를 계산하는 시간**을 비교해요. 실제 사용자가 느끼는 전체 시간에는 셀 구성, Auto Layout, 이미지 처리, layout invalidation, animation까지 들어가므로 `O(L)`이라는 이유만으로 화면이 언제나 더 빠르다고 보장할 수는 없어요.
+
+### 변경이 적으면 부분 갱신이 reloadData보다 효율적일 수 있어요
+
+제시한 글의 실전 요점처럼, 계산한 diff로 `UITableView`나 `UICollectionView`의 바뀐 위치만 갱신하면 매번 `reloadData()`로 전체 목록을 다시 적재하도록 알리는 것보다 효율적일 수 있어요. 특히 전체 item 수에 비해 변경 수 `C`가 작고 셀 구성이 비쌀 때 이점이 커져요.
+
+아래 코드는 **단일 section의 삽입과 삭제만 있는 경우** `CollectionDifference`를 batch update로 옮기는 최소 예제예요.
+
+```swift
+let difference = after.difference(from: before)
+
+let deletedPaths = difference.removals.compactMap {
+  change -> IndexPath? in
+  guard case let .remove(offset, _, _) = change else {
+    return nil
+  }
+  return IndexPath(item: offset, section: 0)
+}
+
+let insertedPaths = difference.insertions.compactMap {
+  change -> IndexPath? in
+  guard case let .insert(offset, _, _) = change else {
+    return nil
+  }
+  return IndexPath(item: offset, section: 0)
+}
+
+items = after
+
+collectionView.performBatchUpdates {
+  collectionView.deleteItems(at: deletedPaths)
+  collectionView.insertItems(at: insertedPaths)
+}
+```
+
+`difference(from:)`만 호출한다고 Table View나 Collection View가 자동으로 갱신되지는 않아요. 앱이 결과를 UIKit 명령으로 변환하고 data source 상태를 정확히 맞춰야 해요. section 변경, 이동, 내용 갱신이 섞이면 이 코드는 충분하지 않으며, 잘못된 조합은 batch update 충돌을 만들 수 있어요.
+
+DifferenceKit은 이 빈 공간을 채워요. `Changeset`에 item·section의 삽입, 삭제, 이동, 갱신을 담고 `StagedChangeset`으로 위험한 조합을 나눈 뒤 `reload(using:)` extension으로 적용해요.
+
+반대로 대부분의 item이 한꺼번에 바뀌면 diff 계산과 많은 애니메이션을 추가하는 것이 `reloadData()`보다 비쌀 수 있어요. DifferenceKit이 `interrupt` closure로 변경 수가 큰 stage를 전체 reload로 전환할 수 있게 한 이유예요.
+
+### 기능과 목적을 한눈에 비교해요
 
 두 도구는 “컬렉션 차이”를 다루지만 결과의 목적이 달라요.
 
-| 기준               | Swift `CollectionDifference`                                                      | DifferenceKit `StagedChangeset`                                             |
-| ------------------ | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| 소속               | Swift 표준 라이브러리                                                             | 외부 오픈소스 package                                                       |
-| 기본 입력 계약     | `Equatable` 또는 비교 closure                                                     | `Differentiable`, 즉 식별자와 내용 비교                                     |
-| 기본 변경 표현     | 삽입과 삭제                                                                       | 삽입, 삭제, 이동, 내용 갱신                                                 |
-| 이동               | `inferringMoves()`가 삭제·삽입의 연관 관계를 추론해요.                            | 식별자를 이용해 이동 정보를 계산해요.                                       |
-| section-aware diff | 한 번의 diff는 1차원 컬렉션을 다루며 중첩 section/item 의미를 별도로 알지 못해요. | `DifferentiableSection`으로 section과 item 변경을 함께 표현해요.            |
-| 중간 상태          | 하나의 완전한 차이를 표현해요.                                                    | UIKit에 적용할 수 있도록 여러 안전한 stage와 각 stage의 데이터를 제공해요.  |
-| UI 적용            | UIKit 적용 API가 없어요.                                                          | `UITableView`와 `UICollectionView` extension을 제공해요.                    |
-| diff 적용 결과     | 호환되지 않는 기반 컬렉션이면 `applying`이 `nil`을 반환해요.                      | `setData`와 UIKit batch update를 stage별로 실행해요.                        |
-| 공식 복잡도 설명   | 최악의 경우 `O(n × m)`이며 공통 원소나 `Hashable` 여부에 따라 빨라질 수 있어요.   | Heckel 기반 `O(n)`을 내세우지만 항상 가장 짧은 변경 집합을 만들지는 않아요. |
+| 기준               | Swift `CollectionDifference`                                                      | DifferenceKit `StagedChangeset`                                            |
+| ------------------ | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 소속               | Swift 표준 라이브러리                                                             | 외부 오픈소스 package                                                      |
+| 기본 입력 계약     | `Equatable` 또는 비교 closure                                                     | `Differentiable`, 즉 식별자와 내용 비교                                    |
+| 기본 변경 표현     | 삽입과 삭제                                                                       | 삽입, 삭제, 이동, 내용 갱신                                                |
+| 이동               | `inferringMoves()`가 삭제·삽입의 연관 관계를 추론해요.                            | 식별자를 이용해 이동 정보를 계산해요.                                      |
+| section-aware diff | 한 번의 diff는 1차원 컬렉션을 다루며 중첩 section/item 의미를 별도로 알지 못해요. | `DifferentiableSection`으로 section과 item 변경을 함께 표현해요.           |
+| 중간 상태          | 하나의 완전한 차이를 표현해요.                                                    | UIKit에 적용할 수 있도록 여러 안전한 stage와 각 stage의 데이터를 제공해요. |
+| UI 적용            | UIKit 적용 API가 없어요.                                                          | `UITableView`와 `UICollectionView` extension을 제공해요.                   |
+| diff 적용 결과     | 호환되지 않는 기반 컬렉션이면 `applying`이 `nil`을 반환해요.                      | `setData`와 UIKit batch update를 stage별로 실행해요.                       |
+| diff 계산 복잡도   | 최악 `O(N × M)`, 공통 값이 많거나 `Hashable`이면 더 빠를 수 있어요.               | Heckel 기반 `O(L)`, 항상 가장 짧은 변경 집합을 보장하지는 않아요.          |
 
 `CollectionDifference`에는 “같은 ID인데 제목이 달라졌다”는 별도 내용 갱신 개념이 없어요. `Photo` 전체의 `Equatable` 결과를 사용하면 내용 변경을 삭제와 삽입으로 표현할 수 있고, ID만 비교하는 closure를 사용하면 내용 변경은 diff에 나타나지 않아요. UI의 reload 의미까지 필요하면 호출자가 별도로 계산해야 해요.
 
@@ -418,7 +552,7 @@ undo/redo, 텍스트 줄 변경, 서버에 전달할 patch처럼 UIKit과 무관
 - section과 item의 내용 변경을 모델 protocol에서 일관되게 정의하고 싶어요.
 - 이미 DifferenceKit 기반 프레임워크나 사내 목록 구조를 사용하고 있어요.
 
-## 알고리즘 특성과 성능을 과장하지 않아요
+## 실제 화면 성능은 diff 복잡도만으로 결정되지 않아요
 
 DifferenceKit은 Paul Heckel의 알고리즘을 바탕으로 `O(n)` diff 계산을 제공한다고 설명해요. 다만 공식 API 문서에는 두 가지 중요한 제한도 적혀 있어요.
 
@@ -428,6 +562,8 @@ DifferenceKit은 Paul Heckel의 알고리즘을 바탕으로 `O(n)` diff 계산�
 가능하면 section과 item 식별자를 고유하게 유지하세요. 중복을 기술적으로 처리할 수 있다는 설명을 중복 식별자를 권장한다는 뜻으로 해석하면 안 돼요.
 
 공식 README의 성능 비교는 Xcode 11.1과 Swift 5.1 환경에서 측정된 오래된 결과예요. 현재 앱의 기기, Swift 버전, 데이터 크기, 셀과 layout 비용을 대표하지 않으므로 “항상 다른 도구보다 빠르다”는 근거로 사용하면 안 돼요.
+
+같은 이유로 `difference(from:)`의 최악 `O(N × M)`만 보고 표준 API가 실제 화면에서 항상 느리다고 단정할 수도 없어요. 공통 값이 많은 입력은 더 빠를 수 있고, 작은 목록에서는 외부 package와 모델 conformance를 추가하는 비용이 더 클 수 있어요.
 
 실제 성능은 다음 항목을 함께 측정해요.
 
@@ -561,9 +697,9 @@ Collection View는 각 batch update 중 data source의 section과 item 개수를
 
 그렇지는 않아요. iOS 13 이상이라면 별도 의존성이 없고 snapshot과 계층형 section을 지원하는 UIKit diffable data source를 먼저 검토하고, 오래된 배포 대상, 기존 data source 유지, 명시적인 changeset 같은 요구가 있을 때 DifferenceKit을 선택해요.
 
-### `O(n)`이면 항상 `CollectionDifference`보다 빠른가요?
+### `difference(from:)`과 DifferenceKit의 시간 복잡도는 어떻게 다른가요?
 
-아니요. 점근적 복잡도는 입력이 커질 때 연산량이 증가하는 모양을 설명할 뿐 실제 앱의 상수 비용, 변경 분포, 셀 구성, layout과 애니메이션 비용까지 보장하지 않아요. DifferenceKit의 공개 benchmark도 오래된 도구 환경에서 측정되었으므로 현재 앱 데이터로 다시 측정해야 해요.
+Swift `difference(from:)`의 공개된 최악 시간 복잡도는 `O(N × M)`이고, 공통 값이 많거나 원소가 `Hashable`이면 더 빨라질 수 있어요. DifferenceKit은 전체 입력 크기 `L`에 대해 `O(L)`인 Heckel 기반 diff를 제공하지만 항상 가장 짧은 변경 집합을 만들지는 않아요. 어느 쪽도 실제 UI가 더 빠르다고 보장하지 않으므로 셀 구성, layout, animation을 포함해 앱 데이터로 측정해야 해요.
 
 ## 참고 자료
 
@@ -575,6 +711,10 @@ Collection View는 각 batch update 중 data source의 section과 item 개수를
 - [DifferenceKit — StagedChangeset](https://ra1028.github.io/DifferenceKit/Structs/StagedChangeset.html)
 - [DifferenceKit — UICollectionView extension](https://ra1028.github.io/DifferenceKit/Extensions/UICollectionView.html)
 - [Apple Developer — CollectionDifference](https://developer.apple.com/documentation/swift/collectiondifference)
+- [Apple Developer — difference(from:)](https://developer.apple.com/documentation/swift/array/difference%28from%3A%29)
+- [Apple Developer — inferringMoves()](https://developer.apple.com/documentation/swift/collectiondifference/inferringmoves%28%29)
+- [Apple Developer — applying(_:)](https://developer.apple.com/documentation/swift/array/applying%28_%3A%29)
 - [Swift Evolution SE-0240 — Ordered Collection Diffing](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0240-ordered-collection-diffing.md)
+- [정주는 개발 중 — difference(from:)와 applying(_:)](https://jeong9216.tistory.com/716)
 - [Apple Developer — NSDiffableDataSourceSnapshot](https://developer.apple.com/documentation/uikit/nsdiffabledatasourcesnapshot-swift.struct)
 - [Apple Developer — Updating collection views using diffable data sources](https://developer.apple.com/documentation/uikit/updating-collection-views-using-diffable-data-sources)
