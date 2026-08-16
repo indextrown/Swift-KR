@@ -1,30 +1,30 @@
 ---
-title: Naver Maps 사용자 위치와 권한
-description: 최신 Core Location 권한 정책에 맞춰 When In Use 권한을 요청하고, 내장 위치 추적 모드와 NMFLocationOverlay 직접 갱신 방식을 비교해 구현합니다.
+title: 네이버 지도 사용자 위치와 권한
+description: 최신 코어 로케이션 권한 정책에 맞춰 앱 사용 중 위치 권한을 요청하고, 내장 위치 추적 모드와 NMFLocationOverlay 직접 갱신 방식을 비교해 구현합니다.
 pageType: doc-wide
 outline: false
 ---
 
-# Naver Maps 사용자 위치와 권한
+# 네이버 지도 사용자 위치와 권한
 
-> 면접용 한 줄 요약: **Naver Maps SDK는 기본적으로 위치를 사용하지 않으며, 기능을 실행하는 순간 최소 권한을 요청한 뒤 내장 추적 모드 또는 단일 위치 오버레이를 선택해 표시합니다.**
+> 면접용 한 줄 요약: **네이버 지도 SDK는 기본적으로 위치를 사용하지 않으며, 기능을 실행하는 순간 최소 권한을 요청한 뒤 내장 추적 모드 또는 단일 위치 오버레이를 선택해 표시합니다.**
 
 ## 세 가지 책임을 구분해요
 
 ```text
-Core Location 권한
+코어 로케이션 권한
   └─ 사용자가 위치 접근을 허용했는가?
 
 위치 제공자
   └─ 현재 좌표·정확도·방향을 누가 갱신하는가?
 
-Naver Maps 표현
+네이버 지도 표현
   └─ 위치 오버레이와 카메라를 어떻게 보여주는가?
 ```
 
 지도 SDK를 설치했다고 위치 권한이 자동으로 생기지는 않아요. [NAVER 위치 가이드](https://navermaps.github.io/ios-map-sdk/guide-ko/4-2.html)도 SDK가 기본적으로 위치 정보를 사용하지 않는다고 설명합니다.
 
-## 현재 사용 중에만 필요하면 When In Use를 선택해요
+## 앱을 사용하는 동안의 위치 권한을 선택해요
 
 지도를 보는 동안 주변 장소를 보여주는 기능이라면 `Info.plist`에 목적 문자열을 추가합니다.
 
@@ -88,7 +88,7 @@ final class LocationPermissionController: NSObject, CLLocationManagerDelegate {
 
 거부 상태에서는 권한 요청 팝업을 반복해서 띄울 수 없어요. 기능이 왜 필요한지 설명하고 사용자가 원할 때 설정 앱으로 이동할 수 있는 선택지를 제공하되, 권한 없이도 지도를 탐색하거나 주소를 검색할 수 있게 대체 흐름을 남겨두세요.
 
-## 방법 A: 내장 위치 추적 모드를 사용해요
+## 내장 위치 추적 모드를 사용해요
 
 SDK가 제공하는 현재 위치 버튼과 카메라 추적을 빠르게 연결할 때 적합합니다.
 
@@ -126,7 +126,7 @@ final class TrackingViewController: UIViewController, NMFLocationManagerDelegate
 
 등록과 해제를 같은 화면 수명에 묶어 중복 콜백과 불필요한 참조를 피하세요.
 
-## 방법 B: Core Location 결과를 직접 표시해요
+## 코어 로케이션 결과를 직접 표시해요
 
 위치 필터링, 정확도 정책, 자체 상태 모델, 서버 업로드가 필요하다면 `CLLocationManager`를 직접 소유하고 지도에는 결과만 전달하는 편이 명확합니다.
 
@@ -207,7 +207,7 @@ final class MapLocationController: NSObject, CLLocationManagerDelegate {
 
 ## 두 방법을 비교해요
 
-| 기준                    | 내장 위치 추적     | 직접 Core Location 연동          |
+| 기준                    | 내장 위치 추적     | 직접 코어 로케이션 연동          |
 | ----------------------- | ------------------ | -------------------------------- |
 | 구현 속도               | 빠름               | 상태와 권한 코드를 직접 작성     |
 | 현재 위치 버튼          | 바로 연결하기 쉬움 | 앱 버튼과 직접 연결              |
@@ -247,7 +247,7 @@ final class MapLocationController: NSObject, CLLocationManagerDelegate {
 
 ### 지도 SDK를 설치하면 위치 권한 문구가 반드시 필요한가요?
 
-아니요. Naver Maps SDK는 기본적으로 사용자 위치를 사용하지 않습니다. 현재 위치 기능이나 직접 Core Location 추적을 실제로 사용할 때 목적에 맞는 권한 문구를 추가해야 해요.
+아니요. 네이버 지도 SDK는 기본적으로 사용자 위치를 사용하지 않습니다. 현재 위치 기능이나 직접 코어 로케이션 추적을 실제로 사용할 때 목적에 맞는 권한 문구를 추가해야 해요.
 
 ### 위치 정확도 원을 `locationOverlay.circleRadius`로 표현해도 되나요?
 

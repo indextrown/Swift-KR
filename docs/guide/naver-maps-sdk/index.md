@@ -1,13 +1,13 @@
 ---
-title: Swift로 이해하는 Naver Maps iOS SDK
-description: Naver Maps iOS SDK가 담당하는 동적 지도 렌더링과 별도 REST API의 역할을 구분하고, 설치부터 위치 표시까지의 학습 순서를 정리합니다.
+title: Swift로 이해하는 네이버 지도 iOS SDK
+description: 네이버 지도 iOS SDK가 담당하는 동적 지도 렌더링과 별도 REST API의 역할을 구분하고, 설치부터 위치 표시까지의 학습 순서를 정리합니다.
 pageType: doc-wide
 outline: false
 ---
 
-# Swift로 이해하는 Naver Maps iOS SDK
+# Swift로 이해하는 네이버 지도 iOS SDK
 
-> 면접용 한 줄 요약: **Naver Maps iOS SDK는 앱 안에서 벡터 지도를 그리고 카메라·제스처·오버레이를 다루는 도구이며, 주소 검색이나 경로 탐색은 별도의 Maps REST API가 담당합니다.**
+> 면접용 한 줄 요약: **네이버 지도 iOS SDK는 앱 안에서 벡터 지도를 그리고 카메라·제스처·오버레이를 다루는 도구이며, 주소 검색이나 경로 탐색은 별도의 Maps REST API가 담당합니다.**
 
 ## 먼저 역할부터 구분해요
 
@@ -85,7 +85,7 @@ mapView.moveCamera(NMFCameraUpdate(scrollTo: seoulCityHall))
 2. [좌표, 카메라, 상호작용](/guide/naver-maps-sdk/map-camera-interaction)에서 지도 이동과 탭 이벤트를 배워요.
 3. [SwiftUI 연동](/guide/naver-maps-sdk/swiftui-integration)에서 `UIViewRepresentable`과 Coordinator의 역할을 나눠요.
 4. [오버레이와 클러스터링](/guide/naver-maps-sdk/overlays-and-clustering)에서 마커 수명 주기와 대량 데이터를 다뤄요.
-5. [사용자 위치와 권한](/guide/naver-maps-sdk/user-location)에서 Core Location 권한과 위치 표시 모드를 연결해요.
+5. [사용자 위치와 권한](/guide/naver-maps-sdk/user-location)에서 코어 로케이션 권한과 위치 표시 모드를 연결해요.
 
 ## 버전 문서는 서로 다를 수 있어요
 
@@ -112,7 +112,7 @@ mapView.moveCamera(NMFCameraUpdate(scrollTo: seoulCityHall))
 
 ## 면접에서 이어질 수 있는 질문
 
-### Naver Maps SDK가 Geocoding도 직접 제공하나요?
+### 네이버 지도 SDK가 지오코딩도 직접 제공하나요?
 
 아니요. iOS SDK는 동적 지도 렌더링과 상호작용을 담당하고, Geocoding은 별도 REST API입니다. 비밀 키가 필요한 REST 호출은 보통 서버를 경유하게 설계합니다.
 

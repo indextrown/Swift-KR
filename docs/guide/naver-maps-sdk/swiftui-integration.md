@@ -1,16 +1,16 @@
 ---
-title: SwiftUI에서 Naver Maps SDK 연동하기
+title: SwiftUI에서 네이버 지도 SDK 연동하기
 description: UIViewRepresentable과 Coordinator로 NMFNaverMapView를 감싸고, 카메라 양방향 상태 동기화와 Identifiable 기반 마커 재조정을 안전하게 구현합니다.
 pageType: doc-wide
 outline: false
 ---
 
-# SwiftUI에서 Naver Maps SDK 연동하기
+# SwiftUI에서 네이버 지도 SDK 연동하기
 
 > 면접용 한 줄 요약: **UIKit 지도 뷰의 생성은 `makeUIView`, SwiftUI 상태 반영은 `updateUIView`, 델리게이트와 명령형 객체 보관은 Coordinator가 맡도록 수명 주기를 나눕니다.**
 
 :::info 예제의 근거
-Naver Maps iOS SDK는 UIKit 뷰를 제공하고, Apple은 UIKit 뷰를 SwiftUI에 연결할 때 `UIViewRepresentable`을 사용하도록 안내합니다. 아래 코드는 [Naver Maps 지도·카메라 계약](https://navermaps.github.io/ios-map-sdk/guide-ko/3-2.html)과 Apple의 [`UIViewRepresentable`](https://developer.apple.com/documentation/swiftui/uiviewrepresentable) 수명 주기를 조합한 구현 예시예요.
+네이버 지도 iOS SDK는 UIKit 뷰를 제공하고, Apple은 UIKit 뷰를 SwiftUI에 연결할 때 `UIViewRepresentable`을 사용하도록 안내합니다. 아래 코드는 [네이버 지도·카메라 계약](https://navermaps.github.io/ios-map-sdk/guide-ko/3-2.html)과 Apple의 [`UIViewRepresentable`](https://developer.apple.com/documentation/swiftui/uiviewrepresentable) 수명 주기를 조합한 구현 예시예요.
 :::
 
 ## 세 수명 주기를 먼저 나눠요
