@@ -1,6 +1,6 @@
 ---
 title: Swift로 이해하는 매크로
-description: Swift 매크로가 컴파일러 플러그인과 SwiftSyntax로 코드를 확장하는 빌드 과정, freestanding·attached 역할, 구현·테스트·적용 기준을 설명합니다.
+description: Swift 매크로가 컴파일러 플러그인과 SwiftSyntax 구문 트리로 코드를 확장하는 빌드 과정, 노드 탐색·생성, 역할·테스트·적용 기준을 설명합니다.
 pageType: doc-wide
 outline: false
 ---
@@ -15,29 +15,33 @@ Swift 매크로는 이런 반복을 **컴파일 시점의 소스 코드 변환**
 
 ## 먼저 알아둘 매크로 용어
 
-| 용어                   | 쉬운 뜻                                                                                                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 컴파일 시점            | Swift 소스 코드를 앱이나 라이브러리로 만드는 때예요. 문법과 타입을 검사하고 실행 가능한 결과를 준비해요.                                                     |
-| 런타임                 | 빌드가 끝난 프로그램을 실제로 실행하는 때예요. 사용자 입력, 네트워크 응답처럼 실행 중에만 알 수 있는 값은 런타임에 다뤄요.                                   |
-| 반복 코드(boilerplate) | 규칙은 같지만 타입이나 이름이 달라 여러 곳에 되풀이해서 작성하는 코드예요.                                                                                   |
-| 구문(syntax)           | 코드가 작성된 구조예요. `price * count`가 어떤 연산자와 피연산자로 이루어졌는지처럼 소스의 모양을 나타내요.                                                  |
-| 추상 구문 트리(AST)    | Abstract Syntax Tree의 줄임말이에요. 컴파일러가 소스 코드를 선언, 표현식, 연산자 같은 구조의 트리로 표현한 것이에요.                                         |
-| 매크로 호출            | `#stringify(price * count)`나 `@AddTypeName`처럼 매크로 사용을 요청하는 코드예요.                                                                            |
-| 매크로 확장            | 매크로 호출을 매크로가 생성한 Swift 코드로 펼치는 과정이에요. 생성된 결과도 다시 문법과 타입 검사를 받아요.                                                  |
-| freestanding 매크로    | 다른 선언에 붙지 않고 `#`으로 독립적으로 호출하는 매크로예요. 표현식이나 선언을 만들 수 있어요.                                                              |
-| attached 매크로        | 타입, 프로퍼티, 함수 같은 선언에 `@`으로 붙이는 매크로예요. 붙은 위치에 멤버, 접근자, 확장 등을 추가할 수 있어요.                                            |
-| 매크로 역할(role)      | 매크로가 어디에서 사용되고 어떤 종류의 코드를 만들 수 있는지 정한 범위예요. `expression`, `member`, `peer` 등이 있어요.                                      |
-| SwiftSyntax            | Swift 소스 코드를 구조화된 구문 트리로 읽고 만드는 공식 라이브러리예요. 사용자 정의 매크로 구현은 SwiftSyntax가 제공하는 타입을 이용해 입력과 출력을 다뤄요. |
-| 컴파일러 플러그인      | 컴파일러가 빌드 도중 실행해 매크로 확장을 요청하는 별도 프로그램이에요. 매크로 구현 타입을 등록해 컴파일러와 연결해요.                                       |
-| 호스트(host)           | Xcode나 Swift 컴파일러가 실행되어 앱을 빌드하는 환경이에요. 매크로 플러그인은 이 환경에서 실행돼요.                                                          |
-| 타깃(target)           | 빌드 결과인 앱이나 라이브러리가 실행될 환경이에요. iPhone용 앱을 Mac에서 빌드한다면 Mac은 호스트이고 iPhone은 타깃이에요.                                    |
-| 진단(diagnostic)       | 컴파일러가 코드의 문제를 알려 주는 오류, 경고, 수정 제안이에요. 매크로도 잘못된 사용 위치에 직접 진단을 만들 수 있어요.                                      |
+| 용어                   | 쉬운 뜻                                                                                                                                                           |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 컴파일 시점            | Swift 소스 코드를 앱이나 라이브러리로 만드는 때예요. 문법과 타입을 검사하고 실행 가능한 결과를 준비해요.                                                          |
+| 런타임                 | 빌드가 끝난 프로그램을 실제로 실행하는 때예요. 사용자 입력, 네트워크 응답처럼 실행 중에만 알 수 있는 값은 런타임에 다뤄요.                                        |
+| 반복 코드(boilerplate) | 규칙은 같지만 타입이나 이름이 달라 여러 곳에 되풀이해서 작성하는 코드예요.                                                                                        |
+| 구문(syntax)           | 코드가 작성된 구조예요. `price * count`가 어떤 연산자와 피연산자로 이루어졌는지처럼 소스의 모양을 나타내요.                                                       |
+| 구문 트리(syntax tree) | 소스 코드를 선언, 표현식, 토큰 같은 부모·자식 관계로 나타낸 트리예요. SwiftSyntax 트리는 원래 소스의 모양도 보존해요.                                             |
+| 컴파일러 AST           | Abstract Syntax Tree의 줄임말이에요. 컴파일러가 이름과 타입의 의미를 분석하는 내부 트리예요. SwiftSyntax의 source-accurate 구문 트리와 같은 자료 구조는 아니에요. |
+| 토큰(token)            | 식별자, 키워드, 연산자, 리터럴처럼 구문 트리의 가장 작은 소스 단위예요. `let total = 42`에는 `let`, `total`, `=`, `42` 토큰이 있어요.                             |
+| trivia                 | 토큰 앞뒤의 공백, 줄바꿈, 주석처럼 문법의 핵심 구조는 아니지만 원본 소스를 복원하는 데 필요한 정보예요.                                                           |
+| 매크로 호출            | `#stringify(price * count)`나 `@AddTypeName`처럼 매크로 사용을 요청하는 코드예요.                                                                                 |
+| 매크로 확장            | 매크로 호출을 매크로가 생성한 Swift 코드로 펼치는 과정이에요. 생성된 결과도 다시 문법과 타입 검사를 받아요.                                                       |
+| freestanding 매크로    | 다른 선언에 붙지 않고 `#`으로 독립적으로 호출하는 매크로예요. 표현식이나 선언을 만들 수 있어요.                                                                   |
+| attached 매크로        | 타입, 프로퍼티, 함수 같은 선언에 `@`으로 붙이는 매크로예요. 붙은 위치에 멤버, 접근자, 확장 등을 추가할 수 있어요.                                                 |
+| 매크로 역할(role)      | 매크로가 어디에서 사용되고 어떤 종류의 코드를 만들 수 있는지 정한 범위예요. `expression`, `member`, `peer` 등이 있어요.                                           |
+| SwiftSyntax            | Swift 소스 코드를 구조화된 구문 트리로 읽고 만드는 공식 라이브러리예요. 사용자 정의 매크로 구현은 SwiftSyntax가 제공하는 타입을 이용해 입력과 출력을 다뤄요.      |
+| 컴파일러 플러그인      | 컴파일러가 빌드 도중 실행해 매크로 확장을 요청하는 별도 프로그램이에요. 매크로 구현 타입을 등록해 컴파일러와 연결해요.                                            |
+| 호스트(host)           | Xcode나 Swift 컴파일러가 실행되어 앱을 빌드하는 환경이에요. 매크로 플러그인은 이 환경에서 실행돼요.                                                               |
+| 타깃(target)           | 빌드 결과인 앱이나 라이브러리가 실행될 환경이에요. iPhone용 앱을 Mac에서 빌드한다면 Mac은 호스트이고 iPhone은 타깃이에요.                                         |
+| 진단(diagnostic)       | 컴파일러가 코드의 문제를 알려 주는 오류, 경고, 수정 제안이에요. 매크로도 잘못된 사용 위치에 직접 진단을 만들 수 있어요.                                           |
 
 이 문서에서는 다음 내용을 설명해요.
 
 - 함수와 매크로가 해결하는 문제의 차이
 - 매크로 호출이 일반 Swift 코드로 확장되는 과정
 - 컴파일러와 별도 플러그인 프로세스가 확장을 주고받는 빌드 과정
+- SwiftSyntax의 노드·토큰·trivia 구조와 구문을 탐색·생성하는 방법
 - freestanding 매크로와 attached 매크로의 역할
 - 매크로 선언, 구현, 컴파일러 플러그인을 나누는 이유
 - SwiftSyntax로 `#stringify`와 `@AddTypeName`을 구현하는 방법
@@ -286,6 +290,331 @@ attached 매크로가 `member`와 `extension`처럼 여러 역할을 가지면 �
 - 확장 문자열 단위 테스트와 실제 클라이언트 타깃 빌드를 함께 실행해요. 전자는 변환 규칙을 빠르게 확인하고, 후자는 생성 코드가 주변 타입과 함께 성립하는지 확인해요.
 
 테스트할 때는 실행 경계도 달라져요. `assertMacroExpansion`을 사용하는 테스트 타깃은 매크로 구현을 테스트 프로세스에 직접 연결하므로 `expansion` 함수에 중단점을 걸 수 있어요. 실제 앱 빌드에서는 구현이 샌드박스의 플러그인 프로세스에서 실행된다는 차이를 기억하세요.
+
+## SwiftSyntax는 소스의 모양을 보존하는 구문 트리 도구예요
+
+[SwiftSyntax 공식 저장소](https://github.com/swiftlang/swift-syntax)는 SwiftSyntax를 Swift 소스를 파싱하고, 검사하고, 생성하고, 변환하는 라이브러리 모음으로 설명해요. 그 중심에는 **source-accurate syntax tree**, 즉 원본 소스의 표현을 정확히 보존하는 구문 트리가 있어요.
+
+SwiftSyntax는 매크로만을 위한 라이브러리가 아니에요. 포매터, 린터, 리팩터링 도구, 코드 생성기처럼 Swift 소스의 구조를 읽거나 바꾸는 도구에도 사용할 수 있어요. 매크로에서는 컴파일러가 입력과 출력 구문을 SwiftSyntax 노드로 주고받기 때문에 이 트리가 확장 구현의 공통 언어가 돼요.
+
+### 문자열 대신 부모와 자식이 있는 트리로 코드를 읽어요
+
+다음 매크로 호출을 문자열로만 보면 `#`, 괄호, 쉼표의 위치를 직접 계산해야 해요.
+
+```swift
+#stringify(price * count)
+```
+
+SwiftSyntax에서는 대략 다음과 같은 구조로 읽을 수 있어요.
+
+```text
+MacroExpansionExprSyntax
+├─ pound: TokenSyntax("#")
+├─ macroName: TokenSyntax("stringify")
+├─ leftParen: TokenSyntax("(")
+├─ arguments: LabeledExprListSyntax
+│  └─ LabeledExprSyntax
+│     └─ expression: InfixOperatorExprSyntax
+│        ├─ leftOperand: DeclReferenceExprSyntax("price")
+│        ├─ operator: BinaryOperatorExprSyntax("*")
+│        └─ rightOperand: DeclReferenceExprSyntax("count")
+└─ rightParen: TokenSyntax(")")
+```
+
+이름에 붙은 접미사를 먼저 읽으면 역할을 예상하기 쉬워요.
+
+| 접미사·타입      | 나타내는 것                                                    | 예시                                              |
+| ---------------- | -------------------------------------------------------------- | ------------------------------------------------- |
+| `Syntax`         | 하나의 구문 노드                                               | `StructDeclSyntax`, `FunctionCallExprSyntax`      |
+| `ExprSyntax`     | 여러 구체 표현식 노드를 담을 수 있는 표현식 기본 노드          | 함수 호출, 연산식, 리터럴                         |
+| `DeclSyntax`     | 여러 구체 선언 노드를 담을 수 있는 선언 기본 노드              | 구조체, 함수, 변수 선언                           |
+| `...ListSyntax`  | 같은 위치에 반복되는 노드의 목록                               | 인자 목록인 `LabeledExprListSyntax`               |
+| `TokenSyntax`    | 식별자, 키워드, 연산자 같은 말단 토큰                          | `stringify`, `struct`, `*`                        |
+| `Trivia`         | 토큰 앞뒤의 공백, 줄바꿈, 일반 주석과 문서 주석                | `.spaces(2)`, `.newlines(1)`, `.lineComment(...)` |
+| `SyntaxProtocol` | 모든 형식화된 SwiftSyntax 노드가 공통으로 제공하는 기능의 계약 | 자식·토큰 탐색, 위치 확인, 노드 종류 변환         |
+
+`ExprSyntax`와 `DeclSyntax`는 구체적인 문법 하나를 뜻하지 않아요. 여러 종류의 표현식이나 선언을 한 타입으로 전달하기 위한 기본 노드예요. 실제 구조를 읽으려면 `FunctionCallExprSyntax`, `VariableDeclSyntax` 같은 구체 노드로 안전하게 변환해야 해요.
+
+### 토큰과 trivia가 있어 원본 소스를 다시 만들 수 있어요
+
+구문 노드는 코드의 문법 구조를 나타내고, `TokenSyntax`는 실제 소스 글자를 담아요. 토큰의 `leadingTrivia`와 `trailingTrivia`에는 공백, 줄바꿈, 주석이 들어가요.
+
+```swift
+// 상품 금액을 계산해요.
+let total = price * count
+```
+
+위 코드에서 `let`, `total`, `=`, `price`, `*`, `count`는 토큰이에요. 주석과 각 토큰 사이의 공백·줄바꿈은 인접한 토큰의 trivia로 보존돼요. 그래서 트리를 수정하지 않고 다시 출력하면 원본의 주석과 서식을 유지할 수 있어요.
+
+```swift
+let nameToken: TokenSyntax = structDecl.name
+
+print(nameToken.text)
+// Product
+
+print(nameToken.leadingTrivia)
+print(nameToken.trailingTrivia)
+```
+
+식별자 이름만 비교할 때는 공백과 주석까지 포함할 수 있는 `description`보다 `TokenSyntax.text`를 사용하세요. 반대로 노드 전체를 소스로 출력할 때는 `description`이 원본 표현을 보존하는 데 유용해요.
+
+새 주석이나 공백도 명시적으로 붙일 수 있어요.
+
+```swift
+let documentation: Trivia = [
+  .docLineComment("/// 매크로가 생성한 타입 이름이에요."),
+  .newlines(1),
+]
+
+let documentedProperty = property.with(
+  \.leadingTrivia,
+  documentation
+)
+```
+
+trivia를 직접 조립하면 출력 모양을 세밀하게 제어할 수 있지만, 모든 공백을 손으로 관리하면 구현이 복잡해져요. 구조를 먼저 정확히 만들고 필요한 주석만 보존한 뒤 `formatted()`나 프로젝트 포매터로 일반 서식을 맞추는 편이 단순해요.
+
+### SwiftSyntax 트리와 컴파일러 AST는 목적이 달라요
+
+SwiftSyntax 트리를 설명할 때 편의상 AST라고 부르는 자료도 있지만, 둘을 같은 것으로 생각하면 매크로가 알 수 있는 범위를 오해하기 쉬워요. SwiftSyntax는 원본 표현에 가까운 **구문 구조**이고, 컴파일러 AST는 이름 조회와 타입 검사 같은 **의미 분석**에 사용하는 내부 표현이에요.
+
+| 비교 기준          | 원본 문자열                        | SwiftSyntax 트리                           | 컴파일러의 의미 AST                          |
+| ------------------ | ---------------------------------- | ------------------------------------------ | -------------------------------------------- |
+| 주된 질문          | 어떤 글자가 적혀 있는가            | 어떤 문법 요소가 어떻게 배치됐는가         | 이 이름과 표현식이 실제로 무엇을 뜻하는가    |
+| 구조               | 별도 구조가 없는 문자 나열         | 선언·표현식·토큰의 부모와 자식 트리        | 이름 조회와 타입 정보가 연결된 컴파일러 구조 |
+| 공백·주석 보존     | 그대로 포함                        | trivia로 구조와 함께 보존                  | 의미 분석에 필요하지 않은 표현은 핵심이 아님 |
+| 타입 추론 결과     | 없음                               | 기본적으로 없음                            | 있음                                         |
+| 매크로 구현의 입력 | 직접 다루지 않음                   | 역할에 해당하는 구문 하위 트리             | 일반 매크로 API로 직접 전달되지 않음         |
+| 잘 맞는 작업       | 단순 출력이나 정확히 알려진 템플릿 | 매크로, 포매터, 린터, 리팩터링과 코드 생성 | 컴파일, 타입 검사와 최적화                   |
+
+예를 들어 다음 코드에서 SwiftSyntax는 `makeProduct()`가 함수 호출이라는 모양과 이름을 알 수 있어요.
+
+```swift
+let product = makeProduct()
+```
+
+하지만 오버로드 중 어떤 함수가 선택됐는지, 반환 타입이 `Product`인지, `product`가 어떤 프로토콜을 준수하는지는 구문만 보고 확정할 수 없어요. 매크로 선언을 기준으로 호출의 인자와 결과 타입은 컴파일러가 검사하지만, 그 타입 검사 결과 전체가 매크로 구현의 SwiftSyntax 노드에 들어오는 것은 아니에요.
+
+따라서 매크로의 생성 규칙은 가능하면 다음처럼 **소스에 명시된 구문**에서 결정하세요.
+
+- 선언에 적힌 이름, 접근 수준, 속성과 제네릭 인자
+- 구조체나 열거형 안에 직접 작성된 멤버와 `case`
+- 매크로 호출에 직접 전달된 리터럴과 표현식의 모양
+- `MacroExpansionContext`가 명시적으로 제공하는 고유 이름과 진단 기능
+
+타입 추론 결과나 프로젝트 전체의 이름 조회가 꼭 필요하다면 매크로 하나로 해결할 수 있는지 먼저 검토해야 해요.
+
+### 패키지의 모듈은 구문 처리 단계를 나눠 맡아요
+
+`swift-syntax` 패키지는 하나의 거대한 모듈이 아니라 작업별 모듈을 제공해요. 매크로 템플릿이 여러 모듈을 가져오는 이유도 책임이 다르기 때문이에요.
+
+| 모듈                           | 책임                                                               |
+| ------------------------------ | ------------------------------------------------------------------ |
+| `SwiftSyntax`                  | 구문 노드, 토큰, trivia와 트리 탐색 API                            |
+| `SwiftParser`                  | Swift 소스 문자열을 `SourceFileSyntax` 같은 구문 트리로 파싱       |
+| `SwiftSyntaxBuilder`           | 문자열 보간, result builder와 initializer로 새 구문 노드를 생성    |
+| `SwiftSyntaxMacros`            | `ExpressionMacro`, `MemberMacro` 같은 매크로 역할과 확장 문맥 제공 |
+| `SwiftDiagnostics`             | 오류, 경고, note와 Fix-It을 표현하는 진단 모델                     |
+| `SwiftSyntaxMacrosTestSupport` | 입력 소스와 예상 매크로 확장을 비교하는 테스트 도우미              |
+
+매크로의 `expansion` 함수는 컴파일러 플러그인이 이미 파싱한 노드를 받아요. 따라서 매크로 인자를 읽기 위해 `SwiftParser`로 같은 문자열을 다시 파싱할 필요가 없어요. `SwiftParser`는 독립적인 소스 분석 도구나 전체 파일을 다루는 테스트를 만들 때 유용해요.
+
+### 구체 노드로 변환해 필요한 부분만 읽어요
+
+모든 형식화된 노드는 `SyntaxProtocol`을 통해 `is`, `as`, `cast` 같은 변환 기능을 제공해요.
+
+| API                 | 결과                             | 사용할 때                                               |
+| ------------------- | -------------------------------- | ------------------------------------------------------- |
+| `node.is(T.self)`   | 해당 타입인지 나타내는 `Bool`    | 종류만 확인하고 구체 프로퍼티는 읽지 않을 때            |
+| `node.as(T.self)`   | 성공하면 `T`, 아니면 `nil`       | 입력 형태가 달라질 수 있는 일반적인 매크로 코드         |
+| `node.cast(T.self)` | 성공하면 `T`, 실패하면 실행 중단 | 컴파일러와 코드가 보장하는 불변 조건이 정말 확실할 때만 |
+
+attached 매크로가 구조체의 이름과 프로퍼티 이름을 읽는 과정을 살펴볼게요.
+
+```swift
+guard let structDecl = declaration.as(StructDeclSyntax.self) else {
+  throw MacroExpansionErrorMessage(
+    "이 매크로는 구조체에만 사용할 수 있어요."
+  )
+}
+
+let typeName = structDecl.name.text
+
+let propertyNames = structDecl.memberBlock.members.compactMap {
+  member -> String? in
+  guard
+    let variable = member.decl.as(VariableDeclSyntax.self),
+    let binding = variable.bindings.first,
+    let identifier = binding.pattern.as(
+      IdentifierPatternSyntax.self
+    )
+  else {
+    return nil
+  }
+
+  return identifier.identifier.text
+}
+```
+
+코드는 `StructDeclSyntax`에서 `memberBlock`, `members`, `VariableDeclSyntax`, `PatternBindingSyntax`, `IdentifierPatternSyntax` 순서로 트리를 내려가요. 문자열에서 `let`이나 콜론 위치를 찾지 않기 때문에 속성, 줄바꿈, 타입 표기가 추가돼도 문법 구조를 기준으로 읽을 수 있어요.
+
+예시는 흐름을 보여 주기 위해 각 변수 선언의 첫 번째 바인딩만 읽어요. `let width = 10, height = 20`처럼 한 선언에 바인딩이 여러 개 있거나 계산 프로퍼티를 제외해야 하는 실제 매크로라면 `variable.bindings` 전체와 `accessorBlock`까지 확인해야 해요.
+
+지원하지 않는 노드에서 `cast`로 강제 변환해 플러그인을 중단시키기보다 `as`로 검사하고 호출 위치에 진단을 내세요. 입력 형태가 잘못된 것은 사용자가 고칠 수 있는 컴파일 오류이지 매크로 프로세스가 중단돼야 하는 내부 오류가 아니에요.
+
+### 전체 Swift 파일은 SwiftParser로 직접 파싱할 수 있어요
+
+매크로 바깥에서 Swift 소스를 분석하는 도구라면 `SwiftParser`로 문자열을 `SourceFileSyntax`로 바꿀 수 있어요.
+
+```swift
+import SwiftParser
+import SwiftSyntax
+
+let source = """
+struct Product {
+  let name: String
+}
+"""
+
+let sourceFile = Parser.parse(source: source)
+
+precondition(
+  !sourceFile.hasError,
+  "파싱 오류가 포함된 소스예요."
+)
+
+for token in sourceFile.tokens(viewMode: .sourceAccurate) {
+  print(token.tokenKind, token.text)
+}
+```
+
+SwiftParser는 편집 중인 불완전한 코드도 가능한 만큼 구조화해요. 빠진 문법은 missing 노드나 토큰으로, 예상하지 못한 입력은 unexpected 노드로 트리에 나타낼 수 있어요. `hasError`로 이런 오류가 포함됐는지 확인할 수 있어요.
+
+트리를 순회할 때는 목적에 맞는 `SyntaxTreeViewMode`를 골라요.
+
+| 모드              | missing 노드 | unexpected 노드 | 잘 맞는 작업                                   |
+| ----------------- | ------------ | --------------- | ---------------------------------------------- |
+| `.sourceAccurate` | 제외         | 포함            | 원본을 그대로 재현해야 하는 포매팅과 변환      |
+| `.fixedUp`        | 포함         | 제외            | 문법 오류가 보정됐다고 보고 수행하는 구조 분석 |
+| `.all`            | 포함         | 포함            | 파서 오류와 복구 결과까지 모두 검사하는 도구   |
+
+현재 노드의 직접 자식은 `children(viewMode:)`, 모든 토큰은 `tokens(viewMode:)`로 볼 수 있어요. 전체 트리에서 특정 노드를 반복해 찾는 읽기 작업은 `SyntaxVisitor`, 노드를 교체해 새 트리를 만드는 작업은 `SyntaxRewriter`가 적합해요. SwiftSyntax 공식 예제의 `AddOneToIntegerLiterals`도 `SyntaxRewriter`로 모든 정수 리터럴 토큰을 방문하고 바뀐 토큰을 반환해요.
+
+### 새 구문은 세 가지 방식으로 만들어요
+
+SwiftSyntax 공식 [Swift Macros 문서](https://github.com/swiftlang/swift-syntax/blob/main/Sources/SwiftSyntaxMacros/SwiftSyntaxMacros.docc/SwiftSyntaxMacros.md)는 새 노드를 만드는 핵심 방법을 문자열 리터럴, result builder initializer, memberwise initializer 세 가지로 나눠요.
+
+#### 고정된 모양은 구문 문자열 보간이 간결해요
+
+생성할 코드의 뼈대가 작고 일정하다면 구문 문자열 보간이 읽기 쉬워요.
+
+```swift
+let typeName = structDecl.name.text
+
+let property: DeclSyntax = """
+  static let typeName = \(literal: typeName)
+  """
+```
+
+이 값의 타입은 `String`이 아니라 `DeclSyntax`예요. SwiftSyntaxBuilder가 문자열 리터럴을 파싱해 선언 구문 트리로 만들어요. `literal:` 보간은 `Product` 같은 값을 따옴표와 이스케이프가 올바른 Swift 문자열 리터럴로 바꿔요.
+
+기존 `SyntaxProtocol` 노드를 `\(node)`로 보간하면 그 노드를 구문으로 삽입하고, `\(literal: value)`는 값을 안전한 리터럴로 만들어요. `\(raw: text)`는 문자열을 Swift 코드로 그대로 넣으므로, 외부 입력이나 검증하지 않은 이름에 사용하면 의도하지 않은 구문까지 생성할 수 있어요. 식별자는 유효성을 확인해 `TokenSyntax.identifier(...)`로 만들고 값은 가능한 한 `literal:`을 사용하세요.
+
+#### 반복되는 자식은 result builder로 구성해요
+
+입력 개수에 따라 멤버나 `case`가 반복된다면 result builder가 자연스러워요.
+
+```swift
+let propertyNames = ["name", "price"]
+
+let metadata = StructDeclSyntax(name: "ProductMetadata") {
+  for propertyName in propertyNames {
+    let identifier = TokenSyntax.identifier(propertyName)
+
+    DeclSyntax(
+      "static let \(identifier) = \(literal: propertyName)"
+    )
+  }
+}
+```
+
+`StructDeclSyntax`의 trailing closure는 멤버 목록을 만드는 result builder예요. 일반 Swift의 `for`와 `if`로 필요한 노드만 추가할 수 있어서 긴 문자열 하나에 줄을 이어 붙이는 방식보다 반복 구조가 분명해요.
+
+#### 모든 자식을 제어할 때 memberwise initializer를 사용해요
+
+토큰 종류, modifier, 타입 표기와 trivia를 정확히 지정해야 한다면 각 자식을 직접 전달할 수 있어요.
+
+```swift
+let property = VariableDeclSyntax(
+  leadingTrivia: .newline,
+  bindingSpecifier: .keyword(.let)
+) {
+  PatternBindingSyntax(
+    pattern: PatternSyntax("typeName"),
+    typeAnnotation: TypeAnnotationSyntax(
+      type: TypeSyntax("String")
+    )
+  )
+}
+```
+
+이 방식은 가장 세밀하지만 Swift 문법의 하위 노드를 많이 알아야 하고 코드도 길어요. 하나만 고집할 필요는 없어요. 바깥 구조는 result builder로 만들고, 고정된 작은 선언은 문자열 보간으로 만들며, 특별히 제어해야 하는 일부 토큰만 memberwise initializer로 구성할 수 있어요.
+
+| 생성 방식              | 장점                                       | 비용·주의점                                     |
+| ---------------------- | ------------------------------------------ | ----------------------------------------------- |
+| 구문 문자열 보간       | 실제 Swift 코드처럼 읽히고 짧음            | 큰 동적 구조는 문자열 안에서 흐름을 보기 어려움 |
+| result builder         | 반복·조건에 따라 자식 노드를 추가하기 쉬움 | 사용 가능한 builder 자식 타입을 알아야 함       |
+| memberwise initializer | 토큰과 자식을 가장 정확하게 제어           | 가장 장황하고 SwiftSyntax API 변경의 영향이 큼  |
+
+### 기존 노드는 값처럼 복사해 바꾼 결과를 반환해요
+
+`SyntaxProtocol.with(_:_:)`은 지정한 자식만 바꾼 새 노드를 반환해요. 원래 노드를 공유하는 다른 코드가 몰래 바뀌는 방식이 아니에요.
+
+```swift
+let original = TokenSyntax.identifier("typeName")
+
+let renamed = original.with(
+  \.tokenKind,
+  .identifier("displayName")
+)
+
+print(original.text)
+// typeName
+
+print(renamed.text)
+// displayName
+```
+
+트리 전체를 체계적으로 바꿀 때는 `SyntaxRewriter`의 `visit` 메서드에서 바뀐 노드를 반환해요. 단순히 정보를 모으기만 한다면 새 노드를 만들지 않는 `SyntaxVisitor`가 의도를 더 잘 보여 줘요.
+
+### Swift 도구 모음과 SwiftSyntax 버전을 맞춰요
+
+Swift 문법에 새 기능이 추가되면 이를 표현하는 노드와 토큰 API도 함께 달라져요. 그래서 SwiftSyntax 릴리스는 Swift 언어·도구 모음 릴리스와 정렬돼요. 공식 저장소는 `509.x`가 Swift 5.9에 대응하는 예를 들어 이 관계를 설명해요.
+
+| Swift 도구 모음 예시 | 대응하는 SwiftSyntax 주 버전 예시 |
+| -------------------- | --------------------------------- |
+| Swift 5.9            | `509.x`                           |
+| Swift 5.10           | `510.x`                           |
+| Swift 6.0            | `600.x`                           |
+| Swift 6.1            | `601.x`                           |
+| Swift 6.2            | `602.x`                           |
+| Swift 6.3            | `603.x`                           |
+
+무조건 가장 큰 버전 숫자를 선택하지 마세요. `swift package init --type macro`가 현재 도구 모음에 맞춰 만든 의존성이나 [SwiftSyntax 릴리스](https://github.com/swiftlang/swift-syntax/releases)를 기준으로 시작하고, Xcode 또는 Swift 도구 모음을 올릴 때 SwiftSyntax와 매크로 구현도 함께 빌드·테스트하세요.
+
+버전에 따라 `argumentList`가 `arguments`로 바뀌는 것처럼 프로퍼티 이름이 이동하거나 deprecated API가 제거될 수 있어요. 인터넷 예제를 그대로 복사하기보다 그 예제가 대상으로 한 SwiftSyntax 버전을 먼저 확인해야 해요.
+
+### 트리는 확장 테스트와 디버거에서 직접 확인해요
+
+노드 이름을 추측하며 구현하기보다 실제 입력 트리를 확인하는 편이 빨라요. Apple의 [Write Swift macros](https://developer.apple.com/videos/play/wwdc2023/10166/)와 SwiftSyntax 공식 문서는 다음 흐름을 권장해요.
+
+1. Xcode에서 매크로 호출을 우클릭하고 **Expand Macro**로 생성 결과를 확인해요.
+2. `assertMacroExpansion` 테스트를 만들고 `expansion(of:in:)`에 중단점을 걸어요.
+3. LLDB에서 `po node` 또는 `po node.debugDescription`으로 입력 트리와 구체 노드를 확인해요.
+4. 예상 확장 문자열뿐 아니라 잘못된 입력의 진단 위치와 메시지도 테스트해요.
+5. 마지막에는 클라이언트 타깃을 빌드해 생성 코드의 실제 타입 검사까지 확인해요.
+
+[Swift AST Explorer](https://swift-ast-explorer.com/)는 코드를 붙여 넣어 SwiftSyntax 트리를 대화형으로 살펴볼 수 있는 커뮤니티 도구예요. 빠른 탐색에는 편리하지만, 실제 프로젝트가 사용하는 도구 모음과 노드 이름이 다를 수 있으므로 최종 구현은 현재 패키지의 테스트와 디버거에서 다시 확인하세요.
 
 ## freestanding과 attached는 호출 위치가 달라요
 
@@ -865,7 +1194,7 @@ freestanding 매크로는 `#`으로 독립 호출해 표현식이나 선언을 �
 
 ### SwiftSyntax는 매크로에서 어떤 역할을 하나요?
 
-SwiftSyntax는 Swift 소스를 문자열 덩어리가 아닌 선언과 표현식으로 구성된 구문 트리로 다루게 해요. 매크로 구현은 SwiftSyntax 노드로 입력을 검사하고, 역할에 맞는 새 구문 노드를 만들어 컴파일러에 반환해요.
+SwiftSyntax는 Swift 소스를 문자열 덩어리가 아닌 선언·표현식·토큰의 source-accurate 구문 트리로 다루게 해요. 매크로 구현은 역할에 해당하는 노드로 입력을 검사하고 새 구문 노드를 컴파일러에 반환해요. 공백과 주석은 trivia로 보존하지만 이름 조회나 추론된 타입 같은 컴파일러 의미 정보 전체를 제공하는 AST는 아니에요.
 
 ### 매크로 구현에서 오류를 어떻게 전달하나요?
 
@@ -883,6 +1212,10 @@ SwiftSyntax는 Swift 소스를 문자열 덩어리가 아닌 선언과 표현식
 - [Apple Developer — Write Swift macros](https://developer.apple.com/videos/play/wwdc2023/10166/)
 - [Apple Developer — Expand on Swift macros](https://developer.apple.com/videos/play/wwdc2023/10167/)
 - [SwiftSyntax 공식 저장소](https://github.com/swiftlang/swift-syntax)
+- [SwiftSyntax 공식 예제](https://github.com/swiftlang/swift-syntax/tree/main/Examples)
+- [SwiftSyntax API 문서](https://swiftpackageindex.com/swiftlang/swift-syntax/documentation/swiftsyntax)
+- [SwiftParser API 문서](https://swiftpackageindex.com/swiftlang/swift-syntax/documentation/swiftparser)
+- [Swift.org — Swift 5.8 Released: SwiftSyntax](https://www.swift.org/blog/swift-5.8-released/#swiftsyntax)
 - [SwiftSyntax — Swift Macros](https://github.com/swiftlang/swift-syntax/blob/main/Sources/SwiftSyntaxMacros/SwiftSyntaxMacros.docc/SwiftSyntaxMacros.md)
 - [SE-0382 Expression Macros](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0382-expression-macros.md)
 - [SE-0389 Attached Macros](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0389-attached-macros.md)
