@@ -1,0 +1,55 @@
+[
+  {
+    "type": "custom-link",
+    "label": "Mapbox Maps SDK 시작하기",
+    "link": "/guide/mapbox-maps-sdk/index"
+  },
+  {
+    "type": "custom-link",
+    "label": "설치와 화면 구성",
+    "link": "/guide/mapbox-maps-sdk/installation-and-access-token",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "설치와 Access Token",
+        "link": "/guide/mapbox-maps-sdk/installation-and-access-token"
+      },
+      {
+        "type": "custom-link",
+        "label": "SwiftUI 지도와 카메라",
+        "link": "/guide/mapbox-maps-sdk/swiftui-map-and-camera"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "지도 데이터와 표현",
+    "link": "/guide/mapbox-maps-sdk/styles-sources-and-layers",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "스타일·Source·Layer",
+        "link": "/guide/mapbox-maps-sdk/styles-sources-and-layers"
+      },
+      {
+        "type": "custom-link",
+        "label": "Annotation과 클러스터링",
+        "link": "/guide/mapbox-maps-sdk/annotations-and-clustering"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "사용자 위치와 권한",
+    "link": "/guide/mapbox-maps-sdk/user-location"
+  },
+  {
+    "type": "custom-link",
+    "label": "오프라인 지도",
+    "link": "/guide/mapbox-maps-sdk/offline-maps"
+  }
+]
