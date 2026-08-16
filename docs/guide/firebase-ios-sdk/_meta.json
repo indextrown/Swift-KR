@@ -1,53 +1,53 @@
 [
   {
     "type": "custom-link",
-    "text": "Firebase iOS SDK 시작하기",
+    "label": "파이어베이스 iOS SDK 시작하기",
     "link": "/guide/firebase-ios-sdk/index"
   },
   {
     "type": "custom-link",
-    "text": "인증",
+    "label": "인증",
     "link": "/guide/firebase-ios-sdk/authentication"
   },
   {
     "type": "custom-link",
-    "text": "데이터와 파일",
+    "label": "데이터와 파일",
     "link": "/guide/firebase-ios-sdk/realtime-database",
     "collapsible": true,
     "collapsed": true,
     "items": [
       {
         "type": "custom-link",
-        "text": "Realtime Database",
+        "label": "실시간 데이터베이스",
         "link": "/guide/firebase-ios-sdk/realtime-database"
       },
       {
         "type": "custom-link",
-        "text": "Cloud Firestore",
+        "label": "클라우드 파이어스토어",
         "link": "/guide/firebase-ios-sdk/cloud-firestore"
       },
       {
         "type": "custom-link",
-        "text": "Cloud Storage",
+        "label": "클라우드 스토리지",
         "link": "/guide/firebase-ios-sdk/cloud-storage"
       }
     ]
   },
   {
     "type": "custom-link",
-    "text": "상태와 보안",
+    "label": "상태와 보안",
     "link": "/guide/firebase-ios-sdk/snapshots-and-listeners",
     "collapsible": true,
     "collapsed": true,
     "items": [
       {
         "type": "custom-link",
-        "text": "Snapshot과 Listener",
+        "label": "스냅샷과 리스너",
         "link": "/guide/firebase-ios-sdk/snapshots-and-listeners"
       },
       {
         "type": "custom-link",
-        "text": "Security Rules와 Emulator",
+        "label": "보안 규칙과 에뮬레이터",
         "link": "/guide/firebase-ios-sdk/security-rules-and-emulators"
       }
     ]
