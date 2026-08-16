@@ -1,0 +1,50 @@
+[
+  {
+    "type": "custom-link",
+    "text": "Naver Maps SDK 시작하기",
+    "link": "/guide/naver-maps-sdk/index"
+  },
+  {
+    "type": "custom-link",
+    "text": "설치와 화면 표시",
+    "link": "/guide/naver-maps-sdk/setup-and-authentication",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "text": "설치와 인증",
+        "link": "/guide/naver-maps-sdk/setup-and-authentication"
+      },
+      {
+        "type": "custom-link",
+        "text": "SwiftUI 연동",
+        "link": "/guide/naver-maps-sdk/swiftui-integration"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "text": "지도와 데이터 표현",
+    "link": "/guide/naver-maps-sdk/map-camera-interaction",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "text": "좌표, 카메라, 상호작용",
+        "link": "/guide/naver-maps-sdk/map-camera-interaction"
+      },
+      {
+        "type": "custom-link",
+        "text": "오버레이와 클러스터링",
+        "link": "/guide/naver-maps-sdk/overlays-and-clustering"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "text": "사용자 위치와 권한",
+    "link": "/guide/naver-maps-sdk/user-location"
+  }
+]
