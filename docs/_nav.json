@@ -36,6 +36,12 @@
     "position": "left"
   },
   {
+    "text": "MapKit",
+    "link": "/guide/mapkit/index",
+    "activeMatch": "/guide/mapkit/",
+    "position": "left"
+  },
+  {
     "text": "네이버 지도 SDK",
     "link": "/guide/naver-maps-sdk/index",
     "activeMatch": "/guide/naver-maps-sdk/",
@@ -67,7 +73,7 @@
   },
   {
     "text": "디자인 패턴",
-    "link": "/guide/design-patterns/dependency-injection",
+    "link": "/guide/design-patterns/mvc",
     "activeMatch": "/guide/design-patterns/",
     "position": "left"
   }

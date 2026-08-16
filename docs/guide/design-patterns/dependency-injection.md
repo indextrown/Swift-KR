@@ -342,6 +342,34 @@ final class ProfileViewModel {
 
 이 코드의 의존성은 이니셜라이저에 드러나지 않아요. `ProfileViewModel`이 전역 locator를 직접 호출하므로 locator 자체에도 의존해요. 전역 상태를 테스트마다 바꾸면 테스트가 서로 영향을 줄 수도 있어요.
 
+## MVC, MVVM, MVI에서도 조립 방식은 같아요
+
+의존성 주입은 특정 아키텍처에만 속한 패턴이 아니에요. 화면을 조정하는 객체가 달라져도 저장소를 직접 만들지 않고 앱 시작 지점에서 전달한다는 원칙은 같아요.
+
+```swift
+let repository = LiveProductRepository()
+
+let viewController = ProductListViewController(
+  repository: repository
+)
+
+let viewModel = ProductListViewModel(
+  repository: repository
+)
+
+let store = ProductListStore(
+  repository: repository
+)
+```
+
+| 아키텍처          | 의존성을 받는 대표 객체  | 주입으로 분리하는 책임            |
+| ----------------- | ------------------------ | --------------------------------- |
+| [MVC](./mvc.md)   | Controller               | 화면 흐름과 저장소 생성           |
+| [MVVM](./mvvm.md) | ViewModel                | 표현 상태와 실제 데이터 제공 방식 |
+| [MVI](./mvi.md)   | Store 또는 Effect 실행기 | 순수한 상태 전이와 외부 작업      |
+
+세 구조 모두 `ProductRepository`라는 사용하는 쪽의 약속에 의존하고, 실제 구현은 컴포지션 루트에서 선택할 수 있어요. 의존관계 역전은 아키텍처 이름이 아니라 중요한 정책이 세부 구현을 직접 알지 않게 만드는 의존 방향에 관한 원칙이에요.
+
 ## 모든 의존성을 추상화하지 않아도 돼요
 
 의존성 주입은 비용도 만들어요.

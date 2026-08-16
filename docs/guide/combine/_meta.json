@@ -8,7 +8,7 @@
     "type": "custom-link",
     "label": "모든 연산자",
     "collapsible": true,
-    "collapsed": false,
+    "collapsed": true,
     "items": [
       {
         "type": "custom-link",

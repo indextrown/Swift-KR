@@ -1,0 +1,55 @@
+[
+  {
+    "type": "custom-link",
+    "label": "MapKit 시작하기",
+    "link": "/guide/mapkit/index"
+  },
+  {
+    "type": "custom-link",
+    "label": "지도 화면과 카메라",
+    "link": "/guide/mapkit/swiftui-map-and-camera",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "SwiftUI 지도와 카메라",
+        "link": "/guide/mapkit/swiftui-map-and-camera"
+      },
+      {
+        "type": "custom-link",
+        "label": "UIKit MKMapView",
+        "link": "/guide/mapkit/uikit-map-view"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "지도 데이터와 탐색",
+    "link": "/guide/mapkit/annotations-overlays-and-clustering",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "Annotation·Overlay·클러스터링",
+        "link": "/guide/mapkit/annotations-overlays-and-clustering"
+      },
+      {
+        "type": "custom-link",
+        "label": "검색·지오코딩·Look Around",
+        "link": "/guide/mapkit/search-geocoding-and-look-around"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "사용자 위치와 경로",
+    "link": "/guide/mapkit/user-location-and-directions"
+  },
+  {
+    "type": "custom-link",
+    "label": "스냅샷과 커스텀 타일",
+    "link": "/guide/mapkit/snapshots-and-tile-overlays"
+  }
+]
