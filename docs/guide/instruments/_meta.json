@@ -1,0 +1,51 @@
+[
+  {
+    "type": "custom-link",
+    "label": "Instruments 시작하기",
+    "link": "/guide/instruments/index"
+  },
+  {
+    "type": "custom-link",
+    "label": "시간과 비동기 코드",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "비동기 메서드 시간 측정",
+        "link": "/guide/instruments/async-method-timing"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "CPU와 응답성",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "CPU Profiler와 Time Profiler",
+        "link": "/guide/instruments/cpu-profiling"
+      },
+      {
+        "type": "custom-link",
+        "label": "Hangs와 앱 응답성",
+        "link": "/guide/instruments/responsiveness-and-hangs"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "메모리",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "Allocations와 Leaks",
+        "link": "/guide/instruments/memory-profiling"
+      }
+    ]
+  }
+]
