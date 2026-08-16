@@ -1,6 +1,6 @@
 ---
 title: Swift로 이해하는 매크로
-description: Swift 매크로가 컴파일 시점에 코드를 생성하는 원리와 freestanding·attached 역할, SwiftSyntax 구현, 확장 결과 테스트와 적용 기준을 설명합니다.
+description: Swift 매크로가 컴파일러 플러그인과 SwiftSyntax로 코드를 확장하는 빌드 과정, freestanding·attached 역할, 구현·테스트·적용 기준을 설명합니다.
 pageType: doc-wide
 outline: false
 ---
@@ -29,12 +29,15 @@ Swift 매크로는 이런 반복을 **컴파일 시점의 소스 코드 변환**
 | 매크로 역할(role)      | 매크로가 어디에서 사용되고 어떤 종류의 코드를 만들 수 있는지 정한 범위예요. `expression`, `member`, `peer` 등이 있어요.                                      |
 | SwiftSyntax            | Swift 소스 코드를 구조화된 구문 트리로 읽고 만드는 공식 라이브러리예요. 사용자 정의 매크로 구현은 SwiftSyntax가 제공하는 타입을 이용해 입력과 출력을 다뤄요. |
 | 컴파일러 플러그인      | 컴파일러가 빌드 도중 실행해 매크로 확장을 요청하는 별도 프로그램이에요. 매크로 구현 타입을 등록해 컴파일러와 연결해요.                                       |
+| 호스트(host)           | Xcode나 Swift 컴파일러가 실행되어 앱을 빌드하는 환경이에요. 매크로 플러그인은 이 환경에서 실행돼요.                                                          |
+| 타깃(target)           | 빌드 결과인 앱이나 라이브러리가 실행될 환경이에요. iPhone용 앱을 Mac에서 빌드한다면 Mac은 호스트이고 iPhone은 타깃이에요.                                    |
 | 진단(diagnostic)       | 컴파일러가 코드의 문제를 알려 주는 오류, 경고, 수정 제안이에요. 매크로도 잘못된 사용 위치에 직접 진단을 만들 수 있어요.                                      |
 
 이 문서에서는 다음 내용을 설명해요.
 
 - 함수와 매크로가 해결하는 문제의 차이
 - 매크로 호출이 일반 Swift 코드로 확장되는 과정
+- 컴파일러와 별도 플러그인 프로세스가 확장을 주고받는 빌드 과정
 - freestanding 매크로와 attached 매크로의 역할
 - 매크로 선언, 구현, 컴파일러 플러그인을 나누는 이유
 - SwiftSyntax로 `#stringify`와 `@AddTypeName`을 구현하는 방법
@@ -133,6 +136,156 @@ let result = (loadProduct(), "loadProduct()")
 `loadProduct()`는 완성된 프로그램이 이 줄을 실행할 때 호출돼요.
 
 둘째, 매크로는 역할이 허용한 범위의 코드만 만들 수 있어요. 표현식 매크로는 표현식을 반환하고, 멤버 매크로는 타입 안에 멤버를 추가해요. 매크로 선언에 역할과 생성할 이름을 적기 때문에 호출부에서 어떤 종류의 변화가 생길지 제한할 수 있어요.
+
+## 실제 빌드에서는 컴파일러와 플러그인이 분리돼요
+
+Apple은 WWDC23의 [Expand on Swift macros](https://developer.apple.com/videos/play/wwdc2023/10167/)에서 `#stringify(a + b)`가 확장되는 과정을 다음처럼 설명해요.
+
+![Swift 컴파일러가 매크로 호출을 컴파일러 플러그인으로 보내고 확장 코드를 돌려받는 과정](./assets/macro-compiler-plugin-expansion.png)
+
+_출처: Apple, [Expand on Swift macros의 매크로 변환 모델 장면(5:19)](https://developer.apple.com/videos/play/wwdc2023/10167/?time=319)_
+
+화면의 초록색 화살표는 컴파일러가 매크로 사용 구문을 플러그인으로 보내는 요청이고, 회색 화살표는 플러그인이 `(a + b, "a + b")`라는 확장 구문을 돌려주는 응답이에요. 핵심은 **앱을 컴파일하는 프로그램**과 **매크로 구현을 실행하는 프로그램**이 같은 프로세스가 아니라는 점이에요.
+
+전체 과정을 `#stringify(a + b)`로 따라가 볼게요.
+
+### 1. 빌드 도구가 매크로 플러그인을 호스트용으로 준비해요
+
+Xcode나 Swift Package Manager는 앱 타깃만 바로 컴파일하지 않아요. 먼저 의존 관계를 확인하고 `.macro` 타깃과 그 타깃이 의존하는 SwiftSyntax 모듈을 빌드해, 현재 **빌드 호스트**에서 실행할 수 있는 컴파일러 플러그인을 준비해요. Swift Evolution의 [SE-0394 Package Manager Support for Custom Macros](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0394-swiftpm-expression-macros.md)도 매크로 플러그인이 컴파일러가 실행되는 호스트용 실행 파일로 빌드된다고 명시해요.
+
+예를 들어 Apple Silicon Mac에서 iPhone 앱을 빌드해도 매크로 구현은 iPhone 안에서 실행되지 않아요. Mac에서 실행되어 iPhone용 소스를 생성해요. 따라서 매크로 구현 타깃은 앱의 런타임 의존성이 아니라 **빌드 도구 의존성**에 가까워요.
+
+```text
+Mac 빌드 호스트
+├─ 매크로 구현 타깃 → 호스트에서 실행할 컴파일러 플러그인
+└─ 앱 타깃 소스     → iPhone에서 실행할 앱 바이너리
+```
+
+매크로를 제공하는 패키지를 처음 빌드하거나 도구 모음을 바꾸면 플러그인과 SwiftSyntax 의존성도 다시 준비해야 하므로 초기 빌드 시간이 늘 수 있어요. 반대로 완성된 앱이 실행될 때 플러그인을 다시 실행하지는 않아요.
+
+### 2. 컴파일러가 호출을 읽고 공개 선언부터 검사해요
+
+컴파일러는 소스를 구문 구조로 읽고 `#stringify(a + b)`가 매크로 호출임을 발견해요. 이때 바로 구현을 실행하기보다 먼저 공개된 매크로 선언을 확인해요.
+
+```swift
+@freestanding(expression)
+public macro stringify<T>(
+  _ value: T
+) -> (T, String) = #externalMacro(
+  module: "LearningMacrosMacros",
+  type: "StringifyMacro"
+)
+```
+
+이 선언에는 다음 계약이 들어 있어요.
+
+- `expression` 역할이므로 호출 위치를 하나의 표현식으로 대체해야 해요.
+- 인자 `a + b`는 어떤 타입 `T`로 성립해야 해요.
+- 매크로 결과는 `(T, String)`이 필요한 주변 문맥과 맞아야 해요.
+- `#externalMacro`는 구현 플러그인 모듈과 구현 타입을 가리켜요.
+
+SwiftSyntax의 공식 [Swift Macros 문서](https://github.com/swiftlang/swift-syntax/blob/main/Sources/SwiftSyntaxMacros/SwiftSyntaxMacros.docc/SwiftSyntaxMacros.md)는 인자나 결과 타입이 이 계약을 만족하지 않으면 확장을 적용하지 않고 컴파일 오류를 낸다고 설명해요. C 전처리 매크로처럼 타입 검사 전에 텍스트를 단순 치환하는 모델과 다른 지점이에요.
+
+### 3. 컴파일러가 필요한 구문만 플러그인에 보내요
+
+선언 검사를 통과하면 컴파일러는 `#externalMacro`가 가리키는 플러그인을 별도 프로세스로 실행하고, 매크로 사용 부분을 **소스의 표현을 보존하는 SwiftSyntax 트리**로 전달해요.
+
+```text
+MacroExpansionExprSyntax
+├─ macroName: stringify
+└─ arguments
+   └─ InfixOperatorExprSyntax
+      ├─ leftOperand: a
+      ├─ operator: +
+      └─ rightOperand: b
+```
+
+플러그인이 받는 핵심 입력은 타입 전체의 의미 정보가 아니라 매크로 역할에 필요한 구문 노드예요. 예를 들어 표현식 매크로는 호출 표현식을 받고, 멤버 매크로는 속성과 매크로가 붙은 선언을 받아요. 주변 프로젝트 전체를 자유롭게 탐색하는 일반 코드 생성기와는 입력 범위가 달라요.
+
+Apple의 설명처럼 플러그인은 **보안 샌드박스의 별도 프로세스**에서 실행돼요. 파일을 읽거나 네트워크에 접근할 수 없으므로 원격 스키마나 로컬 설정 파일의 현재 내용에 의존하는 생성 작업에는 적합하지 않아요. 컴파일러와 플러그인이 구문 요청과 확장 응답을 주고받는 흐름은 프로세스 간 메시지 교환으로 이해할 수 있어요.
+
+### 4. 플러그인이 SwiftSyntax로 확장 구문과 진단을 만들어요
+
+플러그인은 등록된 `StringifyMacro.expansion(of:in:)`을 호출해 입력 구문을 검사하고 새 구문 노드를 만들어요.
+
+```swift
+public struct StringifyMacro: ExpressionMacro {
+  public static func expansion(
+    of node: some FreestandingMacroExpansionSyntax,
+    in context: some MacroExpansionContext
+  ) throws -> ExprSyntax {
+    guard let argument = node.arguments.first?.expression else {
+      throw MacroExpansionErrorMessage(
+        "#stringify에는 표현식 하나가 필요해요."
+      )
+    }
+
+    return "(\(argument), \(literal: argument.description))"
+  }
+}
+```
+
+반환값은 단순 문자열이 아니라 Swift 표현식을 나타내는 `ExprSyntax`예요. 문자열 리터럴 문법을 사용하더라도 SwiftSyntaxBuilder가 이를 파싱해 구문 트리로 만들어요. 잘못된 입력이라면 오류를 던지거나 `MacroExpansionContext`에 오류·경고·수정 제안을 기록할 수 있어요.
+
+```text
+요청: #stringify(a + b)의 SwiftSyntax 트리
+  │
+  ▼
+StringifyMacro.expansion(of:in:)
+  │
+  ├─ 성공 → (a + b, "a + b") 구문 트리
+  └─ 실패 → 오류·경고·Fix-It 진단
+```
+
+매크로 구현은 같은 프로세스에서 이전에 무엇을 확장했는지, 현재 시각이 무엇인지에 따라 결과를 바꾸면 안 돼요. Swift 공식 [Expressions 문서](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/expressions/)에 따르면 성능 최적화를 위해 하나의 외부 프로세스를 여러 매크로 확장에 재사용할 수 있기 때문이에요. 같은 입력은 같은 결과를 만든다는 전제로 작성해야 증분 빌드와 진단 결과를 예측할 수 있어요.
+
+### 5. 컴파일러가 확장을 원래 프로그램에 더하고 다시 검사해요
+
+플러그인이 돌려준 `(a + b, "a + b")`는 컴파일러가 다루는 원래 프로그램의 알맞은 위치에 추가돼요. Swift 매크로 확장은 기존 코드를 임의로 지우거나 고치는 방식이 아니라 역할이 허용한 위치에 새 코드를 **더하는(additive)** 방식이에요.
+
+```swift
+let recorded: (Int, String) = #stringify(a + b)
+```
+
+개념적으로 확장 뒤에는 다음 코드와 함께 컴파일이 계속돼요.
+
+```swift
+let recorded: (Int, String) = (a + b, "a + b")
+```
+
+여기서 두 번째 안전망이 작동해요. 컴파일러는 생성된 구문이 올바른 Swift 문법인지, 새 표현식과 선언의 타입이 주변 코드와 맞는지 다시 검사해요. 따라서 “매크로가 만들었으니 타입 검사를 건너뛴다”는 의미가 아니에요.
+
+| 검사 시점         | 주로 확인하는 내용                                                 | 실패하면 일어나는 일                  |
+| ----------------- | ------------------------------------------------------------------ | ------------------------------------- |
+| 확장 요청 전      | 매크로 선언의 역할, 인자 타입, 결과 타입과 주변 문맥               | 구현을 호출하지 않고 컴파일 오류      |
+| 확장 구현 중      | 구현이 요구하는 구문 모양과 자체 제약                              | 매크로가 만든 진단으로 컴파일 오류    |
+| 확장 결과 삽입 후 | 생성된 Swift 문법, 이름 해석, 타입과 접근 제어 등 일반 컴파일 규칙 | 생성 코드 또는 호출부에서 컴파일 오류 |
+
+이후에는 타입 검사를 마친 일반 Swift 코드와 같은 컴파일 경로를 따라 중간 표현, 최적화, 목적 파일 생성과 링크 과정을 거쳐요. 앱 바이너리에는 매크로 호출을 처리하는 플러그인이 아니라 **확장으로 생긴 코드의 동작**이 반영돼요.
+
+### 6. 중첩 매크로와 여러 역할은 확장을 반복해요
+
+한 줄에 매크로가 여러 개 있으면 한꺼번에 섞어 처리하지 않고 각각 확장해요. 중첩된 freestanding 매크로는 바깥쪽부터 안쪽 순서로 펼쳐져요.
+
+```swift
+#outerMacro(12, #innerMacro(34))
+```
+
+먼저 `outerMacro`가 아직 펼쳐지지 않은 `#innerMacro(34)` 구문을 포함한 입력을 받고, 그 결과에 남은 안쪽 매크로를 다음 단계에서 확장해요.
+
+attached 매크로가 `member`와 `extension`처럼 여러 역할을 가지면 역할마다 별도로 확장돼요. 각 확장은 다른 역할의 결과가 섞이지 않은 **같은 원본 구문**을 입력으로 받고, 컴파일러가 여러 결과를 역할에 맞는 위치에 모아요. 그러므로 한 역할의 확장이 먼저 실행되어 다른 역할이 그 결과를 볼 것이라고 가정하면 안 돼요.
+
+### 7. 빌드 비용과 실패 지점을 함께 관리해요
+
+매크로는 반복 코드를 줄이는 대신 빌드 과정에 플러그인 준비, 별도 프로세스 실행, 구문 생성, 확장 결과 검사를 추가해요. 다음 기준으로 비용과 문제를 줄일 수 있어요.
+
+- `names:`에는 가능하면 `arbitrary` 대신 생성할 이름이나 접두사·접미사를 정확히 선언해요. 컴파일러가 존재하지 않는 멤버를 찾기 위해 불필요하게 매크로를 확장하는 일을 줄일 수 있어요.
+- 호출 하나에서 지나치게 큰 구문 트리를 만들지 않아요. 생성 코드가 커질수록 파싱, 타입 검사, 최적화와 바이너리 크기의 비용도 커질 수 있어요.
+- 현재 시각, 난수, 이전 확장의 전역 상태처럼 외부 상태에 기대지 않아요. 플러그인 프로세스 재사용 여부와 무관하게 결과가 같아야 해요.
+- Swift 도구 모음을 올릴 때 SwiftSyntax 호환 버전과 매크로 패키지를 함께 확인해요. 플러그인을 로드하지 못하거나 구현 타입을 찾지 못하면 앱 실행 전 빌드 단계에서 실패해요.
+- 확장 문자열 단위 테스트와 실제 클라이언트 타깃 빌드를 함께 실행해요. 전자는 변환 규칙을 빠르게 확인하고, 후자는 생성 코드가 주변 타입과 함께 성립하는지 확인해요.
+
+테스트할 때는 실행 경계도 달라져요. `assertMacroExpansion`을 사용하는 테스트 타깃은 매크로 구현을 테스트 프로세스에 직접 연결하므로 `expansion` 함수에 중단점을 걸 수 있어요. 실제 앱 빌드에서는 구현이 샌드박스의 플러그인 프로세스에서 실행된다는 차이를 기억하세요.
 
 ## freestanding과 attached는 호출 위치가 달라요
 
@@ -725,12 +878,15 @@ SwiftSyntax는 Swift 소스를 문자열 덩어리가 아닌 선언과 표현식
 ## 참고 자료
 
 - [The Swift Programming Language — Macros](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/macros/)
+- [The Swift Programming Language — Expressions](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/expressions/)
 - [The Swift Programming Language — Attributes](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/attributes/)
 - [Apple Developer — Write Swift macros](https://developer.apple.com/videos/play/wwdc2023/10166/)
 - [Apple Developer — Expand on Swift macros](https://developer.apple.com/videos/play/wwdc2023/10167/)
 - [SwiftSyntax 공식 저장소](https://github.com/swiftlang/swift-syntax)
+- [SwiftSyntax — Swift Macros](https://github.com/swiftlang/swift-syntax/blob/main/Sources/SwiftSyntaxMacros/SwiftSyntaxMacros.docc/SwiftSyntaxMacros.md)
 - [SE-0382 Expression Macros](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0382-expression-macros.md)
 - [SE-0389 Attached Macros](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0389-attached-macros.md)
+- [SE-0394 Package Manager Support for Custom Macros](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0394-swiftpm-expression-macros.md)
 - [SE-0397 Freestanding Declaration Macros](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0397-freestanding-declaration-macros.md)
 - [SE-0402 Extension Macros](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0402-extension-macros.md)
 - [SE-0415 Function Body Macros](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0415-function-body-macros.md)
