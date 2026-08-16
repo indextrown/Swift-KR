@@ -1,0 +1,22 @@
+[
+  {
+    "type": "file",
+    "name": "xctest-unit-testing",
+    "label": "XCTest 단위 테스트"
+  },
+  {
+    "type": "file",
+    "name": "swift-testing",
+    "label": "Swift Testing"
+  },
+  {
+    "type": "file",
+    "name": "xcuitest",
+    "label": "XCUITest"
+  },
+  {
+    "type": "file",
+    "name": "tca-test-store",
+    "label": "TCA TestStore"
+  }
+]

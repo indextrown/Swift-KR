@@ -18,6 +18,12 @@
     "position": "left"
   },
   {
+    "text": "테스트",
+    "link": "/guide/testing/xctest-unit-testing",
+    "activeMatch": "/guide/testing/",
+    "position": "left"
+  },
+  {
     "text": "UIKit",
     "link": "/guide/uikit/collection-views/index",
     "activeMatch": "/guide/uikit/",

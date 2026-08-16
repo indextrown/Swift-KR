@@ -286,6 +286,8 @@ section snapshot은 다음 정보를 관리해요.
 
 diffable data source를 사용한다고 모델 계층이 자동으로 설계되지는 않아요. 앱이 데이터 변경을 감지하고 backing store와 snapshot을 만드는 책임은 여전히 가져요.
 
+기존 `UICollectionViewDataSource`를 유지하면서 모델의 정체성과 내용 변경을 나눠 계산하고 싶다면 외부 diff 라이브러리도 선택지가 될 수 있어요. [DifferenceKit 학습 문서](./differencekit)에서 `Differentiable`, `StagedChangeset`, Swift `CollectionDifference`, UIKit diffable data source의 차이를 비교해요.
+
 ## prefetching은 곧 보일 데이터를 미리 준비해요
 
 이미지 디코딩이나 네트워크 요청이 셀이 나타난 뒤 시작되면 빠르게 스크롤할 때 빈 이미지가 보일 수 있어요. `UICollectionViewDataSourcePrefetching`은 곧 필요할 가능성이 있는 index path를 미리 알려 줘요.

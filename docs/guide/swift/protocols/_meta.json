@@ -1,0 +1,37 @@
+[
+  {
+    "type": "file",
+    "name": "equatable",
+    "label": "Equatable"
+  },
+  {
+    "type": "file",
+    "name": "hashable",
+    "label": "Hashable"
+  },
+  {
+    "type": "file",
+    "name": "identifiable",
+    "label": "Identifiable"
+  },
+  {
+    "type": "file",
+    "name": "codable",
+    "label": "Codable"
+  },
+  {
+    "type": "file",
+    "name": "comparable",
+    "label": "Comparable"
+  },
+  {
+    "type": "file",
+    "name": "sequence-and-collection",
+    "label": "Sequence와 Collection"
+  },
+  {
+    "type": "file",
+    "name": "sendable",
+    "label": "Sendable"
+  }
+]
