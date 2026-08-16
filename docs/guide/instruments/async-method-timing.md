@@ -1,6 +1,6 @@
 ---
 title: Instruments로 비동기 메서드 시간 측정하기
-description: ContinuousClock과 OSSignposter로 await를 포함한 비동기 메서드의 전체 지연 시간을 측정하고 Swift Tasks에서 실행·중단·Main Actor 구간을 분석하는 방법을 설명합니다.
+description: ContinuousClock, OSSignposter와 os_signpost로 비동기 메서드의 지연 시간을 측정하고 동시·순차 실행을 Instruments에서 비교하는 방법을 설명합니다.
 ---
 
 # Instruments로 비동기 메서드 시간 측정하기
@@ -157,6 +157,278 @@ let decoded = try signposter.withIntervalSignpost(
 
 비동기 작업은 앞 예제처럼 `beginInterval`과 `defer`의 `endInterval`을 직접 사용하세요. 정확한 signature는 [withIntervalSignpost(_:id:around:)](https://developer.apple.com/documentation/os/ossignposter/withintervalsignpost%28_%3Aid%3Aaround%3A%29)에서 확인할 수 있어요.
 
+## `OSLog`와 `os_signpost`로도 같은 interval을 남길 수 있어요
+
+기존 프로젝트에서는 `OSSignposter` 대신 `OSLog`와 전역 함수 `os_signpost`를 사용하는 코드를 만날 수 있어요. 두 방식은 별개의 측정 기술이 아니에요. 모두 unified logging system에 begin과 end signpost를 기록하고 Instruments가 그 사이를 interval로 보여 줘요.
+
+다만 Apple의 현재 문서는 `OSSignposter`를 중심으로 설명하고 `os_signpost` 관련 symbol을 legacy API로 분류해요. `OSSignposter`는 interval state로 begin과 end의 일관성을 검사해 주므로 iOS 15 이상을 대상으로 새 코드를 작성한다면 앞 절의 방식을 우선하세요. `os_signpost` 방식은 iOS 12부터 존재하는 코드베이스를 읽거나 낮은 deployment target을 유지해야 할 때 알아 두면 유용해요.
+
+| 비교 기준        | `OSSignposter`                                     | `OSLog`와 `os_signpost`                              |
+| ---------------- | -------------------------------------------------- | ---------------------------------------------------- |
+| API 성격         | 현재 권장하는 Swift API예요.                       | 기존 코드에서 볼 수 있는 legacy 작성 방식이에요.     |
+| 지원 시작        | iOS 15 이상이에요.                                 | iOS 12 이상이에요.                                   |
+| begin/end 연결   | `OSSignpostIntervalState`를 end에 전달해요.        | 같은 log, name과 `OSSignpostID`를 직접 맞춰요.       |
+| 동시 호출 구분   | `makeSignpostID()`로 ID를 만들어요.                | `OSSignpostID(log:)`로 호출마다 ID를 만들 수 있어요. |
+| 종료 안전성      | state 검사가 실수를 발견하는 데 도움을 줘요.       | `defer`와 동일한 인자를 직접 지켜야 해요.            |
+| Instruments 결과 | signpost interval과 Points of Interest에 나타나요. | 같은 timeline에서 같은 종류의 interval로 나타나요.   |
+
+### 동시 실행과 순차 실행을 같은 조건에서 비교해요
+
+다음 실습은 각각 1초, 1.5초, 2초 동안 기다리는 세 작업을 세 가지 방법으로 실행해요.
+
+- `async let`은 세 작업을 child task로 시작한 뒤 결과를 한 번에 기다려요.
+- `TaskGroup`은 세 child task를 group에 추가하고 완료되는 순서대로 결과를 받아요.
+- 순차 실행은 앞 작업의 `await`가 끝나야 다음 작업을 시작해요.
+
+각 실행 방법의 전체 구간과 세부 작업에 모두 signpost를 남기므로 단순히 최종 숫자만 보는 것이 아니라 timeline에서 실제 겹침도 확인할 수 있어요.
+
+전체 화면 예제는 `NavigationStack`, `ContinuousClock`과 duration 기반 `Task.sleep`을 사용하므로 iOS 16 이상을 대상으로 해요. 핵심 `OSLog`와 `os_signpost` 측정 코드는 iOS 12부터 사용할 수 있어요.
+
+```swift
+import Foundation
+import os
+import SwiftUI
+
+struct AsyncTimingLab: View {
+  @State private var isRunning = false
+  @State private var status = "대기 중"
+  @State private var resultLines: [String] = []
+
+  var body: some View {
+    NavigationStack {
+      VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 8) {
+          Text("Async Timing Lab")
+            .font(.largeTitle.bold())
+          Text("세 비동기 작업의 실행 방식과 시간을 비교해요.")
+            .font(.callout)
+            .foregroundStyle(.secondary)
+        }
+
+        Button("async let 3개 실행") {
+          runAsyncLetExample()
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(isRunning)
+
+        Button("TaskGroup 3개 실행") {
+          runTaskGroupExample()
+        }
+        .buttonStyle(.bordered)
+        .disabled(isRunning)
+
+        Button("순차 await 3개 실행") {
+          runSequentialExample()
+        }
+        .buttonStyle(.bordered)
+        .disabled(isRunning)
+
+        Text(status)
+          .font(.headline)
+
+        ForEach(resultLines, id: \.self) { line in
+          Text(line)
+            .font(.system(.body, design: .monospaced))
+            .foregroundStyle(.secondary)
+        }
+
+        Spacer()
+      }
+      .padding()
+      .navigationTitle("Async Timing")
+    }
+  }
+
+  private func runAsyncLetExample() {
+    start(status: "async let 실행 중...") {
+      await AsyncBenchRunner.runAsyncLetExample()
+    }
+  }
+
+  private func runTaskGroupExample() {
+    start(status: "TaskGroup 실행 중...") {
+      await AsyncBenchRunner.runTaskGroupExample()
+    }
+  }
+
+  private func runSequentialExample() {
+    start(status: "순차 await 실행 중...") {
+      await AsyncBenchRunner.runSequentialExample()
+    }
+  }
+
+  private func start(
+    status runningStatus: String,
+    operation: @escaping @Sendable () async -> [String]
+  ) {
+    isRunning = true
+    status = runningStatus
+    resultLines = []
+
+    Task {
+      let startedAt = ContinuousClock.now
+      let results = await operation()
+      let elapsed = startedAt.duration(to: .now)
+
+      status = "측정 완료"
+      resultLines = results + ["total: \(elapsed.secondsString)"]
+      isRunning = false
+    }
+  }
+}
+
+enum AsyncBenchRunner {
+  private static let log = OSLog(
+    subsystem: "com.example.AsyncTimingLab",
+    category: .pointsOfInterest
+  )
+
+  static func runAsyncLetExample() async -> [String] {
+    await measured("AsyncLetTotal") {
+      async let first = simulatedAsyncWork(
+        name: "AsyncLetJob1",
+        seconds: 1.0
+      )
+      async let second = simulatedAsyncWork(
+        name: "AsyncLetJob2",
+        seconds: 1.5
+      )
+      async let third = simulatedAsyncWork(
+        name: "AsyncLetJob3",
+        seconds: 2.0
+      )
+
+      return await [first, second, third]
+    }
+  }
+
+  static func runTaskGroupExample() async -> [String] {
+    await measured("TaskGroupTotal") {
+      await withTaskGroup(of: String.self) { group in
+        group.addTask {
+          await simulatedAsyncWork(
+            name: "TaskGroupJob1",
+            seconds: 1.0
+          )
+        }
+        group.addTask {
+          await simulatedAsyncWork(
+            name: "TaskGroupJob2",
+            seconds: 1.5
+          )
+        }
+        group.addTask {
+          await simulatedAsyncWork(
+            name: "TaskGroupJob3",
+            seconds: 2.0
+          )
+        }
+
+        var results: [String] = []
+        for await result in group {
+          results.append(result)
+        }
+        return results.sorted()
+      }
+    }
+  }
+
+  static func runSequentialExample() async -> [String] {
+    await measured("SequentialTotal") {
+      let first = await simulatedAsyncWork(
+        name: "SequentialJob1",
+        seconds: 1.0
+      )
+      let second = await simulatedAsyncWork(
+        name: "SequentialJob2",
+        seconds: 1.5
+      )
+      let third = await simulatedAsyncWork(
+        name: "SequentialJob3",
+        seconds: 2.0
+      )
+
+      return [first, second, third]
+    }
+  }
+
+  private static func simulatedAsyncWork(
+    name: StaticString,
+    seconds: Double
+  ) async -> String {
+    await measured(name) {
+      try? await Task.sleep(for: .seconds(seconds))
+      return "\(name): \(String(format: "%.1f", seconds))s"
+    }
+  }
+
+  private static func measured<T>(
+    _ name: StaticString,
+    operation: () async throws -> T
+  ) async rethrows -> T {
+    let signpostID = OSSignpostID(log: log)
+
+    os_signpost(
+      .begin,
+      log: log,
+      name: name,
+      signpostID: signpostID
+    )
+
+    defer {
+      os_signpost(
+        .end,
+        log: log,
+        name: name,
+        signpostID: signpostID
+      )
+    }
+
+    return try await operation()
+  }
+}
+
+private extension Duration {
+  var secondsString: String {
+    let seconds = Double(components.seconds)
+    let fractionalSeconds =
+      Double(components.attoseconds) / 1_000_000_000_000_000_000
+    return String(format: "%.3fs", seconds + fractionalSeconds)
+  }
+}
+```
+
+`measured`의 핵심은 세 가지예요.
+
+1. `OSSignpostID(log:)`를 호출할 때마다 새 ID를 만들어 같은 이름의 작업이 겹쳐도 begin과 end를 구분해요.
+2. begin 직후 `defer`를 등록해 `operation`이 정상 반환하거나 throw해도 end를 기록해요. task 취소도 operation이 취소에 반응해 scope를 빠져나올 때 같은 경로로 닫혀요.
+3. `.pointsOfInterest` category를 사용해 기본 profiling template에서도 해당 구간을 눈에 띄게 찾아요.
+
+이 예제의 `Task.sleep`은 실제 network나 CPU 작업을 흉내 내기 위한 입력이에요. 세 작업을 동시에 시작한 두 방법은 가장 긴 2초 작업에 가까운 시간에 끝나고, 순차 실행은 `1 + 1.5 + 2`인 약 4.5초에 끝날 것으로 예상할 수 있어요. 하지만 simulator 부하, scheduling과 측정 overhead 때문에 실제 숫자는 정확히 2초와 4.5초가 아닐 수 있어요. 핵심은 한 번의 숫자가 아니라 작업 interval이 겹치는지와 여러 기록의 분포예요.
+
+### Blank template에서 직접 측정해요
+
+첨부 예제처럼 signpost만 집중해서 보고 싶다면 Blank template에서 시작할 수 있어요.
+
+1. Xcode 상단에서 실행할 scheme과 iPhone simulator 또는 물리 기기를 선택해요.
+2. `Product > Profile`을 선택하거나 `Command-I`를 눌러 Instruments를 열어요.
+3. profiling template에서 Blank를 선택해요.
+4. Instruments 왼쪽 위의 `+` 버튼을 눌러 Points of Interest를 추가해요.
+5. Record 버튼을 누른 뒤 simulator에서 `async let`, `TaskGroup`, 순차 실행 버튼을 각각 실행해요.
+6. 다시 Record 버튼을 눌러 측정을 멈춰요.
+7. Points of Interest에서 `AsyncLetTotal`, `TaskGroupTotal`, `SequentialTotal` interval을 비교해요.
+8. 각 total interval을 펼쳐 세부 작업이 가로로 겹치는지 확인해요.
+
+Apple의 [Recording Performance Data](https://developer.apple.com/documentation/os/recording-performance-data)도 `Product > Profile`에서 Blank template을 선택하고 instrument를 추가해 signpost를 기록하는 흐름을 안내해요. Instruments 버전에 따라 instrument library의 이름이 `os_signposts`로 보일 수 있고, `.pointsOfInterest` category를 사용한 중요 구간은 Points of Interest track에서 확인할 수 있어요.
+
+| 확인할 구간       | 예상 timeline                                               | 해석                                                  |
+| ----------------- | ----------------------------------------------------------- | ----------------------------------------------------- |
+| `AsyncLetTotal`   | 세 `AsyncLetJob` interval이 거의 같은 시각에 시작해 겹쳐요. | child task가 동시 진행되고 가장 늦은 작업을 기다려요. |
+| `TaskGroupTotal`  | 세 `TaskGroupJob` interval이 겹치고 완료 시각은 달라요.     | group은 완료되는 child task부터 결과를 전달해요.      |
+| `SequentialTotal` | 세 `SequentialJob` interval이 앞뒤로 이어져요.              | 각 `await` 이후에 다음 작업을 시작해 시간이 합산돼요. |
+
+`Task.sleep`처럼 CPU를 거의 쓰지 않는 예제에서는 세 interval이 겹쳐도 여러 thread에서 CPU 코드를 동시에 실행했다는 뜻은 아니에요. 이 실습이 보여 주는 것은 세 작업의 **수명과 대기 구간이 겹친다**는 사실이에요. CPU 병렬 실행 여부를 말하려면 같은 범위의 CPU Profiler와 thread 상태를 추가로 확인해야 해요.
+
 ## Instruments에서 signpost duration을 읽어요
 
 코드를 추가했으면 다음 순서로 기록해요.
@@ -274,6 +546,7 @@ OSSignposter interval summary는 여러 interval의 duration을 비교하는 데
 | -------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------- |
 | `ContinuousClock`          | 코드에서 async elapsed time을 간단히 얻어요.                    | 다른 Instruments track과 자동으로 연결되지 않아요.                |
 | `OSSignposter` interval    | 앱의 의미 있는 구간을 timeline에 표시하고 반복 duration을 봐요. | interval 경계는 개발자가 올바르게 정해야 해요.                    |
+| `OSLog`와 `os_signpost`    | iOS 12부터의 기존 코드에서도 같은 signpost를 기록해요.          | legacy 방식이며 ID와 begin/end 일치를 직접 관리해야 해요.         |
 | Swift Tasks                | task의 생성, 상태, lifetime과 구조를 보여 줘요.                 | 특정 메서드 API 경계와 항상 일치하지 않아요.                      |
 | CPU Profiler/Time Profiler | CPU에서 무거운 함수와 호출 경로를 찾아요.                       | `await`와 I/O 대기를 메서드 CPU 비용으로 보여 주지 않아요.        |
 | performance test           | 고정된 입력으로 성능 회귀를 자동 검증해요.                      | 실제 사용자 환경의 network와 scheduling 전체를 재현하기 어려워요. |
@@ -321,6 +594,14 @@ interval state는 이름과 signposter의 일관성을 검사해요. 이름을 �
 
 `ContinuousClock`은 코드에서 경과 시간 값을 바로 계산하는 stopwatch 역할을 해요. `OSSignposter`는 같은 구간을 Instruments timeline에 표시해 CPU, task, Hangs 같은 다른 데이터와 연결하고 반복 interval의 분포를 분석할 수 있게 해요.
 
+### `os_signpost` 방식도 가능한데 왜 `OSSignposter`를 권장하나요?
+
+둘 다 같은 signpost 데이터를 기록할 수 있지만 `OSSignposter`는 begin이 반환한 interval state를 end에 전달해 잘못된 이름, signposter와 중복 종료 같은 실수를 검사하는 현재 권장 API예요. `os_signpost`는 iOS 12부터 사용한 기존 코드와 낮은 deployment target을 이해할 때 유용하고, iOS 15 이상 새 코드에서는 `OSSignposter`를 우선하는 편이 좋아요.
+
+### 동시 실행 예제가 2초에 끝나면 병렬 실행을 증명하나요?
+
+아니요. 이 예제에서 `Task.sleep`은 CPU를 점유하지 않고 task를 중단하므로 약 2초라는 결과는 세 작업의 대기 구간이 겹쳤다는 뜻이에요. CPU-bound 작업의 병렬 실행 여부는 CPU Profiler, thread와 executor 상태를 같은 interval에서 별도로 확인해야 해요.
+
 ### 왜 `defer`에서 `endInterval`을 호출하나요?
 
 비동기 메서드는 정상 반환 외에도 throw와 취소로 scope를 빠져나갈 수 있어요. begin 직후 `defer`를 두면 모든 종료 경로에서 동일한 state로 interval을 한 번 닫을 수 있어요.
@@ -337,6 +618,8 @@ task는 여러 async 함수를 차례로 실행하거나 child task를 만들 �
 
 - [Apple Developer — OSSignposter](https://developer.apple.com/documentation/os/ossignposter)
 - [Apple Developer — Recording Performance Data](https://developer.apple.com/documentation/os/recording-performance-data)
+- [Apple Developer — Reducing your app’s launch time](https://developer.apple.com/documentation/xcode/reducing-your-app-s-launch-time)
+- [Apple Developer — OSSignpostType](https://developer.apple.com/documentation/os/ossignposttype)
 - [Apple Developer — beginInterval(_:id:)](https://developer.apple.com/documentation/os/ossignposter/begininterval%28_%3Aid%3A%29)
 - [Apple Developer — endInterval(_:_:)](https://developer.apple.com/documentation/os/ossignposter/endinterval%28_%3A_%3A%29)
 - [Apple Developer — withIntervalSignpost(_:id:around:)](https://developer.apple.com/documentation/os/ossignposter/withintervalsignpost%28_%3Aid%3Aaround%3A%29)
