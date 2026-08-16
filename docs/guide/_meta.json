@@ -31,6 +31,11 @@
   },
   {
     "type": "dir-section-header",
+    "name": "mapkit",
+    "label": "MapKit"
+  },
+  {
+    "type": "dir-section-header",
     "name": "naver-maps-sdk",
     "label": "네이버 지도 SDK"
   },
