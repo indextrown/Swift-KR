@@ -36,6 +36,11 @@
   },
   {
     "type": "dir-section-header",
+    "name": "firebase-ios-sdk",
+    "label": "Firebase iOS SDK"
+  },
+  {
+    "type": "dir-section-header",
     "name": "combine",
     "label": "Combine"
   },

@@ -42,6 +42,12 @@
     "position": "left"
   },
   {
+    "text": "Firebase iOS SDK",
+    "link": "/guide/firebase-ios-sdk/index",
+    "activeMatch": "/guide/firebase-ios-sdk/",
+    "position": "left"
+  },
+  {
     "text": "Combine",
     "link": "/guide/combine/index",
     "activeMatch": "/guide/combine/",
