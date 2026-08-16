@@ -1,6 +1,6 @@
 ---
 title: Swift로 이해하는 DifferenceKit
-description: DifferenceKit의 Differentiable과 StagedChangeset을 이해하고 CollectionDifference·difference(from:)의 기능과 시간 복잡도, UIKit 갱신 방식을 비교합니다.
+description: DifferenceKit의 Differentiable과 StagedChangeset을 이해하고, 적용 전후의 전체 UICollectionView 예제로 수동 갱신과 staged diff 흐름을 비교합니다.
 ---
 
 # Swift로 이해하는 DifferenceKit
@@ -17,6 +17,7 @@ description: DifferenceKit의 Differentiable과 StagedChangeset을 이해하고 
 - `Differentiable`, `ContentIdentifiable`, `ContentEquatable`의 관계
 - `Equatable`, `Hashable`, `Identifiable`과 다른 점
 - `StagedChangeset`을 `UICollectionView`에 적용하는 방법
+- DifferenceKit 적용 전후를 비교하는 전체 Collection View 예제
 - Swift `difference(from:)`, DifferenceKit diff의 시간 복잡도와 차이
 - `reloadData()`와 부분 batch update를 선택하는 기준
 - UIKit diffable data source와의 차이
@@ -298,6 +299,352 @@ collectionView.reload(
 ```
 
 `100`은 라이브러리가 정한 정답이 아니에요. 셀 복잡도, 기기 성능, layout 비용을 측정해 화면별 기준을 정해야 해요. Collection View가 window에 올라가 있지 않을 때도 extension은 마지막 데이터와 `reloadData()`를 사용하는 경로를 제공해요.
+
+## 전체 예제로 DifferenceKit 적용 전후를 비교해요
+
+앞에서는 diff를 계산하고 적용하는 핵심 코드만 분리해서 살펴봤어요. 이제 같은 사진 목록 화면을 DifferenceKit 없이 구현한 코드와 DifferenceKit을 사용한 코드로 비교해 볼게요.
+
+두 예제는 다음 변경을 한 번에 화면에 반영해요.
+
+| 이전 상태                 | 목표 상태                 | 필요한 화면 변경            |
+| ------------------------- | ------------------------- | --------------------------- |
+| 서울, 부산, 대전          | 대전, 부산★, 제주         | 삭제, 이동, 삽입, 내용 갱신 |
+| 서울은 `indexPath.item 0` | 서울은 목표 배열에 없음   | 삭제                        |
+| 대전은 `indexPath.item 2` | 대전은 `indexPath.item 0` | 이동                        |
+| 부산은 즐겨찾기 아님      | 부산은 즐겨찾기           | 내용 갱신                   |
+| 제주 없음                 | 제주는 `indexPath.item 2` | 삽입                        |
+
+화면 구성 코드가 diff의 차이를 가리지 않도록 두 예제 모두 iOS 14의 list layout과 cell registration을 사용해요. DifferenceKit의 diff 원리 자체가 이 API에 의존하는 것은 아니므로 기존 custom cell과 flow layout에서도 데이터 갱신 부분만 같은 방식으로 적용할 수 있어요.
+
+### DifferenceKit 없이 수동으로 부분 갱신해요
+
+먼저 외부 diff 라이브러리를 사용하지 않고 `performBatchUpdates`에 필요한 위치를 직접 전달해 볼게요. 아래 코드는 한 파일에 넣어 실행할 수 있는 전체 View Controller예요.
+
+```swift
+import UIKit
+
+private struct Photo: Equatable {
+  let id: UUID
+  let title: String
+  let isFavorite: Bool
+}
+
+private enum PhotoSamples {
+  static let seoulID = UUID()
+  static let busanID = UUID()
+  static let daejeonID = UUID()
+  static let jejuID = UUID()
+
+  static let before = [
+    Photo(
+      id: seoulID,
+      title: "서울",
+      isFavorite: false
+    ),
+    Photo(
+      id: busanID,
+      title: "부산",
+      isFavorite: false
+    ),
+    Photo(
+      id: daejeonID,
+      title: "대전",
+      isFavorite: false
+    ),
+  ]
+
+  static let after = [
+    Photo(
+      id: daejeonID,
+      title: "대전",
+      isFavorite: false
+    ),
+    Photo(
+      id: busanID,
+      title: "부산",
+      isFavorite: true
+    ),
+    Photo(
+      id: jejuID,
+      title: "제주",
+      isFavorite: false
+    ),
+  ]
+}
+
+@MainActor
+final class ManualPhotoGridViewController:
+  UICollectionViewController
+{
+  private var photos = PhotoSamples.before
+
+  private lazy var cellRegistration =
+    UICollectionView.CellRegistration<
+      UICollectionViewListCell,
+      Photo
+    > { cell, _, photo in
+      var content = cell.defaultContentConfiguration()
+      content.text = photo.isFavorite
+        ? "★ \(photo.title)"
+        : photo.title
+      cell.contentConfiguration = content
+    }
+
+  init() {
+    let configuration = UICollectionLayoutListConfiguration(
+      appearance: .insetGrouped
+    )
+    let layout = UICollectionViewCompositionalLayout.list(
+      using: configuration
+    )
+    super.init(collectionViewLayout: layout)
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:)는 지원하지 않아요.")
+  }
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    title = "수동 부분 갱신"
+    navigationItem.rightBarButtonItem = UIBarButtonItem(
+      title: "변경",
+      style: .plain,
+      target: self,
+      action: #selector(applySampleUpdate(_:))
+    )
+  }
+
+  override func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    photos.count
+  }
+
+  override func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    collectionView.dequeueConfiguredReusableCell(
+      using: cellRegistration,
+      for: indexPath,
+      item: photos[indexPath.item]
+    )
+  }
+
+  @objc
+  private func applySampleUpdate(
+    _ sender: UIBarButtonItem
+  ) {
+    // 이 IndexPath들은 before에서 after로 바뀌는 경우에만 맞아요.
+    let deleted = [IndexPath(item: 0, section: 0)]
+    let inserted = [IndexPath(item: 2, section: 0)]
+    let movedFrom = IndexPath(item: 2, section: 0)
+    let movedTo = IndexPath(item: 0, section: 0)
+    let updated = [IndexPath(item: 1, section: 0)]
+
+    sender.isEnabled = false
+
+    collectionView.performBatchUpdates {
+      // Collection View가 새 개수를 물을 때 목표 데이터를 반환해요.
+      self.photos = PhotoSamples.after
+      self.collectionView.deleteItems(at: deleted)
+      self.collectionView.insertItems(at: inserted)
+      self.collectionView.moveItem(at: movedFrom, to: movedTo)
+    } completion: { [weak self] finished in
+      guard let self else { return }
+
+      // 이동과 내용 갱신을 직접 다른 단계로 나눠요.
+      if finished {
+        self.collectionView.reloadItems(at: updated)
+      } else {
+        self.collectionView.reloadData()
+      }
+    }
+  }
+}
+```
+
+이 코드에서 개발자가 직접 책임지는 부분을 순서대로 짚어 볼게요.
+
+1. 삭제와 이동의 출발지는 이전 배열의 위치로 계산해요.
+2. 삽입과 이동의 도착지는 목표 배열의 위치로 계산해요.
+3. batch update 중 data source가 목표 item 개수를 반환하도록 `photos`를 동기적으로 바꿔요.
+4. 이동과 내용 갱신을 한 번에 적용하면서 생길 수 있는 충돌을 피하려고 부산 셀의 reload를 다음 단계로 나눠요.
+5. 이 예제의 `IndexPath`는 정확히 `before → after` 변경에만 맞으므로 다른 배열을 받으려면 위치 계산과 안전한 단계 분리 로직을 새로 만들어야 해요.
+
+전체 재로딩으로 바꾸면 `photos = newPhotos`와 `reloadData()`만으로 단순해져요. 대신 삭제, 삽입, 이동의 의미와 각각의 애니메이션을 잃고 현재 보이는 셀을 다시 구성할 수 있어요. 부분 갱신을 유지하려면 위와 같은 bookkeeping을 직접 감당해야 해요. 여기서 bookkeeping은 이전 위치, 목표 위치, 적용 순서처럼 화면과 모델을 맞추는 기록 작업을 뜻해요.
+
+### DifferenceKit으로 같은 화면을 갱신해요
+
+이제 같은 화면에서 수동 `IndexPath` 계산을 `StagedChangeset`으로 교체해요. 앞 예제와 별개로 복사해 실행할 수 있도록 모델과 화면 코드를 모두 포함했어요.
+
+```swift
+import DifferenceKit
+import UIKit
+
+private struct Photo: Differentiable {
+  let id: UUID
+  let title: String
+  let isFavorite: Bool
+
+  var differenceIdentifier: UUID { id }
+
+  func isContentEqual(to source: Photo) -> Bool {
+    title == source.title
+      && isFavorite == source.isFavorite
+  }
+}
+
+private enum PhotoSamples {
+  static let seoulID = UUID()
+  static let busanID = UUID()
+  static let daejeonID = UUID()
+  static let jejuID = UUID()
+
+  static let before = [
+    Photo(
+      id: seoulID,
+      title: "서울",
+      isFavorite: false
+    ),
+    Photo(
+      id: busanID,
+      title: "부산",
+      isFavorite: false
+    ),
+    Photo(
+      id: daejeonID,
+      title: "대전",
+      isFavorite: false
+    ),
+  ]
+
+  static let after = [
+    Photo(
+      id: daejeonID,
+      title: "대전",
+      isFavorite: false
+    ),
+    Photo(
+      id: busanID,
+      title: "부산",
+      isFavorite: true
+    ),
+    Photo(
+      id: jejuID,
+      title: "제주",
+      isFavorite: false
+    ),
+  ]
+}
+
+@MainActor
+final class DifferenceKitPhotoGridViewController:
+  UICollectionViewController
+{
+  private var photos = PhotoSamples.before
+
+  private lazy var cellRegistration =
+    UICollectionView.CellRegistration<
+      UICollectionViewListCell,
+      Photo
+    > { cell, _, photo in
+      var content = cell.defaultContentConfiguration()
+      content.text = photo.isFavorite
+        ? "★ \(photo.title)"
+        : photo.title
+      cell.contentConfiguration = content
+    }
+
+  init() {
+    let configuration = UICollectionLayoutListConfiguration(
+      appearance: .insetGrouped
+    )
+    let layout = UICollectionViewCompositionalLayout.list(
+      using: configuration
+    )
+    super.init(collectionViewLayout: layout)
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:)는 지원하지 않아요.")
+  }
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    title = "DifferenceKit 갱신"
+    navigationItem.rightBarButtonItem = UIBarButtonItem(
+      title: "변경",
+      style: .plain,
+      target: self,
+      action: #selector(applySampleUpdate(_:))
+    )
+  }
+
+  override func collectionView(
+    _ collectionView: UICollectionView,
+    numberOfItemsInSection section: Int
+  ) -> Int {
+    photos.count
+  }
+
+  override func collectionView(
+    _ collectionView: UICollectionView,
+    cellForItemAt indexPath: IndexPath
+  ) -> UICollectionViewCell {
+    collectionView.dequeueConfiguredReusableCell(
+      using: cellRegistration,
+      for: indexPath,
+      item: photos[indexPath.item]
+    )
+  }
+
+  @objc
+  private func applySampleUpdate(
+    _ sender: UIBarButtonItem
+  ) {
+    sender.isEnabled = false
+    apply(PhotoSamples.after)
+  }
+
+  private func apply(_ newPhotos: [Photo]) {
+    let changeset = StagedChangeset(
+      source: photos,
+      target: newPhotos
+    )
+
+    collectionView.reload(
+      using: changeset,
+      interrupt: { $0.changeCount > 100 }
+    ) { [weak self] stagePhotos in
+      // 각 stage의 performBatchUpdates 안에서 동기적으로 호출돼요.
+      self?.photos = stagePhotos
+    }
+  }
+}
+```
+
+셀과 화면 구성은 수동 예제와 같아요. 달라진 핵심은 다음 두 곳이에요.
+
+- `Photo`가 안정적인 `id`를 `differenceIdentifier`로 제공하고, 화면 내용인 `title`과 `isFavorite`을 `isContentEqual`에서 비교해요.
+- `apply(_:)`는 고정된 `IndexPath` 대신 현재 `photos`와 임의의 `newPhotos`로 `StagedChangeset`을 만들어요. DifferenceKit이 삭제, 삽입, 이동, 갱신 위치를 계산하고 안전한 stage로 나눠 적용해요.
+
+`setData`에서 받는 값의 이름을 `stagePhotos`로 지은 이유도 중요해요. 이 값은 항상 최종 `newPhotos`인 것이 아니라 현재 batch update가 끝났을 때 data source가 가져야 할 중간 배열일 수 있어요. 따라서 `self?.photos = newPhotos`로 바꾸지 말고 전달받은 값을 그대로 저장해야 해요.
+
+두 구현의 책임을 비교하면 DifferenceKit이 줄이는 코드의 범위가 선명해져요.
+
+| 확인할 점          | 수동 부분 갱신                         | DifferenceKit 사용                          |
+| ------------------ | -------------------------------------- | ------------------------------------------- |
+| 변경 위치 계산     | 이전·목표 `IndexPath`를 직접 계산해요. | 두 컬렉션에서 changeset을 계산해요.         |
+| 내용 변경 판별     | 갱신할 item을 직접 찾아요.             | `isContentEqual` 결과로 판별해요.           |
+| 위험한 변경 조합   | 개발자가 적용 단계를 나눠요.           | `StagedChangeset`이 최소 stage로 나눠요.    |
+| data source 동기화 | 각 단계의 올바른 배열을 직접 만들어요. | `setData`가 각 stage의 배열을 전달해요.     |
+| 다른 목표 배열     | diff와 단계 구성 로직을 다시 계산해요. | 같은 `apply(_:)`에 새 배열을 전달하면 돼요. |
+| 추가 비용          | 라이브러리는 없지만 구현 부담이 커요.  | 외부 의존성과 모델 conformance가 생겨요.    |
 
 ## section과 item의 diff를 함께 계산해요
 
@@ -710,6 +1057,7 @@ Swift `difference(from:)`의 공개된 최악 시간 복잡도는 `O(N × M)`이
 - [DifferenceKit — Differentiable.swift](https://github.com/ra1028/DifferenceKit/blob/1.3.0/Sources/Differentiable.swift)
 - [DifferenceKit — StagedChangeset](https://ra1028.github.io/DifferenceKit/Structs/StagedChangeset.html)
 - [DifferenceKit — UICollectionView extension](https://ra1028.github.io/DifferenceKit/Extensions/UICollectionView.html)
+- [DifferenceKit — UIKitExtension.swift](https://github.com/ra1028/DifferenceKit/blob/1.3.0/Sources/Extensions/UIKitExtension.swift)
 - [Apple Developer — CollectionDifference](https://developer.apple.com/documentation/swift/collectiondifference)
 - [Apple Developer — difference(from:)](https://developer.apple.com/documentation/swift/array/difference%28from%3A%29)
 - [Apple Developer — inferringMoves()](https://developer.apple.com/documentation/swift/collectiondifference/inferringmoves%28%29)
