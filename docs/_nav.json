@@ -36,6 +36,12 @@
     "position": "left"
   },
   {
+    "text": "Naver Maps SDK",
+    "link": "/guide/naver-maps-sdk/index",
+    "activeMatch": "/guide/naver-maps-sdk/",
+    "position": "left"
+  },
+  {
     "text": "Combine",
     "link": "/guide/combine/index",
     "activeMatch": "/guide/combine/",
