@@ -1,0 +1,17 @@
+[
+  {
+    "type": "file",
+    "name": "gcd-vs-swift-concurrency",
+    "label": "GCD와 Swift Concurrency"
+  },
+  {
+    "type": "file",
+    "name": "actors",
+    "label": "Actor와 데이터 격리"
+  },
+  {
+    "type": "file",
+    "name": "main-actor",
+    "label": "MainActor와 UI 격리"
+  }
+]

@@ -21,6 +21,11 @@
   },
   {
     "type": "dir-section-header",
+    "name": "instruments",
+    "label": "Instruments"
+  },
+  {
+    "type": "dir-section-header",
     "name": "uikit",
     "label": "UIKit"
   },
