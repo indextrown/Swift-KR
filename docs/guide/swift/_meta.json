@@ -20,6 +20,11 @@
     "label": "핵심 프로토콜"
   },
   {
+    "type": "dir-section-header",
+    "name": "concurrency",
+    "label": "Swift Concurrency"
+  },
+  {
     "type": "file",
     "name": "opaque-types",
     "label": "some과 불투명 타입"
