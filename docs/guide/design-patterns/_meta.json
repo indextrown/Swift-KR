@@ -1,8 +1,23 @@
 [
   {
     "type": "file",
+    "name": "mvc",
+    "label": "MVC"
+  },
+  {
+    "type": "file",
+    "name": "mvvm",
+    "label": "MVVM"
+  },
+  {
+    "type": "file",
+    "name": "mvi",
+    "label": "MVI"
+  },
+  {
+    "type": "file",
     "name": "dependency-injection",
-    "label": "의존성 주입"
+    "label": "의존성·DI·DIP"
   },
   {
     "type": "file",

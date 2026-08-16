@@ -23,9 +23,9 @@ features:
     icon: 📱
     link: /guide/uikit/collection-views/index
   - title: 디자인 패턴
-    details: 의존성 주입을 시작으로 Swift 코드에 적용하는 설계 원칙과 디자인 패턴을 설명합니다.
+    details: MVC를 시작으로 Swift 코드에 적용하는 아키텍처와 설계 원칙, 디자인 패턴을 설명합니다.
     icon: 📚
-    link: /guide/design-patterns/dependency-injection
+    link: /guide/design-patterns/mvc
   - title: 공식 자료 기반
     details: 공식 문서와 원전 자료를 바탕으로 개념과 코드 예제를 설명합니다.
     icon: 🔗
