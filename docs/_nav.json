@@ -42,6 +42,12 @@
     "position": "left"
   },
   {
+    "text": "Mapbox Maps SDK",
+    "link": "/guide/mapbox-maps-sdk/index",
+    "activeMatch": "/guide/mapbox-maps-sdk/",
+    "position": "left"
+  },
+  {
     "text": "파이어베이스 iOS SDK",
     "link": "/guide/firebase-ios-sdk/index",
     "activeMatch": "/guide/firebase-ios-sdk/",

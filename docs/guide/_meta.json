@@ -36,6 +36,11 @@
   },
   {
     "type": "dir-section-header",
+    "name": "mapbox-maps-sdk",
+    "label": "Mapbox Maps SDK"
+  },
+  {
+    "type": "dir-section-header",
     "name": "firebase-ios-sdk",
     "label": "파이어베이스 iOS SDK"
   },
