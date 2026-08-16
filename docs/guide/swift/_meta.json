@@ -15,6 +15,11 @@
     "label": "제네릭"
   },
   {
+    "type": "dir-section-header",
+    "name": "protocols",
+    "label": "핵심 프로토콜"
+  },
+  {
     "type": "file",
     "name": "opaque-types",
     "label": "some과 불투명 타입"
