@@ -23,6 +23,11 @@
       },
       {
         "type": "custom-link",
+        "label": "DifferenceKit",
+        "link": "/guide/uikit/collection-views/differencekit"
+      },
+      {
+        "type": "custom-link",
         "label": "셀과 재사용 뷰",
         "link": "/guide/uikit/collection-views/cells-and-reusable-views"
       },
