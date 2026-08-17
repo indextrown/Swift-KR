@@ -6,6 +6,12 @@
     "position": "left"
   },
   {
+    "text": "빌드와 배포",
+    "link": "/guide/build-and-distribution/build-compile-and-link",
+    "activeMatch": "/guide/build-and-distribution/",
+    "position": "left"
+  },
+  {
     "text": "SwiftUI",
     "link": "/guide/swiftui/state-management/observable-object",
     "activeMatch": "/guide/swiftui/",

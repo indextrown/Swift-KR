@@ -6,6 +6,11 @@
   },
   {
     "type": "dir-section-header",
+    "name": "build-and-distribution",
+    "label": "빌드와 바이너리 배포"
+  },
+  {
+    "type": "dir-section-header",
     "name": "swiftui",
     "label": "SwiftUI"
   },
