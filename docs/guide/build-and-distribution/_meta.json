@@ -1,0 +1,17 @@
+[
+  {
+    "type": "file",
+    "name": "build-compile-and-link",
+    "label": "컴파일과 링킹"
+  },
+  {
+    "type": "file",
+    "name": "static-and-dynamic-frameworks",
+    "label": "정적·동적 프레임워크"
+  },
+  {
+    "type": "file",
+    "name": "xcframework",
+    "label": "XCFramework"
+  }
+]
