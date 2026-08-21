@@ -1,0 +1,36 @@
+[
+  {
+    "type": "custom-link",
+    "label": "Realm Swift 시작하기",
+    "link": "/guide/realm-swift/index"
+  },
+  {
+    "type": "custom-link",
+    "label": "데이터 모델과 CRUD",
+    "link": "/guide/realm-swift/models-and-crud"
+  },
+  {
+    "type": "custom-link",
+    "label": "쿼리와 변경 관찰",
+    "link": "/guide/realm-swift/queries-and-observation"
+  },
+  {
+    "type": "custom-link",
+    "label": "운영과 전환",
+    "link": "/guide/realm-swift/configuration-migration-and-security",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "구성·마이그레이션·보안",
+        "link": "/guide/realm-swift/configuration-migration-and-security"
+      },
+      {
+        "type": "custom-link",
+        "label": "Atlas Device Sync 종료와 전환",
+        "link": "/guide/realm-swift/atlas-device-sync-eol"
+      }
+    ]
+  }
+]
