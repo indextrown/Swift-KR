@@ -24,6 +24,12 @@
     "position": "left"
   },
   {
+    "text": "Realm Swift",
+    "link": "/guide/realm-swift/index",
+    "activeMatch": "/guide/realm-swift/",
+    "position": "left"
+  },
+  {
     "text": "테스트",
     "link": "/guide/testing/xctest-unit-testing",
     "activeMatch": "/guide/testing/",
