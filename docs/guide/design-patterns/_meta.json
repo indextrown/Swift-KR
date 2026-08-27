@@ -16,6 +16,11 @@
   },
   {
     "type": "file",
+    "name": "viper",
+    "label": "VIPER"
+  },
+  {
+    "type": "file",
     "name": "dependency-injection",
     "label": "의존성·DI·DIP"
   },
