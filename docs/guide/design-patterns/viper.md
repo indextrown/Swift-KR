@@ -1,15 +1,17 @@
 ---
-title: Swift로 이해하는 VIPER
-description: 상품 목록 예제로 VIPER의 다섯 역할과 의존 방향, 모듈 조립, 비동기 작업 취소와 테스트를 설명하고 MVC·MVVM·MVI·RIBs와의 차이 및 도입 기준을 비교합니다.
+title: Swift로 이해하는 VIPER (UIKit)
+description: UIKit 상품 목록 예제로 VIPER의 역할 분리, View 프로토콜과 Presenter, Router·모듈 조립, 화면 생명주기와 비동기 작업 취소 및 테스트를 설명합니다.
 ---
 
-# Swift로 이해하는 VIPER
+# Swift로 이해하는 VIPER (UIKit)
 
 > **면접 답변 한 줄 요약:** VIPER는 화면 표시, 사용 사례 처리, 화면용 데이터 변환, 업무 데이터, 화면 전환을 다섯 역할로 나누어 UI 없이도 핵심 동작을 테스트하고 변경 범위를 좁히는 아키텍처 패턴이에요.
 
 상품 목록 화면에 데이터 조회, 판매 조건 검사, 가격 표시, 오류 처리, 상세 화면 이동이 계속 추가되면 어디를 수정해야 할지 찾기 어려워져요. VIPER는 이 책임들을 분리하는 한 가지 방법이에요. 이름에 맞춰 파일 다섯 개를 만드는 것이 목적은 아니에요.
 
-이 문서에서는 VIPER의 원전과 실제 Swift 구현을 구분해서 읽고, 상품 목록을 만드는 하나의 예제를 끝까지 연결해요. 예제 코드는 특정 VIPER 라이브러리에 의존하지 않으며, 완성 UI 예제는 iOS 17 이상을 대상으로 해요.
+이 문서는 **UIKit 버전**이에요. VIPER의 원전과 실제 Swift 구현을 구분해서 읽고, `UITableViewController`로 상품 목록을 만드는 예제를 끝까지 연결해요. 예제 코드는 특정 VIPER 라이브러리에 의존하지 않으며, 완성 UI 예제는 iOS 17 이상을 대상으로 해요.
+
+SwiftUI의 상태 관찰과 `NavigationStack`을 사용하는 전체 예제는 [VIPER (SwiftUI)](./viper-swiftui.md)에서 별도로 다뤄요. 두 문서는 각각 독립된 예제이므로, 같은 이름의 타입을 하나의 타깃에 중복해서 추가하지 않아요. 기존 VIPER 주소는 이 UIKit 문서로 유지해요.
 
 ## 먼저 알아둘 설계 용어
 
@@ -783,15 +785,18 @@ func presenterDoesNotRenderCancelledResult() async {
 
 RIBs는 중첩된 기능의 수명과 의존성 범위를 프레임워크 차원에서 다룬다는 점을 비교하면 좋아요. VIPER에서 유사한 수명 관리나 화면 없는 업무 코드를 만들 수 없다는 뜻은 아니에요. RIBs를 도입할지는 팀 규모만이 아니라 상태 구조와 프레임워크 도입 비용을 보고 판단해요.
 
-### SwiftUI에서도 사용할 수 있나요
+### SwiftUI 버전에서는 화면 연결 방식이 달라져요
 
-SwiftUI는 상태를 읽어 UI를 선언하는 Apple 프레임워크예요. Interactor·업무 데이터·모듈 경계는 SwiftUI에서도 사용할 수 있어요. 다만 위의 `ProductListViewing: AnyObject` 계약은 클래스 기반 UIKit 예제이므로, 값 타입인 SwiftUI `View`에 그대로 적용할 수는 없어요.
+[별도 SwiftUI 문서](./viper-swiftui.md)는 같은 상품 조회 규칙을 사용하되, View를 호출하는 프로토콜 대신 관찰 가능한 화면 상태를 제공해요. UIKit을 감싸서 사용하는 예제가 아니라 SwiftUI 화면과 경로 상태로 구성한 독립적인 구현이에요.
 
-SwiftUI에서는 Presenter가 관찰 가능한 화면 상태를 제공하고 View가 이를 읽게 하거나, UIKit 호스팅 계층이 화면 계약을 받아 상태로 연결하게 만들 수 있어요. Infinum의 [SwiftUI 연동 가이드](https://github.com/infinum/ios-viper-xcode-templates/blob/master/Documentation/Viper%20x%20SwiftUI%20Guide.md)는 호스팅 계층을 활용하는 구현 사례예요.
+| 비교 기준        | 이 UIKit 문서                                                             | SwiftUI 문서                                                                           |
+| ---------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 화면 갱신        | Presenter가 `view.render(...)`를 호출해요.                                | View가 Presenter의 관찰 가능한 상태를 읽어요.                                          |
+| 화면과 객체 수명 | ViewController가 Presenter를 보관하고 Presenter는 View를 약하게 참조해요. | SwiftUI의 `@State` 저장소가 조립된 모듈을 유지하고 Presenter는 View를 참조하지 않아요. |
+| 화면 전환        | Router가 `pushViewController`를 실행해요.                                 | Router가 경로를 바꾸면 `NavigationStack`이 전환해요.                                   |
+| 조회 작업        | ViewController가 `Task`를 보관하고 취소해요.                              | `.task(id:)`와 `.refreshable`이 비동기 작업의 진입점이에요.                            |
 
-SwiftUI에서 객체의 생성·수명과 관찰은 별도로 생각해야 해요. [`@ObservedObject`](https://developer.apple.com/documentation/swiftui/observedobject)는 전달받은 객체를 관찰하기 위한 입력이지, View가 다시 만들어져도 객체를 자동으로 한 번만 생성해 주는 장치가 아니에요. 사용하는 관찰 방식에 맞춰 소유자가 객체 수명을 유지해야 해요.
-
-SwiftUI의 상태 흐름과 잘 맞는 간단한 MVVM을 이미 사용하고 있다면, 이름을 VIPER로 맞추려고 중간 전달 계층만 추가할 필요는 없어요.
+업무 규칙을 Interactor에 두는 경계는 같지만, UIKit의 참조 연결과 생명주기 코드를 SwiftUI에 그대로 복사할 필요는 없어요.
 
 ## 언제 사용하고 언제 단순하게 유지하나요
 
@@ -849,10 +854,8 @@ VIPER를 검토할 만한 상황은 다음과 같아요.
 - [Mutual Mobile VIPER-SWIFT — 현재 리디렉션된 예제 저장소](https://github.com/griddynamics-archive/VIPER-SWIFT)
 - [Infinum iOS Handbook — VIPER and best practices](https://infinum.com/handbook/ios/viper/viper-and-best-practices)
 - [Infinum — iOS VIPER Xcode Templates](https://github.com/infinum/ios-viper-xcode-templates)
-- [Infinum — Viper x SwiftUI Guide](https://github.com/infinum/ios-viper-xcode-templates/blob/master/Documentation/Viper%20x%20SwiftUI%20Guide.md)
 - [Robert C. Martin — The Clean Architecture (2012)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 - [Uber — RIBs for iOS](https://github.com/uber/RIBs-iOS)
 - [The Swift Programming Language — Concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/)
 - [Apple Developer — Task.checkCancellation()](<https://developer.apple.com/documentation/swift/task/checkcancellation()>)
 - [Apple Developer — Swift Testing](https://developer.apple.com/xcode/swift-testing/)
-- [Apple Developer — ObservedObject](https://developer.apple.com/documentation/swiftui/observedobject)
