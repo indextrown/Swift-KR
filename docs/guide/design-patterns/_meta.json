@@ -17,7 +17,12 @@
   {
     "type": "file",
     "name": "viper",
-    "label": "VIPER"
+    "label": "VIPER (UIKit)"
+  },
+  {
+    "type": "file",
+    "name": "viper-swiftui",
+    "label": "VIPER (SwiftUI)"
   },
   {
     "type": "file",
