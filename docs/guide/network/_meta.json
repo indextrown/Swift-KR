@@ -1,0 +1,36 @@
+[
+  {
+    "type": "custom-link",
+    "label": "Network 시작하기",
+    "link": "/guide/network/index"
+  },
+  {
+    "type": "custom-link",
+    "label": "연결과 데이터 송수신",
+    "link": "/guide/network/connections-and-data",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "NWConnection과 메시지 경계",
+        "link": "/guide/network/connections-and-data"
+      },
+      {
+        "type": "custom-link",
+        "label": "Swift Concurrency 네트워킹",
+        "link": "/guide/network/swift-concurrency"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "네트워크 경로 관찰",
+    "link": "/guide/network/path-monitoring"
+  },
+  {
+    "type": "custom-link",
+    "label": "Bonjour와 로컬 네트워크",
+    "link": "/guide/network/bonjour-and-local-network"
+  }
+]
