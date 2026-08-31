@@ -7,6 +7,10 @@ outline: false
 
 # Mapbox 오프라인 지도
 
+:::note 기존 실전 예제
+다운로드 과정을 연결한 보충 자료예요. 공식 목차에 대응하는 [오프라인 지도](./offline/index.md), [개념과 제약](./offline/concepts.md), [데이터 관리](./offline/manage-offline-data.md)에서 항목별 내용을 확인해요.
+:::
+
 > 면접용 한 줄 요약: **Mapbox 오프라인 지도는 Style Pack으로 글꼴·sprite 같은 표현 리소스를, Tile Region으로 지정 영역과 zoom의 지도 타일을 내려받아 두 수명 주기를 함께 관리합니다.**
 
 ## 먼저 알아둘 오프라인 용어

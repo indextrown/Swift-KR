@@ -1,228 +1,142 @@
 ---
-title: Mapbox 사용자 위치와 권한
-description: Core Location 권한과 Mapbox Puck2D, heading·course, followPuck Viewport를 연결하고 정확도·Simulator·사용자 제스처를 안전하게 처리하는 방법을 설명합니다.
-pageType: doc-wide
-outline: false
+title: Swift로 이해하는 Mapbox 사용자 위치
+description: Mapbox의 위치 권한·정확도·Puck·카메라 추적을 구분하고 사용자 요청에 따른 위치 표시, 오래된 위치의 처리, 사용자 정의 공급원의 책임을 정리해요.
+source: https://docs.mapbox.com/ios/maps/guides/user-location/
+reviewed: '2026-08-31'
 ---
 
-# Mapbox 사용자 위치와 권한
+# Swift로 이해하는 Mapbox 사용자 위치
 
-> 면접용 한 줄 요약: **Mapbox의 Puck은 위치를 지도에 표현하고 Viewport는 카메라 추적을 담당하지만, 위치 접근의 목적과 권한·정확도 정책은 앱이 Core Location 규칙에 맞게 설계해야 합니다.**
+> **면접 답변 한 줄 요약:** 사용자 위치 기능은 접근 권한, 위치 데이터 공급, Puck 표시, 카메라 추적을 연결하는 기능이며, 정확도와 데이터의 최신성까지 따로 판단해야 해요.
 
-## 먼저 알아둘 위치 용어
+공식 [User Location](https://docs.mapbox.com/ios/maps/guides/user-location/)에 대응해요. 아래에서는 주변 매장 찾기의 위치 버튼과 검색 정책을 학습용으로 설계해요.
 
-| 용어             | 쉬운 뜻                                                                         |
-| ---------------- | ------------------------------------------------------------------------------- |
-| Core Location    | iOS에서 위치 권한과 GPS·Wi-Fi·기지국 기반 위치를 제공하는 Apple 프레임워크예요. |
-| Puck             | 지도 위에 사용자의 현재 위치와 방향을 표시하는 2D 또는 3D 표시예요.             |
-| heading          | 기기가 가리키는 나침반 방향이에요. 가만히 있어도 얻을 수 있어요.                |
-| course           | 실제 이동 경로가 향하는 방향이에요. 움직임이 있어야 의미가 생겨요.              |
-| reduced accuracy | 사용자가 정확한 위치 대신 대략적인 위치만 허용한 상태예요.                      |
-| follow-puck      | 카메라가 Puck의 위치를 계속 따라가는 Viewport 상태예요.                         |
+## 먼저 알아둘 용어
 
-## 위치 표시와 카메라 추적은 다른 책임이에요
+| 용어              | 쉬운 뜻                                                  |
+| ----------------- | -------------------------------------------------------- |
+| Core Location     | Apple 기기의 위치와 위치 권한을 다루는 프레임워크예요.   |
+| Location provider | 지도에 위치 데이터를 공급하는 객체예요.                  |
+| Puck              | 지도에 표시하는 사용자 위치 표시예요.                    |
+| heading / course  | 각각 기기가 향한 방향과 실제 이동 방향이에요.            |
+| reduced accuracy  | 사용자가 정확한 위치 대신 대략적 위치를 허용한 상태예요. |
 
-`Puck2D`를 추가하면 사용자 위치가 지도에 그려집니다. 카메라를 사용자에게 고정하려면 별도로 `.followPuck` Viewport를 사용해요.
+기본 `AppleLocationProvider`가 위치를 공급하고 `LocationManager`가 지도 표현과 추적에 연결해요. Puck 추가와 카메라의 follow-puck 설정은 별개예요. 2D·3D 표시와 사용자 정의 위치·heading 공급원도 지원해요. [공식 가이드](https://docs.mapbox.com/ios/maps/guides/user-location/)
 
-```text
-AppleLocationProvider
-        │ Location / Heading
-        ▼
-   LocationManager
-     │        │
-     ▼        ▼
-  Puck2D    followPuck Viewport
- 위치 표현      카메라 추적
-```
+## 권한이 없어도 기본 지도는 유용해야 해요
 
-Puck이 보인다고 카메라가 자동으로 따라가는 것은 아니며, 카메라가 따라간다고 위치 접근 목적 설명이 생략되는 것도 아닙니다.
+주변 매장 앱에서 위치 권한을 거부했다고 모든 화면을 막을 필요는 없어요. 이 예제의 제품 정책은 주소 검색과 직접 지도 탐색을 항상 제공하고, “내 위치”만 권한을 사용하는 거예요.
 
-## 1단계: 사용 이유를 `Info.plist`에 설명해요
-
-앱을 사용하는 동안 주변 장소를 보여 주는 기능이라면 다음 키를 추가합니다.
+앱 Target의 `Info.plist`에 실제 기능을 설명하는 문구를 추가해요.
 
 ```xml
 <key>NSLocationWhenInUseUsageDescription</key>
-<string>현재 위치 주변의 장소를 지도에 보여드리기 위해 위치를 사용합니다.</string>
+<string>현재 위치 주변의 매장을 지도에서 찾기 위해 위치를 사용해요.</string>
 ```
 
-“서비스 제공을 위해 필요합니다”처럼 추상적인 문장보다 사용자가 보게 될 기능을 구체적으로 설명하세요. 위치를 쓰지 않는 화면에서 앱 시작 즉시 권한을 요청하기보다 사용자가 “내 위치” 기능을 선택한 맥락에서 요청하는 편이 이해하기 쉽습니다.
+권한 요청 이유를 기능과 연결하면 “왜 지금 요청하는가?”를 사용자가 이해하기 쉬워요. 목적이 주변 탐색인 예제에 백그라운드 상시 위치 수집을 끼워 넣지 않아요.
 
-:::warning Always 권한을 기본값으로 요청하지 않아요
-백그라운드 위치 기능이 실제 제품 요구 사항이고 사용자가 가치를 이해할 수 있을 때만 `NSLocationAlwaysAndWhenInUseUsageDescription`과 관련 capability를 검토하세요. 지도에 현재 위치를 보여 주는 일반 화면은 When In Use로 시작할 수 있습니다.
-:::
+## 사용자의 요청에 맞춰 위치 표시를 시작해요
 
-## 2단계: Puck을 지도에 선언해요
+다음 SwiftUI 화면은 위치 사용을 요청하는 시점을 보여주는 작은 예제예요. SDK 설치와 토큰 설정은 완료된 상태예요.
 
 ```swift
 import MapboxMaps
 import SwiftUI
 
-struct UserLocationMap: View {
-  var body: some View {
-    Map {
-      Puck2D(bearing: .heading)
-        .showsAccuracyRing(true)
+struct NearbyStoreLocationMap: View {
+    @State private var requestsLocation = false
+    @State private var viewport = Viewport.camera(
+        center: CLLocationCoordinate2D(latitude: 37.566, longitude: 126.978),
+        zoom: 12
+    )
+
+    var body: some View {
+        VStack {
+            Map(viewport: $viewport) {
+                if requestsLocation {
+                    Puck2D(bearing: .heading)
+                        .showsAccuracyRing(true)
+                }
+            }
+            Button("내 위치 보기") {
+                requestsLocation = true
+                viewport = .followPuck(zoom: 15, bearing: .heading)
+            }
+            Text("위치를 허용하지 않아도 지도를 직접 탐색할 수 있어요.")
+                .font(.caption)
+        }
     }
-  }
 }
 ```
 
-`Puck2D()`는 위치만 표시하고, `bearing: .heading`을 전달하면 기기의 방향을 함께 보여줘요. 정확도 ring은 현재 위치가 한 점이 아니라 오차 범위를 가진 측정값이라는 사실을 사용자에게 전달합니다.
+`requestsLocation`은 **앱이 위치 기능을 요청했다는 값**이지 권한 승인 여부가 아니에요. 완성 앱에서는 승인·거부·제한·위치 대기 상태에 따라 버튼과 안내를 조정해야 해요. 이 Boolean만 보고 “현재 위치 확인 완료”를 표시하면 안 돼요.
 
-공식 User Location 가이드에 따르면 Maps SDK의 `LocationManager`는 기본 `AppleLocationProvider`를 사용합니다. custom provider가 필요하지 않다면 앱에서 별도 `CLLocationManager`를 만들어 같은 권한과 위치 흐름을 중복 관리하지 마세요.
+## 표시용 위치와 검색 실행 기준을 나눠요
 
-## 3단계: 카메라가 사용자를 따라가게 해요
+Puck이 보이는 것과 “이 위치로 서버를 검색해도 된다”는 서로 다른 판단이에요. 사용자가 앱으로 돌아왔을 때 오래된 위치가 남아 있거나 오차가 클 수 있어요.
+
+다음은 지도 SDK와 독립적으로 테스트할 수 있는 **학습용 검색 정책**이에요. 30초·1km는 예제의 제품 기준이지 Mapbox나 Apple의 권장값이 아니에요.
 
 ```swift
-struct FollowingMap: View {
-  @State private var viewport: Viewport = .followPuck(
-    zoom: 15,
-    bearing: .heading,
-    pitch: 45
-  )
+import CoreLocation
 
-  var body: some View {
-    ZStack(alignment: .bottomTrailing) {
-      Map(viewport: $viewport) {
-        Puck2D(bearing: .heading)
-          .showsAccuracyRing(true)
-      }
-
-      Button {
-        withViewportAnimation(.default(maxDuration: 1.0)) {
-          viewport = .followPuck(
-            zoom: 15,
-            bearing: .heading,
-            pitch: 45
-          )
-        }
-      } label: {
-        Image(systemName: "location.fill")
-      }
-      .buttonStyle(.borderedProminent)
-      .padding()
-    }
-  }
+/// 주변 매장 검색에 사용할 수 있는 위치 측정인지 판단해요.
+/// - Parameters:
+///   - location: 시스템에서 받은 위치 측정값이에요.
+///   - now: 판단 시각이에요. 테스트에서는 고정된 값을 전달해요.
+/// - Returns: 예제의 최신성·정확도 조건을 충족하면 true예요.
+func canSearchNearby(
+    location: CLLocation,
+    now: Date
+) -> Bool {
+    let age = now.timeIntervalSince(location.timestamp)
+    return age >= 0 && age <= 30
+        && location.horizontalAccuracy >= 0
+        && location.horizontalAccuracy <= 1_000
 }
 ```
 
-사용자가 지도를 드래그하면 Viewport가 `.idle`이 되어 추적이 멈춥니다. 위 버튼은 사용자가 원할 때만 follow-puck으로 돌아가게 해요. 드래그 직후 자동으로 추적을 재개하면 사용자가 보려던 위치를 빼앗게 됩니다.
+실제 프로젝트에서는 위치 공급원이 만든 측정값을 앱 모델에 전달한 뒤 이 정책을 적용해요. 조건을 통과하지 못했다고 위치 권한을 다시 요청하지는 않아요. 데이터 대기와 권한 문제는 다른 원인이기 때문이에요.
 
-## heading과 course를 상황에 맞게 골라요
+`horizontalAccuracy`는 미터 단위의 오차 반경이며 음수이면 좌표가 유효하지 않다는 뜻이에요. 측정 시각은 `timestamp`로 확인해요. [Apple 정확도 설명](https://developer.apple.com/documentation/corelocation/cllocation/horizontalaccuracy), [측정 시각](https://developer.apple.com/documentation/corelocation/cllocation/timestamp)
 
-| 기준      | heading                            | course                            |
-| --------- | ---------------------------------- | --------------------------------- |
-| 의미      | 기기 윗부분이 가리키는 나침반 방향 | 실제 위치 변화가 향하는 이동 방향 |
-| 정지 상태 | 사용할 수 있음                     | 신뢰하기 어려움                   |
-| 대표 화면 | 주변 탐색, AR 방향                 | 차량·자전거 이동                  |
-| 주의점    | 자력계 간섭과 calibration          | 느린 이동과 위치 오차에 민감      |
+이 함수는 “방금 받은 유효 위치”, “1분 전 위치”, “정확도 값이 유효하지 않은 위치”, “허용 범위보다 큰 오차”를 고정된 시각으로 테스트할 수 있어요. 위치 이벤트마다 서버를 호출할지 여부에는 거리·시간 간격 정책도 별도로 필요해요.
 
-사용자가 걷지 않는데 course로 Puck을 회전시키면 방향이 없거나 오래된 값이 남을 수 있어요. 주변 지도는 heading, 이동 경로 중심 화면은 course를 검토하되 품질이 낮을 때의 fallback을 정합니다.
+## 정확도 권한과 공급원 교체를 구분해요
 
-## 정확한 위치를 거부해도 앱이 동작하게 해요
+대략적인 위치를 지원하고 특정 기능에만 정밀 위치가 필요하다면 임시 정확도 요청을 검토해요. 사용자 정의 purpose key는 `NSLocationTemporaryUsageDescriptionDictionary`의 키와 일치해야 해요. `AppleLocationProviderDelegate`로 정확도 변경을 관찰하거나 provider를 교체할 수 있어요. [공식 위치 가이드](https://docs.mapbox.com/ios/maps/guides/user-location/)
 
-iOS 14 이상에서는 사용자가 정확한 위치를 끄고 reduced accuracy만 허용할 수 있어요. 주변 도시나 대략적인 지역을 보여 주는 기능이라면 그대로 동작하게 설계합니다.
+원문에서 자동 요청에 쓰이는 키와 직접 요청하는 사용자 정의 키는 같은 정책이 아니에요. 앱이 언제 요청할지 직접 결정하려면 자동 요청 설정을 그대로 복사하지 말고 원문의 정확도 처리 절을 확인하세요.
 
-정확한 승하차 지점처럼 특정 기능에만 full accuracy가 꼭 필요하면 임시 정확도 요청의 목적 key를 준비할 수 있어요.
-
-```xml
-<key>NSLocationTemporaryUsageDescriptionDictionary</key>
-<dict>
-  <key>PickupLocationAccuracy</key>
-  <string>정확한 승차 위치를 기사에게 전달하기 위해 잠시 정확한 위치가 필요합니다.</string>
-</dict>
-```
-
-정확도를 항상 요구하지 말고 기능을 실행하는 시점에 목적을 설명한 뒤 요청하세요. 거부한 경우 지도를 직접 움직여 위치를 고르거나 주소를 검색하는 대안을 제공하면 기능 전체가 막히지 않습니다.
-
-## 권한 상태별 UI를 설계해요
-
-| 상태              | 화면 동작                                                        |
-| ----------------- | ---------------------------------------------------------------- |
-| not determined    | 기능을 설명한 뒤 사용자 액션에서 권한을 요청해요.                |
-| authorized        | Puck과 내 위치 버튼을 활성화해요.                                |
-| reduced accuracy  | 대략적 위치임을 고려하고 정밀 기능에 대안을 제공해요.            |
-| denied/restricted | 설정 이동 안내와 수동 장소 선택을 제공해요.                      |
-| 위치 신호 대기 중 | 마지막 위치를 현재 위치로 단정하지 말고 loading 상태를 보여줘요. |
-
-권한 거부를 오류처럼 반복 alert로 막기보다 위치 없이도 쓸 수 있는 기본 지도와 검색 기능을 유지하세요.
-
-## 위치가 안 보일 때 순서대로 확인해요
-
-1. `NSLocationWhenInUseUsageDescription`이 실제 앱 Target의 `Info.plist`에 들어갔는지 확인해요.
-2. Simulator에서 **Debug → Simulate Location**으로 테스트 위치를 선택해요.
-3. Settings → Privacy & Security → Location Services에서 앱 권한을 확인해요.
-4. `Map` content에 Puck이 하나만 선언되었는지 확인해요.
-5. 카메라가 다른 대륙을 보고 있다면 `.followPuck`으로 이동해요.
-6. 실제 기기에서 위치 서비스, 비행기 모드와 실내 GPS 환경을 확인해요.
-
-공식 가이드는 한 지도에 Puck을 여러 개 선언하면 마지막 Puck만 표시된다고 안내합니다.
-
-## custom location provider는 테스트·특수 센서에 사용해요
-
-기본 GPS가 아니라 재생 경로, 외부 센서, 테스트 위치를 지도에 공급해야 할 수 있어요. 이때 `LocationProvider`와 `HeadingProvider`를 override할 수 있습니다.
-
-```text
-프로덕션: AppleLocationProvider ──> LocationManager ──> Puck
-테스트:   RecordedLocationProvider ─> LocationManager ──> Puck
-```
-
-custom provider를 사용해도 위치 권한 책임이 자동으로 사라지지는 않아요. 실제 사용자 위치를 얻는 주체가 앱이라면 적절한 권한을 요청해야 합니다. provider의 update 주기, MainActor 전달, 종료와 재시작 수명 주기도 명시적으로 관리하세요.
-
-## 위치 이벤트와 비즈니스 요청을 분리해요
-
-위치가 갱신될 때마다 주변 API를 호출하면 배터리와 네트워크 사용량이 커질 수 있어요.
-
-```text
-위치 update
-  ├─ Puck은 부드럽게 갱신
-  └─ 앱 model은 거리·시간 조건 검사
-         └─ 의미 있게 이동했을 때만 주변 장소 재조회
-```
-
-지도 표현은 빠른 update를 받을 수 있지만 서버 요청은 거리 threshold, debounce, 사용자 새로고침 같은 별도 정책을 적용합니다. 위치 provider나 View 안에서 네트워크 요청을 직접 섞지 않는 편이 테스트하기 쉬워요.
-
-## 개인정보와 telemetry를 함께 확인해요
-
-위치 권한 문구만 추가했다고 개인정보 검토가 끝난 것은 아닙니다.
-
-- 수집하는 위치의 정확도와 보관 기간을 정했나요?
-- 위치를 서버로 보낼 때 꼭 필요한가요?
-- 사용자가 위치 기능을 끈 뒤 기존 데이터 삭제 경로가 있나요?
-- 앱 개인정보 처리방침과 App Store Privacy 응답이 실제 동작과 맞나요?
-- Mapbox attribution control을 통한 telemetry opt-out 경로가 유지되나요?
-
-법적 요구와 Mapbox 약관은 출시 시점에 다시 검토하세요.
+테스트 위치 공급원으로 바꿀 때도 데이터 생산을 시작·중단하는 주체를 정해요. 실제 기기 위치를 직접 수집하는 custom provider라면 권한 책임이 없어지는 것은 아니에요. 시뮬레이터 재생 경로와 실기기의 권한·정확도 전환은 서로 다른 테스트예요.
 
 ## 적용 순서를 정리해요
 
-1. 위치가 필요한 사용자 기능과 대체 흐름을 먼저 정의해요.
-2. 그 기능에 필요한 최소 권한과 정확도를 선택해요.
-3. 사용자 액션 시점에 구체적인 목적을 설명하고 요청해요.
-4. Puck으로 위치를 표시하고 카메라 추적은 별도 Viewport로 연결해요.
-5. 사용자 제스처가 추적을 멈추게 하고 버튼으로 다시 시작해요.
-6. denied·reduced accuracy·신호 대기 상태의 UI를 각각 준비해요.
-7. 위치 update와 서버 요청의 빈도를 분리해 배터리와 비용을 관리해요.
+1. 위치 없이 가능한 수동 탐색 경로를 만들어요.
+2. 위치를 사용하는 이유를 `Info.plist`에 적어요.
+3. 사용자 행동에 맞춰 Puck과 추적을 연결해요.
+4. 요청했다는 값과 실제 권한 상태를 구분해요.
+5. 대략적 위치·오래된 측정·위치 대기를 테스트해요.
+6. 화면 종료와 provider 교체 시 데이터 공급 수명을 확인해요.
 
 ## 면접에서 이어질 수 있는 질문
 
-### Puck과 follow-puck Viewport의 차이는 무엇인가요?
+### 위치 권한을 받으면 정확한 현재 위치가 있나요?
 
-Puck은 사용자 위치를 지도에 그리는 콘텐츠이고, follow-puck은 카메라가 그 위치를 따라가게 하는 상태입니다. 하나만 사용해도 다른 하나가 자동으로 생기지 않아요.
+아니요. 권한, 정확도 허용 수준, 측정값 도착과 최신성은 따로 확인해야 해요.
 
-### heading과 course는 어떻게 다른가요?
+### heading과 course는 언제 구분하나요?
 
-heading은 기기가 향한 나침반 방향이고 course는 실제 이동 방향입니다. 정지 중 방향이 필요하면 heading이 맞고, 차량처럼 움직임을 기준으로 회전하려면 course를 검토해요.
+주변 방향 탐색처럼 기기가 향한 방향과 이동 경로가 중요한 화면은 요구가 달라요. 정지 상태의 이동 방향을 항상 유효하다고 가정하지 않아요.
 
-### reduced accuracy에서는 어떻게 대응하나요?
+### 테스트 provider를 쓰면 모든 위치 검증을 대체하나요?
 
-정밀 위치가 없어도 가능한 기능은 대략적 위치로 계속 제공합니다. 정말 필요한 특정 기능에서만 임시 full accuracy를 설명하고 요청하며, 거부하면 주소 검색이나 지도 핀 이동 같은 대안을 제공해요.
+아니요. 앱 정책과 데이터 흐름은 안정적으로 테스트할 수 있지만 실기기의 권한 화면과 센서 품질은 별도 확인이 필요해요.
 
 ## 참고 자료
 
-- [Mapbox User Location 가이드](https://docs.mapbox.com/ios/maps/guides/user-location/)
-- [Mapbox SwiftUI의 사용자 위치](https://docs.mapbox.com/ios/maps/guides/swift-ui/#displaying-a-users-location)
-- [Apple 위치 서비스 권한 요청](https://developer.apple.com/documentation/corelocation/requesting-authorization-to-use-location-services)
-- [Apple `accuracyAuthorization`](https://developer.apple.com/documentation/corelocation/cllocationmanager/accuracyauthorization)
-- [Mapbox 모바일 앱과 telemetry 안내](https://docs.mapbox.com/help/dive-deeper/mobile-apps/)
+- [Mapbox User Location](https://docs.mapbox.com/ios/maps/guides/user-location/)
+- [Apple CLLocation](https://developer.apple.com/documentation/corelocation/cllocation)
+- [Apple horizontalAccuracy](https://developer.apple.com/documentation/corelocation/cllocation/horizontalaccuracy)
+- [Apple timestamp](https://developer.apple.com/documentation/corelocation/cllocation/timestamp)

@@ -1,55 +1,220 @@
 [
   {
     "type": "custom-link",
-    "label": "Mapbox Maps SDK 시작하기",
+    "label": "가이드 개요",
     "link": "/guide/mapbox-maps-sdk/index"
   },
   {
     "type": "custom-link",
-    "label": "설치와 화면 구성",
-    "link": "/guide/mapbox-maps-sdk/installation-and-access-token",
-    "collapsible": true,
-    "collapsed": true,
-    "items": [
-      {
-        "type": "custom-link",
-        "label": "설치와 Access Token",
-        "link": "/guide/mapbox-maps-sdk/installation-and-access-token"
-      },
-      {
-        "type": "custom-link",
-        "label": "SwiftUI 지도와 카메라",
-        "link": "/guide/mapbox-maps-sdk/swiftui-map-and-camera"
-      }
-    ]
+    "label": "설치와 시작하기",
+    "link": "/guide/mapbox-maps-sdk/install"
   },
   {
     "type": "custom-link",
-    "label": "지도 데이터와 표현",
-    "link": "/guide/mapbox-maps-sdk/styles-sources-and-layers",
-    "collapsible": true,
-    "collapsed": true,
-    "items": [
-      {
-        "type": "custom-link",
-        "label": "스타일·Source·Layer",
-        "link": "/guide/mapbox-maps-sdk/styles-sources-and-layers"
-      },
-      {
-        "type": "custom-link",
-        "label": "Annotation과 클러스터링",
-        "link": "/guide/mapbox-maps-sdk/annotations-and-clustering"
-      }
-    ]
-  },
-  {
-    "type": "custom-link",
-    "label": "사용자 위치와 권한",
+    "label": "사용자 위치",
     "link": "/guide/mapbox-maps-sdk/user-location"
   },
   {
     "type": "custom-link",
+    "label": "데이터 추가",
+    "link": "/guide/mapbox-maps-sdk/add-your-data/index",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "마커",
+        "link": "/guide/mapbox-maps-sdk/add-your-data/markers"
+      },
+      {
+        "type": "custom-link",
+        "label": "어노테이션",
+        "link": "/guide/mapbox-maps-sdk/add-your-data/annotations"
+      },
+      {
+        "type": "custom-link",
+        "label": "뷰 어노테이션",
+        "link": "/guide/mapbox-maps-sdk/add-your-data/view-annotations"
+      },
+      {
+        "type": "custom-link",
+        "label": "스타일 레이어로 데이터 표시",
+        "link": "/guide/mapbox-maps-sdk/add-your-data/style-layers"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "지도 스타일",
+    "link": "/guide/mapbox-maps-sdk/styles/index",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "스타일 설정",
+        "link": "/guide/mapbox-maps-sdk/styles/set-a-style"
+      },
+      {
+        "type": "custom-link",
+        "label": "소스와 레이어 다루기",
+        "link": "/guide/mapbox-maps-sdk/styles/work-with-layers"
+      },
+      {
+        "type": "custom-link",
+        "label": "표현식으로 레이어 스타일 지정",
+        "link": "/guide/mapbox-maps-sdk/styles/style-layers"
+      },
+      {
+        "type": "custom-link",
+        "label": "선언적 지도 스타일",
+        "link": "/guide/mapbox-maps-sdk/styles/declarative-map-styling"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "SwiftUI 통합",
+    "link": "/guide/mapbox-maps-sdk/swift-ui"
+  },
+  {
+    "type": "custom-link",
+    "label": "카메라와 애니메이션",
+    "link": "/guide/mapbox-maps-sdk/camera-and-animation/index",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "카메라 위치",
+        "link": "/guide/mapbox-maps-sdk/camera-and-animation/camera"
+      },
+      {
+        "type": "custom-link",
+        "label": "애니메이션",
+        "link": "/guide/mapbox-maps-sdk/camera-and-animation/animations"
+      },
+      {
+        "type": "custom-link",
+        "label": "뷰포트",
+        "link": "/guide/mapbox-maps-sdk/camera-and-animation/viewport"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "사용자 상호작용",
+    "link": "/guide/mapbox-maps-sdk/user-interaction/index",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "제스처",
+        "link": "/guide/mapbox-maps-sdk/user-interaction/gestures"
+      },
+      {
+        "type": "custom-link",
+        "label": "상호작용 API",
+        "link": "/guide/mapbox-maps-sdk/user-interaction/interactions"
+      },
+      {
+        "type": "custom-link",
+        "label": "지도 콘텐츠 제스처",
+        "link": "/guide/mapbox-maps-sdk/user-interaction/map-content-gestures"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "지오펜싱",
+    "link": "/guide/mapbox-maps-sdk/geofencing"
+  },
+  {
+    "type": "custom-link",
+    "label": "실내 지도",
+    "link": "/guide/mapbox-maps-sdk/indoor"
+  },
+  {
+    "type": "custom-link",
     "label": "오프라인 지도",
-    "link": "/guide/mapbox-maps-sdk/offline-maps"
+    "link": "/guide/mapbox-maps-sdk/offline/index",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "개념과 제약",
+        "link": "/guide/mapbox-maps-sdk/offline/concepts"
+      },
+      {
+        "type": "custom-link",
+        "label": "오프라인 데이터 관리",
+        "link": "/guide/mapbox-maps-sdk/offline/manage-offline-data"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "캐시 관리",
+    "link": "/guide/mapbox-maps-sdk/cache-management"
+  },
+  {
+    "type": "custom-link",
+    "label": "디버깅과 성능 분석",
+    "link": "/guide/mapbox-maps-sdk/debugging-and-profiling/index",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "지도 기록과 재생",
+        "link": "/guide/mapbox-maps-sdk/debugging-and-profiling/map-recorder"
+      },
+      {
+        "type": "custom-link",
+        "label": "지도 디버그 옵션",
+        "link": "/guide/mapbox-maps-sdk/debugging-and-profiling/debug-options"
+      },
+      {
+        "type": "custom-link",
+        "label": "트레이싱",
+        "link": "/guide/mapbox-maps-sdk/debugging-and-profiling/tracing"
+      },
+      {
+        "type": "custom-link",
+        "label": "성능 통계",
+        "link": "/guide/mapbox-maps-sdk/debugging-and-profiling/performance-stats"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
+    "label": "visionOS 통합",
+    "link": "/guide/mapbox-maps-sdk/work-with-visionos"
+  },
+  {
+    "type": "custom-link",
+    "label": "v11 마이그레이션",
+    "link": "/guide/mapbox-maps-sdk/migrate-to-v11"
+  },
+  {
+    "type": "custom-link",
+    "label": "요금 산정",
+    "link": "/guide/mapbox-maps-sdk/pricing"
+  },
+  {
+    "type": "custom-link",
+    "label": "이전 버전",
+    "link": "/guide/mapbox-maps-sdk/old-versions/index",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "v10 마이그레이션",
+        "link": "/guide/mapbox-maps-sdk/old-versions/migrate-to-v10"
+      }
+    ]
   }
 ]

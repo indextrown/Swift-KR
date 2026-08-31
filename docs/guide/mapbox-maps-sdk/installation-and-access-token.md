@@ -7,6 +7,10 @@ outline: false
 
 # Mapbox Maps SDK 설치와 Access Token
 
+:::note 기존 실전 예제
+이 문서는 기존 링크를 유지하는 보충 자료예요. 공식 Guides와 일대일로 대응하는 최신 학습 흐름은 [설치와 시작하기](./install.md)에서 확인해요.
+:::
+
 > 면접용 한 줄 요약: **Mapbox 지도는 앱 시작 전에 읽기 권한의 공개 `pk` Token이 필요하며, 계정 변경 권한이 있는 비밀 `sk` Token은 서버·CI 같은 보호된 환경에만 두어야 합니다.**
 
 ## 먼저 알아둘 설치 용어
@@ -27,7 +31,7 @@ outline: false
 - Swift 5.9 이상
 - Maps SDK v11에는 Xcode 16 이상
 
-현재 공식 문서의 버전은 `11.28.2`지만, 새 버전이 배포되면 달라질 수 있어요. 프로젝트가 선택한 버전의 [changelog](https://github.com/mapbox/mapbox-maps-ios/blob/main/CHANGELOG.md)와 Package Resolution을 기준으로 실제 지원 범위를 확인합니다.
+2026-08-31 확인한 공식 문서의 버전은 `11.29.1`이지만, 새 버전이 배포되면 달라질 수 있어요. 프로젝트가 선택한 버전의 [changelog](https://github.com/mapbox/mapbox-maps-ios/blob/main/CHANGELOG.md)와 Package Resolution을 기준으로 실제 지원 범위를 확인합니다.
 
 ## 2단계: SPM으로 패키지를 추가해요
 

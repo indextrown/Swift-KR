@@ -1,0 +1,281 @@
+{
+  "reviewed": "2026-08-31",
+  "sdkVersion": "11.29.1",
+  "officialIndex": "https://docs.mapbox.com/ios/maps/llms.txt",
+  "scope": "Guides; includes overview and all child guides; excludes separate Examples/API Reference and other products",
+  "pages": [
+    {
+      "slug": "index",
+      "label": "가이드 개요",
+      "original": "Maps SDK for iOS",
+      "source": "https://docs.mapbox.com/ios/maps/guides/",
+      "parent": null
+    },
+    {
+      "slug": "install",
+      "label": "설치와 시작하기",
+      "original": "Get Started",
+      "source": "https://docs.mapbox.com/ios/maps/guides/install/",
+      "parent": null
+    },
+    {
+      "slug": "user-location",
+      "label": "사용자 위치",
+      "original": "User Location",
+      "source": "https://docs.mapbox.com/ios/maps/guides/user-location/",
+      "parent": null
+    },
+    {
+      "slug": "add-your-data/index",
+      "label": "데이터 추가",
+      "original": "Add your Data",
+      "source": "https://docs.mapbox.com/ios/maps/guides/add-your-data/",
+      "parent": null
+    },
+    {
+      "slug": "add-your-data/markers",
+      "label": "마커",
+      "original": "Markers",
+      "source": "https://docs.mapbox.com/ios/maps/guides/add-your-data/markers/",
+      "parent": "add-your-data/index"
+    },
+    {
+      "slug": "add-your-data/annotations",
+      "label": "어노테이션",
+      "original": "Annotations",
+      "source": "https://docs.mapbox.com/ios/maps/guides/add-your-data/annotations/",
+      "parent": "add-your-data/index"
+    },
+    {
+      "slug": "add-your-data/view-annotations",
+      "label": "뷰 어노테이션",
+      "original": "View annotations",
+      "source": "https://docs.mapbox.com/ios/maps/guides/add-your-data/view-annotations/",
+      "parent": "add-your-data/index"
+    },
+    {
+      "slug": "add-your-data/style-layers",
+      "label": "스타일 레이어로 데이터 표시",
+      "original": "Style layers",
+      "source": "https://docs.mapbox.com/ios/maps/guides/add-your-data/style-layers/",
+      "parent": "add-your-data/index"
+    },
+    {
+      "slug": "styles/index",
+      "label": "지도 스타일",
+      "original": "Map Styles",
+      "source": "https://docs.mapbox.com/ios/maps/guides/styles/",
+      "parent": null
+    },
+    {
+      "slug": "styles/set-a-style",
+      "label": "스타일 설정",
+      "original": "Set a style",
+      "source": "https://docs.mapbox.com/ios/maps/guides/styles/set-a-style/",
+      "parent": "styles/index"
+    },
+    {
+      "slug": "styles/work-with-layers",
+      "label": "소스와 레이어 다루기",
+      "original": "Work with sources and layers",
+      "source": "https://docs.mapbox.com/ios/maps/guides/styles/work-with-layers/",
+      "parent": "styles/index"
+    },
+    {
+      "slug": "styles/style-layers",
+      "label": "표현식으로 레이어 스타일 지정",
+      "original": "Styling layers with expressions",
+      "source": "https://docs.mapbox.com/ios/maps/guides/styles/style-layers/",
+      "parent": "styles/index"
+    },
+    {
+      "slug": "styles/declarative-map-styling",
+      "label": "선언적 지도 스타일",
+      "original": "Declarative Map Styling",
+      "source": "https://docs.mapbox.com/ios/maps/guides/styles/declarative-map-styling/",
+      "parent": "styles/index"
+    },
+    {
+      "slug": "swift-ui",
+      "label": "SwiftUI 통합",
+      "original": "SwiftUI",
+      "source": "https://docs.mapbox.com/ios/maps/guides/swift-ui/",
+      "parent": null
+    },
+    {
+      "slug": "camera-and-animation/index",
+      "label": "카메라와 애니메이션",
+      "original": "Camera and Animations",
+      "source": "https://docs.mapbox.com/ios/maps/guides/camera-and-animation/",
+      "parent": null
+    },
+    {
+      "slug": "camera-and-animation/camera",
+      "label": "카메라 위치",
+      "original": "Camera position",
+      "source": "https://docs.mapbox.com/ios/maps/guides/camera-and-animation/camera/",
+      "parent": "camera-and-animation/index"
+    },
+    {
+      "slug": "camera-and-animation/animations",
+      "label": "애니메이션",
+      "original": "Animations",
+      "source": "https://docs.mapbox.com/ios/maps/guides/camera-and-animation/animations/",
+      "parent": "camera-and-animation/index"
+    },
+    {
+      "slug": "camera-and-animation/viewport",
+      "label": "뷰포트",
+      "original": "Viewport",
+      "source": "https://docs.mapbox.com/ios/maps/guides/camera-and-animation/viewport/",
+      "parent": "camera-and-animation/index"
+    },
+    {
+      "slug": "user-interaction/index",
+      "label": "사용자 상호작용",
+      "original": "User Interaction",
+      "source": "https://docs.mapbox.com/ios/maps/guides/user-interaction/",
+      "parent": null
+    },
+    {
+      "slug": "user-interaction/gestures",
+      "label": "제스처",
+      "original": "Gestures",
+      "source": "https://docs.mapbox.com/ios/maps/guides/user-interaction/gestures/",
+      "parent": "user-interaction/index"
+    },
+    {
+      "slug": "user-interaction/interactions",
+      "label": "상호작용 API",
+      "original": "Interactions API",
+      "source": "https://docs.mapbox.com/ios/maps/guides/user-interaction/Interactions/",
+      "parent": "user-interaction/index"
+    },
+    {
+      "slug": "user-interaction/map-content-gestures",
+      "label": "지도 콘텐츠 제스처",
+      "original": "Map Content Gestures",
+      "source": "https://docs.mapbox.com/ios/maps/guides/user-interaction/map-content-gestures/",
+      "parent": "user-interaction/index"
+    },
+    {
+      "slug": "geofencing",
+      "label": "지오펜싱",
+      "original": "Geofencing",
+      "source": "https://docs.mapbox.com/ios/maps/guides/geofencing/",
+      "parent": null
+    },
+    {
+      "slug": "indoor",
+      "label": "실내 지도",
+      "original": "Indoor mapping",
+      "source": "https://docs.mapbox.com/ios/maps/guides/indoor/",
+      "parent": null
+    },
+    {
+      "slug": "offline/index",
+      "label": "오프라인 지도",
+      "original": "Offline Maps",
+      "source": "https://docs.mapbox.com/ios/maps/guides/offline/",
+      "parent": null
+    },
+    {
+      "slug": "offline/concepts",
+      "label": "개념과 제약",
+      "original": "Concepts and Constraints",
+      "source": "https://docs.mapbox.com/ios/maps/guides/offline/concepts/",
+      "parent": "offline/index"
+    },
+    {
+      "slug": "offline/manage-offline-data",
+      "label": "오프라인 데이터 관리",
+      "original": "Manage Offline Data",
+      "source": "https://docs.mapbox.com/ios/maps/guides/offline/manage-offline-data/",
+      "parent": "offline/index"
+    },
+    {
+      "slug": "cache-management",
+      "label": "캐시 관리",
+      "original": "Cache Management",
+      "source": "https://docs.mapbox.com/ios/maps/guides/cache-management/",
+      "parent": null
+    },
+    {
+      "slug": "debugging-and-profiling/index",
+      "label": "디버깅과 성능 분석",
+      "original": "Debugging and Profiling",
+      "source": "https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/",
+      "parent": null
+    },
+    {
+      "slug": "debugging-and-profiling/map-recorder",
+      "label": "지도 기록과 재생",
+      "original": "MapRecorder",
+      "source": "https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/map-recorder/",
+      "parent": "debugging-and-profiling/index"
+    },
+    {
+      "slug": "debugging-and-profiling/debug-options",
+      "label": "지도 디버그 옵션",
+      "original": "Map Debug Options",
+      "source": "https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/debug-options/",
+      "parent": "debugging-and-profiling/index"
+    },
+    {
+      "slug": "debugging-and-profiling/tracing",
+      "label": "트레이싱",
+      "original": "Tracing",
+      "source": "https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/tracing/",
+      "parent": "debugging-and-profiling/index"
+    },
+    {
+      "slug": "debugging-and-profiling/performance-stats",
+      "label": "성능 통계",
+      "original": "Performance Statistics",
+      "source": "https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/performance-stats/",
+      "parent": "debugging-and-profiling/index"
+    },
+    {
+      "slug": "work-with-visionos",
+      "label": "visionOS 통합",
+      "original": "Work with visionOS",
+      "source": "https://docs.mapbox.com/ios/maps/guides/work-with-visionos/",
+      "parent": null
+    },
+    {
+      "slug": "migrate-to-v11",
+      "label": "v11 마이그레이션",
+      "original": "Migrate to v11",
+      "source": "https://docs.mapbox.com/ios/maps/guides/migrate-to-v11/",
+      "parent": null
+    },
+    {
+      "slug": "pricing",
+      "label": "요금 산정",
+      "original": "Pricing",
+      "source": "https://docs.mapbox.com/ios/maps/guides/pricing/",
+      "parent": null
+    },
+    {
+      "slug": "old-versions/index",
+      "label": "이전 버전",
+      "original": "Previous versions",
+      "source": "https://docs.mapbox.com/ios/maps/guides/old-versions/",
+      "parent": null
+    },
+    {
+      "slug": "old-versions/migrate-to-v10",
+      "label": "v10 마이그레이션",
+      "original": "Migrate to v10",
+      "source": "https://docs.mapbox.com/ios/maps/guides/old-versions/migrate-to-v10/",
+      "parent": "old-versions/index"
+    }
+  ],
+  "legacyPages": [
+    "installation-and-access-token",
+    "swiftui-map-and-camera",
+    "styles-sources-and-layers",
+    "annotations-and-clustering",
+    "offline-maps"
+  ]
+}

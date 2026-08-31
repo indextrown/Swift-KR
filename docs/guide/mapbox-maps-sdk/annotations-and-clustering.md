@@ -7,6 +7,10 @@ outline: false
 
 # Mapbox Annotation과 클러스터링
 
+:::note 기존 실전 예제
+클러스터링 통합 예제를 유지한 보충 자료예요. 공식 목차에 대응하는 [데이터 추가](./add-your-data/index.md)에서 마커·어노테이션·뷰 어노테이션·스타일 레이어를 각각 확인해요.
+:::
+
 > 면접용 한 줄 요약: **소수의 개별 지점은 Annotation으로 빠르게 표현하고, 지점이 많아지면 Layer 기반 그룹이나 GeoJSON Source 클러스터링으로 draw call과 화면 겹침을 줄입니다.**
 
 ## 먼저 알아둘 표현 용어
