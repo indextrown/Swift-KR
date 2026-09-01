@@ -68,6 +68,10 @@ Scheme의 **Profile** 동작에 전달되는 환경 변수를 확인해 다음 �
 
 관련 표식이 없으면 곧바로 “SDK에서 작업하지 않았다”고 판단하지 마세요. 설정 대상 프로세스, 추적 범위, 기록 시작 시점과 이벤트 누락 가능성을 먼저 확인해야 해요.
 
+![Xcode Instruments에서 Mapbox signpost를 분석하는 시간축](../assets/instruments-tracing.png)
+
+_각 행의 구간은 core·platform 사건이 언제 시작되고 끝났는지 보여 줘요. 겹친 구간을 단순 합산하기보다 같은 시간대의 관계를 살펴봐요. [공식 Tracing에서 Instruments 캡처와 기록 절차 보기](https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/tracing/)_
+
 ## 합계와 시간축은 서로 다른 질문에 답해요
 
 ```text

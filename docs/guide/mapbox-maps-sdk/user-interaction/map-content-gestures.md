@@ -23,6 +23,10 @@ reviewed: '2026-08-31'
 
 View Annotation은 네이티브 뷰의 제스처를 사용하고, Layer Annotation은 SDK의 탭·길게 누르기 처리를 사용해요. 지도 내부에서는 위쪽 객체부터 기회를 받고 `true`로 처리하면 전파를 끝내요. [공식 가이드](https://docs.mapbox.com/ios/maps/guides/user-interaction/map-content-gestures/)
 
+![View Annotation부터 Map까지 이어지는 지도 제스처 처리 순서](../assets/gesture-handling-order.png)
+
+_숫자는 겹친 위치에서 입력을 받을 우선순위를 나타내요. View Annotation 같은 화면 뷰가 먼저 처리하고, 소비되지 않은 입력이 Annotation·Layer·Map으로 이어져요. [공식 Map Content Gestures에서 처리 순서 보기](https://docs.mapbox.com/ios/maps/guides/user-interaction/map-content-gestures/)_
+
 ## 같은 탭이 두 기능을 실행하지 않게 해요
 
 “첫 번째 탭은 도움말을 보여주고 다음부터 지도에 전달한다”라는 화면 정책을 생각해 보세요. 상태를 true로 바꾼 뒤 그 상태를 매번 반환하면 두 번째 탭도 계속 소비하는 실수가 생겨요.

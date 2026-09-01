@@ -72,6 +72,10 @@ struct NearbyStoreLocationMap: View {
 
 `requestsLocation`은 **앱이 위치 기능을 요청했다는 값**이지 권한 승인 여부가 아니에요. 완성 앱에서는 승인·거부·제한·위치 대기 상태에 따라 버튼과 안내를 조정해야 해요. 이 Boolean만 보고 “현재 위치 확인 완료”를 표시하면 안 돼요.
 
+![iOS 지도 화면에 표시된 사용자 위치 Puck](./assets/user-location-puck.png)
+
+_파란 Puck은 지도상의 사용자 위치 표현이에요. Puck 표시와 위치 권한 상태, 카메라 추적은 각각 따로 관리해야 해요. [공식 User Location에서 이미지와 설정 보기](https://docs.mapbox.com/ios/maps/guides/user-location/)_
+
 ## 표시용 위치와 검색 실행 기준을 나눠요
 
 Puck이 보이는 것과 “이 위치로 서버를 검색해도 된다”는 서로 다른 판단이에요. 사용자가 앱으로 돌아왔을 때 오래된 위치가 남아 있거나 오차가 클 수 있어요.

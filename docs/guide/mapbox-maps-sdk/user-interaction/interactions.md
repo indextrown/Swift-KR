@@ -105,6 +105,10 @@ final class PoiSelectionRegistration {
 
 건물 선택 강조처럼 지도 객체의 표현을 바꾸는 기능은 해당 타입의 feature state를 사용해요. 다만 앱의 영속적인 즐겨찾기와 렌더링용 강조 상태는 같지 않아요. 즐겨찾기를 저장하려면 앱 데이터 모델을 따로 두고 화면 진입 시 표현을 복원하는 기준이 필요해요.
 
+![Mapbox Standard 지도에서 선택된 건물 Feature](../assets/interaction-standard-features.png)
+
+_Standard가 공개한 건물 featureset을 선택하고 feature state로 강조한 예시예요. 내부 레이어 이름을 추측하는 대신 공개된 상호작용 경계를 사용해요. [공식 Interactions API에서 이미지와 예제 보기](https://docs.mapbox.com/ios/maps/guides/user-interaction/Interactions/)_
+
 ## 적용 순서를 정리해요
 
 1. 현재 스타일이 공개한 선택 대상을 확인해요.
