@@ -5,8 +5,10 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const directory = path.join(root, 'docs/guide/mapbox-maps-sdk');
+const assetsDirectory = path.join(directory, 'assets');
 const routePrefix = '/guide/mapbox-maps-sdk/';
 const sourcePrefix = 'https://docs.mapbox.com/ios/maps/guides';
+const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
 function frontmatter(content) {
   const header = content.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1];
@@ -54,6 +56,88 @@ function assertUnique(values, name) {
   assert.equal(new Set(values).size, values.length, `${name}: 중복 항목`);
 }
 
+function imageReference(page, file) {
+  const relative = path.posix.relative(
+    path.posix.dirname(`${page}.md`),
+    `assets/${file}`,
+  );
+  return relative.startsWith('.') ? relative : `./${relative}`;
+}
+
+async function checkImages(imageManifest, guideManifest) {
+  assert.equal(imageManifest.owner, 'Mapbox', '이미지 권리자 표기 불일치');
+  assert.equal(
+    imageManifest.reviewed,
+    '2026-09-01',
+    '이미지 검토일을 갱신하세요.',
+  );
+  assert.ok(imageManifest.images.length > 0, '이미지 목록이 비었습니다.');
+  assertUnique(
+    imageManifest.images.map((image) => image.file),
+    '이미지 파일',
+  );
+  assertUnique(
+    imageManifest.images.map((image) => image.source),
+    '이미지 원본 URL',
+  );
+  assertUnique(
+    imageManifest.images.map((image) => image.alt),
+    '이미지 대체 텍스트',
+  );
+
+  const officialPages = new Set(guideManifest.pages.map((page) => page.slug));
+  const actualFiles = (await readdir(assetsDirectory))
+    .filter((file) => file.endsWith('.png'))
+    .toSorted();
+  assert.deepEqual(
+    actualFiles,
+    imageManifest.images.map((image) => image.file).toSorted(),
+    '매니페스트와 로컬 PNG 파일 목록이 다릅니다.',
+  );
+
+  let totalBytes = 0;
+  for (const image of imageManifest.images) {
+    assert.match(image.file, /^[a-z0-9-]+\.png$/, `${image.file}: 파일 이름`);
+    assert.ok(officialPages.has(image.page), `${image.file}: 공식 페이지 누락`);
+    assert.ok(image.alt.trim().length >= 10, `${image.file}: 대체 텍스트 부족`);
+    assert.ok(
+      image.source.startsWith('https://docs.mapbox.com/ios/assets/') ||
+        image.source.startsWith('https://static-assets.mapbox.com/'),
+      `${image.file}: 공식 이미지 URL이 아닙니다.`,
+    );
+
+    const binary = await readFile(path.join(assetsDirectory, image.file));
+    assert.ok(binary.length > 24, `${image.file}: PNG 데이터 부족`);
+    assert.deepEqual(
+      binary.subarray(0, pngSignature.length),
+      pngSignature,
+      `${image.file}: PNG 서명 불일치`,
+    );
+    const width = binary.readUInt32BE(16);
+    const height = binary.readUInt32BE(20);
+    assert.ok(width > 0 && height > 0, `${image.file}: PNG 크기 불일치`);
+    totalBytes += binary.length;
+
+    const content = await readFile(
+      path.join(directory, `${image.page}.md`),
+      'utf8',
+    );
+    const reference = `![${image.alt}](${imageReference(
+      image.page,
+      image.file,
+    )})`;
+    assert.ok(content.includes(reference), `${image.file}: 문서 참조 누락`);
+  }
+
+  console.log(
+    `로컬 공식 이미지: ${imageManifest.images.length}개 / ${(
+      totalBytes /
+      1024 /
+      1024
+    ).toFixed(1)}MB`,
+  );
+}
+
 async function checkOnline(manifest) {
   const response = await fetch(manifest.officialIndex, {
     signal: AbortSignal.timeout(30_000),
@@ -88,6 +172,9 @@ async function main() {
   );
   const manifest = JSON.parse(
     await readFile(path.join(directory, 'guide-manifest.json'), 'utf8'),
+  );
+  const imageManifest = JSON.parse(
+    await readFile(path.join(assetsDirectory, 'image-manifest.json'), 'utf8'),
   );
   const meta = JSON.parse(
     await readFile(path.join(directory, '_meta.json'), 'utf8'),
@@ -142,6 +229,7 @@ async function main() {
   console.log(
     `로컬 공식 가이드: ${slugs.length}개 / 보존한 보충 문서: ${manifest.legacyPages.length}개`,
   );
+  await checkImages(imageManifest, manifest);
   console.log('목차 순서·부모·한글 이름·기본 접힘·frontmatter 검사 통과');
   if (options.includes('--online')) await checkOnline(manifest);
 }

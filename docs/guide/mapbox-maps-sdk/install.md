@@ -98,6 +98,10 @@ final class FirstMapController: UIViewController {
 
 이제 화면에 공간을 배정하는 책임과 지도 내용을 불러오는 책임이 분리됐어요. 위치 권한을 요청하는 기능은 아직 없어요.
 
+![Maps SDK 설치 후 iOS 앱에 표시된 기본 지도](./assets/quickstart-result.png)
+
+_패키지와 토큰 설정을 마치면 위와 같은 기본 지도를 기준으로 레이아웃·인증·네트워크 문제를 나눠 확인할 수 있어요. [공식 Get Started에서 이미지와 절차 보기](https://docs.mapbox.com/ios/maps/guides/install/)_
+
 ## 실패를 단계별로 확인해요
 
 | 실패                             | 첫 확인 지점                           |

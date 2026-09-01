@@ -26,6 +26,10 @@ reviewed: '2026-08-31'
 
 이 구조는 카드의 버튼·문구 변경이 전체 매장 표시 방식에 영향을 주지 않도록 하기 위한 설계 제안이에요.
 
+![Point Annotation에 연결된 팝업 View Annotation](../assets/view-annotation-popup.png)
+
+_지도 내부의 Point Annotation은 위치 표시를, 실제 뷰인 View Annotation은 팝업 내용을 맡을 수 있어요. [공식 View annotations에서 연결 예시 보기](https://docs.mapbox.com/ios/maps/guides/add-your-data/view-annotations/)_
+
 ## SwiftUI 카드에 버튼을 넣어요
 
 `MapViewAnnotation`의 콘텐츠는 일반 SwiftUI 뷰예요. 다음 화면은 카드 버튼으로 상세 정보를 여는 동작을 연습해요. 반투명 배경 표현을 위해 iOS 15 이상을 사용해요.
@@ -113,6 +117,12 @@ func addPickupCard(
 ## 배치와 데이터 선택은 별개의 규칙이에요
 
 공식 가이드는 높은 `priority`가 앞에 표시되고, 같은 값이면 추가 순서를 따른다고 설명해요. 여러 앵커를 주면 적절한 위치를 선택할 수 있어요. 뷰 자체는 지도와 함께 회전·기울기·확대되지 않아요. [배치 규칙](https://docs.mapbox.com/ios/maps/guides/add-your-data/view-annotations/#customize-the-appearance)
+
+| 같은 우선순위에서 추가 순서 사용                                                       | 선택 항목을 위로 표시                                                                     |
+| -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| ![추가 순서에 따라 겹쳐진 여러 View Annotation](../assets/view-annotation-z-order.png) | ![선택 속성으로 가장 위에 표시된 View Annotation](../assets/view-annotation-selected.png) |
+
+_겹침을 없애는 것과 어떤 뷰를 앞에 둘지는 다른 문제예요. 선택 상태와 `priority`를 화면 정책에 맞게 연결해요. [공식 배치 규칙에서 비교 이미지 보기](https://docs.mapbox.com/ios/maps/guides/add-your-data/view-annotations/#customize-the-appearance)_
 
 Feature에 연결하면 해당 표시와 가시성을 연동할 수 있지만, 예약 상태나 선택 해제 같은 앱의 업무 규칙까지 자동으로 처리하는 것은 아니에요.
 

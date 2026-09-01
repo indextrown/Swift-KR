@@ -23,6 +23,10 @@ reviewed: '2026-08-31'
 
 `ViewportManager`는 추적과 geometry 전체 보기 상태를 제공해요. 상태는 실행 중·전환 중·idle로 구분하며 다른 카메라 API를 사용할 때는 idle로 제어권을 넘기는 편이 좋아요. 즉시 전환과 기본 애니메이션 전환도 제공해요. [공식 가이드](https://docs.mapbox.com/ios/maps/guides/camera-and-animation/viewport/)
 
+![Idle과 Overview와 FollowPuck Viewport 상태 관계](../assets/viewport-states.png)
+
+_Idle은 자동 카메라 갱신을 멈춘 상태이고, Overview와 FollowPuck은 각각 전체 보기와 위치 추적이라는 목표를 가져요. [공식 Viewport에서 상태 도식 보기](https://docs.mapbox.com/ios/maps/guides/camera-and-animation/viewport/)_
+
 ## 위치마다 직접 이동하면 사용자와 경쟁해요
 
 사용자가 주변 골목을 살펴보려고 지도를 드래그했는데 다음 위치 갱신이 지도를 다시 본인에게 옮긴다고 생각해 보세요. 센서 데이터가 맞더라도 화면은 불편해요.

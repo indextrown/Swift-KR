@@ -36,6 +36,13 @@ reviewed: '2026-08-31'
 
 네트워크 이벤트가 있었다고 항상 같은 지도 데이터를 통째로 다시 받았다고 판단하지 마세요. 요청 수와 전송량은 다른 측정값이에요.
 
+| 일반 타일                                                                      | Volatile 타일                                                                              |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| ![일반 타일의 메모리와 디스크 캐시 요청 흐름](./assets/cache-regular-flow.png) | ![Volatile 타일이 디스크 캐시를 사용하지 않는 요청 흐름](./assets/cache-volatile-flow.png) |
+| 메모리와 디스크 캐시를 차례로 확인할 수 있어요.                                | 메모리는 사용할 수 있지만 디스크에는 보존하지 않아요.                                      |
+
+_두 흐름의 핵심 차이는 디스크 캐시 사용 여부예요. 투명 배경 도식이므로 밝은 화면에서 확인하면 경로가 선명하게 보여요. [공식 Cache Management에서 원본 도식과 설명 보기](https://docs.mapbox.com/ios/maps/guides/cache-management/)_
+
 ## 실제 경로는 SDK 설정에서 확인해요
 
 공식 문서가 안내하는 기본 캐시 파일은 앱 컨테이너의 `Library/Application Support/.mapbox/map_data/map_data.db`예요. 다만 앱이 `MapboxMapsOptions.dataPath`를 바꿀 수 있으므로, 조사에는 현재 설정을 확인하세요. 경로 문자열을 하드코딩해 데이터베이스를 직접 삭제하는 방식은 피하세요. [캐시 위치 안내](https://docs.mapbox.com/ios/maps/guides/cache-management/)

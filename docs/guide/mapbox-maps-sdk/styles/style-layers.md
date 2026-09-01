@@ -70,6 +70,10 @@ struct StoreExpressionMap: View {
 
 색상은 각 매장의 상태를 읽고, 크기는 같은 줌 입력을 사용해요. `Exp` 내부는 임의의 Swift 클로저를 매장마다 실행하는 자리가 아니라 지도 Expression을 구성하는 문법이에요.
 
+![데이터 속성에 따라 원 색상을 범주별로 바꾼 지도](../assets/expression-categorical.png)
+
+_하나의 원 Layer가 Feature 속성을 읽어 서로 다른 색을 만들 수 있어요. [공식 Expression 가이드에서 범주형 스타일 이미지 보기](https://docs.mapbox.com/ios/maps/guides/styles/style-layers/)_
+
 ## 출력부터 예상하고 확인해요
 
 다음 표는 위 작성 예제의 기대 결과예요.
@@ -83,6 +87,12 @@ struct StoreExpressionMap: View {
 
 입력 누락과 숫자·문자열 혼용은 별도 오류 사례로 넣어요. 마지막 색을 작성했다고 모든 형식 오류가 안전하게 처리된다고 가정하지 않아요.
 
+| 낮은 확대 수준                                                                              | 높은 확대 수준                                                                               |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| ![낮은 확대 수준에서 Expression으로 작게 표시된 지도 원](../assets/expression-zoom-low.png) | ![높은 확대 수준에서 Expression으로 크게 표시된 지도 원](../assets/expression-zoom-high.png) |
+
+_같은 데이터라도 `zoom` 입력과 보간 규칙에 따라 화면상의 크기가 달라져요. 두 경계만 보지 말고 중간 확대 수준도 확인해요. [공식 Expression 가이드에서 줌 비교 이미지 보기](https://docs.mapbox.com/ios/maps/guides/styles/style-layers/)_
+
 ## Swift 타입 검사와 데이터 검증은 달라요
 
 Swift 코드가 작성 가능해도 서버가 보낸 Feature 속성의 실제 타입은 실행 중에 확인돼요. Expression의 입력·출력 타입이 맞지 않으면 해당 속성의 기본값으로 돌아갈 수 있어요. `filter`는 참·거짓 결과가 필요하고 색 속성은 색 결과가 필요해요. [Expression 타입 규칙](https://docs.mapbox.com/style-spec/reference/expressions/#type-system)
@@ -92,6 +102,10 @@ Swift 코드가 작성 가능해도 서버가 보낸 Feature 속성의 실제 �
 ## 조명과 줌 평가도 확인해요
 
 Standard의 야간 조명은 사용자 Layer에도 영향을 줘요. 예제의 `circleEmissiveStrength`는 원이 조명에 반응하는 정도를 조정하기 위한 선택이에요. 밝게 만드는 것과 접근성 대비를 만족하는 것은 별도 검증 사항이에요. [조명 기반 스타일링](https://docs.mapbox.com/ios/maps/guides/styles/style-layers/#light-driven-styling-in-standard-and-standard-satellite)
+
+![서로 다른 emissive strength 값이 지도 레이어 밝기에 미치는 영향](../assets/emissive-strength.png)
+
+_`emissive-strength`가 높을수록 조명의 영향을 덜 받아 밝게 보일 수 있지만, 실제 읽기 쉬움은 배경과 색 대비까지 함께 검증해야 해요. [공식 조명 기반 스타일링에서 이미지 보기](https://docs.mapbox.com/ios/maps/guides/styles/style-layers/#light-driven-styling-in-standard-and-standard-satellite)_
 
 줌 식은 Style Specification의 배치 제약이 있고, paint와 layout 속성은 줌 변경 평가 시점도 달라요. 복잡한 식을 만들기 전에 해당 속성의 지원 범위를 확인해요. [Camera expressions](https://docs.mapbox.com/style-spec/reference/expressions/#camera-expressions)
 

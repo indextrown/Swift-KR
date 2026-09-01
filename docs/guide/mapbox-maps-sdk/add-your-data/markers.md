@@ -68,6 +68,10 @@ struct PickupMarkerMap: View {
 
 색, 테두리, 내부 색과 텍스트를 바꿀 수 있어요. 이미지 자산을 요구하지 않는 편리함이 장점이지만, 복잡한 카드 레이아웃까지 제공하는 기능은 아니에요. [Markers 가이드](https://docs.mapbox.com/ios/maps/guides/add-your-data/markers/)
 
+![색상과 테두리와 텍스트를 다르게 꾸민 Mapbox 마커](../assets/marker-customization.png)
+
+_Marker 하나에서도 외부 색·내부 색·테두리·텍스트를 조합할 수 있지만, 사진과 버튼이 있는 카드가 되는 것은 아니에요. [공식 Markers에서 커스터마이징 이미지 보기](https://docs.mapbox.com/ios/maps/guides/add-your-data/markers/)_
+
 여러 마커는 `ForEvery`로 구성할 수 있어요. 이때 매장 ID는 데이터가 갱신되어도 같은 매장을 가리켜야 해요. 화면을 다시 계산할 때마다 `UUID()`를 생성하는 방식은 피하는 편이 좋아요.
 
 ## 요구 사항이 늘어나면 책임을 나눠요

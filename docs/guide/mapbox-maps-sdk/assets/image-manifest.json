@@ -1,0 +1,229 @@
+{
+  "reviewed": "2026-09-01",
+  "owner": "Mapbox",
+  "purpose": "Official guide images mirrored locally for Korean educational context",
+  "images": [
+    {
+      "file": "standard-use-cases.png",
+      "page": "index",
+      "alt": "Mapbox Standard 스타일을 서로 다른 지도 용도에 적용한 비교",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-standard-usecases.95c154c.480.png"
+    },
+    {
+      "file": "quickstart-result.png",
+      "page": "install",
+      "alt": "Maps SDK 설치 후 iOS 앱에 표시된 기본 지도",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-overview-quickstart.923f11f.480.png"
+    },
+    {
+      "file": "user-location-puck.png",
+      "page": "user-location",
+      "alt": "iOS 지도 화면에 표시된 사용자 위치 Puck",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/beta-maps-examples-user-location-view.666ebe2.480.png"
+    },
+    {
+      "file": "data-marker.png",
+      "page": "add-your-data/index",
+      "alt": "지도 위에 표시된 Mapbox 기본 마커",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-default-markers.6f3fd46.480.png"
+    },
+    {
+      "file": "data-annotations.png",
+      "page": "add-your-data/index",
+      "alt": "지도 위에 표시된 여러 어노테이션",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-markers-annotation.ca24526.480.png"
+    },
+    {
+      "file": "data-view-annotations.png",
+      "page": "add-your-data/index",
+      "alt": "지도 위에 표시된 동적 View Annotation 카드",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-markers-dynamic-view-annotations.50a69e9.480.png"
+    },
+    {
+      "file": "data-style-layers.png",
+      "page": "add-your-data/index",
+      "alt": "지도 내부 Style Layer로 표시된 여러 아이콘",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-icons-symbol-layer.3975c1e.480.png"
+    },
+    {
+      "file": "marker-customization.png",
+      "page": "add-your-data/markers",
+      "alt": "색상과 테두리와 텍스트를 다르게 꾸민 Mapbox 마커",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-examples-default-marker-customized.96a390f.480.png"
+    },
+    {
+      "file": "annotation-point.png",
+      "page": "add-your-data/annotations",
+      "alt": "지도 중앙에 표시된 빨간 Point Annotation",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-examples-add-point-annotations.18d5cc7.480.png"
+    },
+    {
+      "file": "annotation-circle.png",
+      "page": "add-your-data/annotations",
+      "alt": "지도에 표시된 여러 Circle Annotation",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-examples-circle-annotations.f5c73eb.480.png"
+    },
+    {
+      "file": "annotation-polyline.png",
+      "page": "add-your-data/annotations",
+      "alt": "지도 위 경로를 연결한 Polyline Annotation",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-examples-add-polylines-annotations.aa3eb01.480.png"
+    },
+    {
+      "file": "annotation-polygon.png",
+      "page": "add-your-data/annotations",
+      "alt": "지도 영역을 빨간 면으로 채운 Polygon Annotation",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-examples-polygon-annotation.25593e8.480.png"
+    },
+    {
+      "file": "view-annotation-z-order.png",
+      "page": "add-your-data/view-annotations",
+      "alt": "추가 순서에 따라 겹쳐진 여러 View Annotation",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-view-annotation-z-index.f7225b8.480.png"
+    },
+    {
+      "file": "view-annotation-selected.png",
+      "page": "add-your-data/view-annotations",
+      "alt": "선택 속성으로 가장 위에 표시된 View Annotation",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-view-annotation-selected.00f16c2.480.png"
+    },
+    {
+      "file": "view-annotation-popup.png",
+      "page": "add-your-data/view-annotations",
+      "alt": "Point Annotation에 연결된 팝업 View Annotation",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-view-annotation-marker-popup.46963c4.480.png"
+    },
+    {
+      "file": "style-standard.png",
+      "page": "styles/set-a-style",
+      "alt": "Mapbox Standard 스타일로 에펠탑 주변을 표시한 iOS 지도",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-eiffel-standard-style.418c641.480.png"
+    },
+    {
+      "file": "style-outdoors.png",
+      "page": "styles/set-a-style",
+      "alt": "Mapbox Outdoors 스타일로 표시한 지형 지도",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/beta-maps-guides-outdoors.3f52188.480.png"
+    },
+    {
+      "file": "style-terrain.png",
+      "page": "styles/set-a-style",
+      "alt": "3D Terrain을 적용해 산악 지형을 입체로 표시한 지도",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/beta-maps-guides-3d-terrain.82c6563.480.png"
+    },
+    {
+      "file": "expression-categorical.png",
+      "page": "styles/style-layers",
+      "alt": "데이터 속성에 따라 원 색상을 범주별로 바꾼 지도",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-examples-style-circles-categorically.741f57c.480.png"
+    },
+    {
+      "file": "expression-zoom-low.png",
+      "page": "styles/style-layers",
+      "alt": "낮은 확대 수준에서 Expression으로 작게 표시된 지도 원",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-styles-expressions-zoom-low.98f3c0b.480.png"
+    },
+    {
+      "file": "expression-zoom-high.png",
+      "page": "styles/style-layers",
+      "alt": "높은 확대 수준에서 Expression으로 크게 표시된 지도 원",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-styles-expressions-zoom-high.d40f6e3.480.png"
+    },
+    {
+      "file": "emissive-strength.png",
+      "page": "styles/style-layers",
+      "alt": "서로 다른 emissive strength 값이 지도 레이어 밝기에 미치는 영향",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-styles-layers-emissive-light.146f00e.480.png"
+    },
+    {
+      "file": "camera-bounds.png",
+      "page": "camera-and-animation/camera",
+      "alt": "지정한 좌표 경계 밖으로 카메라 이동을 제한한 지도",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-examples-restrict-coordinate-bounds.24e7fb3.480.png"
+    },
+    {
+      "file": "viewport-states.png",
+      "page": "camera-and-animation/viewport",
+      "alt": "Idle과 Overview와 FollowPuck Viewport 상태 관계",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-overview-viewport.a705c46.480.png"
+    },
+    {
+      "file": "interaction-standard-features.png",
+      "page": "user-interaction/interactions",
+      "alt": "Mapbox Standard 지도에서 선택된 건물 Feature",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/standard-style-interactions-iOS.36def9e.480.png"
+    },
+    {
+      "file": "gesture-handling-order.png",
+      "page": "user-interaction/map-content-gestures",
+      "alt": "View Annotation부터 Map까지 이어지는 지도 제스처 처리 순서",
+      "source": "https://static-assets.mapbox.com/maps/ios/documentation/swiftui_gesture_handling_order_4.png"
+    },
+    {
+      "file": "geofence-outside.png",
+      "page": "geofencing",
+      "alt": "사용자가 Geofence 바깥에 있는 상태",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-geofencing-inactive.1e9b035.480.png"
+    },
+    {
+      "file": "geofence-inside.png",
+      "page": "geofencing",
+      "alt": "사용자가 Geofence 안으로 진입한 상태",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-geofencing-active.6c0e479.480.png"
+    },
+    {
+      "file": "geofence-exited.png",
+      "page": "geofencing",
+      "alt": "사용자가 Geofence에서 다시 이탈한 상태",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-geofencing-exit.20583c3.480.png"
+    },
+    {
+      "file": "indoor-overview.png",
+      "page": "indoor",
+      "alt": "층 선택기가 표시된 Mapbox 실내 지도",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-indoor-overview.cac0cb2.480.png"
+    },
+    {
+      "file": "cache-regular-flow.png",
+      "page": "cache-management",
+      "alt": "일반 타일의 메모리와 디스크 캐시 요청 흐름",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/cache-tile-fetching-scheme.219d9ee.480.png"
+    },
+    {
+      "file": "cache-volatile-flow.png",
+      "page": "cache-management",
+      "alt": "Volatile 타일이 디스크 캐시를 사용하지 않는 요청 흐름",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/cache-volatile-tile-fetching-scheme.93c8e17.480.png"
+    },
+    {
+      "file": "debug-options.png",
+      "page": "debugging-and-profiling/debug-options",
+      "alt": "여러 MapView 디버그 옵션을 활성화한 지도 화면",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-debug-options.f8e3da0.480.png"
+    },
+    {
+      "file": "instruments-tracing.png",
+      "page": "debugging-and-profiling/tracing",
+      "alt": "Xcode Instruments에서 Mapbox signpost를 분석하는 시간축",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-debugging-tracing.a047e02.480.png"
+    },
+    {
+      "file": "performance-globe.png",
+      "page": "debugging-and-profiling/performance-stats",
+      "alt": "Feature 밀도가 낮은 지구본 성능 측정 장면",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-statistics-scenario-one.9dc1fd3.480.png"
+    },
+    {
+      "file": "performance-city.png",
+      "page": "debugging-and-profiling/performance-stats",
+      "alt": "멀리서 본 뉴욕시 지도 성능 측정 장면",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-statistics-scenario-two.a9c35df.480.png"
+    },
+    {
+      "file": "performance-city-3d.png",
+      "page": "debugging-and-profiling/performance-stats",
+      "alt": "3D 모델이 많은 뉴욕 거리 지도 성능 측정 장면",
+      "source": "https://docs.mapbox.com/ios/assets/ideal-img/maps-guides-statistics-scenario-three.65b2f58.480.png"
+    }
+  ]
+}

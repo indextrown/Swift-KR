@@ -31,6 +31,16 @@ reviewed: '2026-08-31'
 | PolylineAnnotation | 순서가 있는 좌표들을 연결한 선 |
 | PolygonAnnotation  | 닫힌 경계로 표현한 면          |
 
+| Point                                                                       | Circle                                                                   |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| ![지도 중앙에 표시된 빨간 Point Annotation](../assets/annotation-point.png) | ![지도에 표시된 여러 Circle Annotation](../assets/annotation-circle.png) |
+
+| Polyline                                                                        | Polygon                                                                              |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| ![지도 위 경로를 연결한 Polyline Annotation](../assets/annotation-polyline.png) | ![지도 영역을 빨간 면으로 채운 Polygon Annotation](../assets/annotation-polygon.png) |
+
+_Point·Circle은 위치 중심의 표시이고, Polyline·Polygon은 여러 좌표의 순서와 경계를 표현해요. [공식 Annotations에서 유형별 이미지 보기](https://docs.mapbox.com/ios/maps/guides/add-your-data/annotations/)_
+
 일반 Annotation을 모두 `UIView`라고 생각하면 안 돼요. UIKit Manager도 내부 Source·Layer를 관리해요. 실제 카드 뷰는 [View Annotation](./view-annotations.md)에서 다뤄요.
 
 ## SwiftUI에서는 현재 목록을 선언해요

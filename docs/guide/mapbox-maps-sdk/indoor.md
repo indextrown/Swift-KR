@@ -27,6 +27,10 @@ reviewed: '2026-08-31'
 
 Standard의 실내 표현은 기본적으로 꺼져 있어요. `showIndoor`를 켜면 지원 데이터가 있는 건물과 적절한 확대 수준에서 표시돼요. 층 선택기는 `ornaments.options.indoorSelector`로 구성해요.
 
+![층 선택기가 표시된 Mapbox 실내 지도](./assets/indoor-overview.png)
+
+_지도 데이터가 제공되는 건물에서는 층별 공간과 층 선택기를 함께 보여 줄 수 있어요. 층 선택기가 보인다는 사실만으로 기기의 실제 층 위치가 확인되는 것은 아니에요. [공식 Indoor mapping에서 이미지와 조건 보기](https://docs.mapbox.com/ios/maps/guides/indoor/)_
+
 다음 예제는 같은 스위치로 표현과 선택기를 함께 켜고 꺼요. 현재 앱의 카메라가 실내 데이터가 있는 지역을 바라보도록 하는 코드는 호출자가 담당해요.
 
 ```swift

@@ -35,6 +35,10 @@ Mapbox는 SwiftUI의 `.debugOptions(...)`와 UIKit `MapView.debugOptions`로 진
 
 표는 관찰 도구의 범위를 정리한 것이지, 표시가 보이면 오류라는 뜻은 아니에요. 정상 지도도 타일 경계와 라벨 충돌을 처리해요.
 
+![여러 MapView 디버그 옵션을 활성화한 지도 화면](../assets/debug-options.png)
+
+_카메라 정보·타일 경계·라벨 충돌 같은 진단 표시를 함께 켠 예시예요. 실제 조사에서는 가설 하나에 필요한 옵션부터 켜세요. [공식 Map Debug Options에서 전체 이미지와 옵션 보기](https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/debug-options/)_
+
 ## SwiftUI에서는 조사용 지도를 작게 만들어요
 
 처음부터 모든 표시를 켜면 지도와 진단선이 겹쳐 읽기 어려워요. 아래 예제는 “카메라가 맞는가, 라벨 충돌이 있는가”만 보는 개발용 화면이에요.
