@@ -1,162 +1,129 @@
 ---
-title: Swift로 이해하는 Mapbox Maps SDK for iOS
-description: Mapbox Maps SDK의 지도 렌더링 구조와 Navigation·Search SDK의 경계를 구분하고 설치부터 오프라인 지도까지의 학습 순서를 정리합니다.
-pageType: doc-wide
-outline: false
+title: Mapbox Maps SDK 공식 가이드 학습 목차
+description: Mapbox Maps SDK for iOS 공식 Guides의 38개 페이지를 한국어 문서와 일대일로 연결하고 지도 데이터, 스타일, 카메라, 운영과 버전 전환의 학습 순서를 정리해요.
+source: https://docs.mapbox.com/ios/maps/guides/
+reviewed: '2026-08-31'
 ---
 
-# Swift로 이해하는 Mapbox Maps SDK for iOS
+# Mapbox Maps SDK 공식 가이드 학습 목차
 
-> 면접용 한 줄 요약: **Mapbox Maps SDK는 Style이 참조하는 지리 데이터를 Source에서 읽어 Layer 규칙대로 Metal로 그리며, SwiftUI에서는 `Map`과 `Viewport`로 화면과 카메라를 선언적으로 구성하는 지도 렌더링 SDK입니다.**
+> **면접 답변 한 줄 요약:** Mapbox Maps SDK는 앱의 지도 화면과 지리 데이터 표현을 담당하며, 데이터·스타일·카메라·사용자 입력을 나눠 구성할 수 있는 지도 개발 도구예요.
 
-## 먼저 제품의 역할부터 구분해요
-
-Mapbox에는 지도 화면 외에도 검색, 길 안내, 지도 디자인을 담당하는 제품이 있어요. Maps SDK 하나를 설치했다고 장소 검색이나 턴 바이 턴 내비게이션까지 자동으로 생기지는 않습니다.
-
-| 만들 기능               | 선택할 제품                | 핵심 역할                                  |
-| ----------------------- | -------------------------- | ------------------------------------------ |
-| 앱 안의 대화형 지도     | Maps SDK for iOS           | 지도 렌더링, 카메라, 제스처, 데이터 표현   |
-| 주소·장소 검색          | Search SDK 또는 Search API | 검색어와 주변 위치를 장소 결과로 변환      |
-| 경로 계산과 길 안내     | Navigation SDK             | 경로, 진행 상태, 음성 안내와 내비게이션 UI |
-| 지도의 색·데이터 디자인 | Mapbox Studio              | Style과 Tileset을 웹에서 제작·게시         |
-| 고정된 지도 이미지      | Static Images API          | 상호작용 없는 지도 이미지를 생성           |
-
-앱의 전체 흐름을 단순화하면 다음과 같아요.
-
-```text
-SwiftUI Map / UIKit MapView
-          │
-          ▼
-       Map Style
-          │
-    ┌─────┴─────┐
-    ▼           ▼
-  Source      Layer
-(어디의 어떤 데이터)  (어떻게 그릴지)
-    └─────┬─────┘
-          ▼
-      Metal 렌더링
-
-검색어 ──> Search SDK/API ──> 좌표·장소 ──> Maps SDK에 표현
-목적지 ──> Navigation SDK ──> 경로·안내 ──> 지도 위에 표현
-```
-
-[공식 Maps SDK 저장소](https://github.com/mapbox/mapbox-maps-ios)는 SDK가 Mapbox Style Specification에 맞는 스타일과 Vector Tile 데이터를 받아 Metal로 렌더링한다고 설명합니다. 지도 화면은 Maps SDK가 맡고, 검색이나 경로 계산 결과를 지도에 어떻게 보여줄지는 앱이 연결해요.
+공식 [Maps SDK for iOS — Guides](https://docs.mapbox.com/ios/maps/guides/)에 대응하는 학습 섹션이에요. **공식 개요 1개와 메뉴·하위 가이드 37개를 각각 한 페이지로 연결**했어요. 원문 전체 번역이 아니라 항목별 개념, 사용법과 주의점을 직접 정리했으며, 아래 대응표에서 원문으로 이동할 수 있어요.
 
 ## 먼저 알아둘 용어
 
-| 용어         | 쉬운 뜻                                                                                |
-| ------------ | -------------------------------------------------------------------------------------- |
-| Style        | 배경 지도와 데이터의 색, 글꼴, 배치, 표시 규칙을 묶은 지도 설계도예요.                 |
-| Source       | GeoJSON, Vector Tile, Raster처럼 지도에 그릴 원본 데이터를 제공해요.                   |
-| Layer        | Source의 점·선·면을 어떤 색과 크기, 순서로 그릴지 정해요.                              |
-| Feature      | 위치와 속성을 함께 가진 지리 데이터 한 건이에요.                                       |
-| Annotation   | 좌표에 핀, 원, 선, 다각형이나 SwiftUI View를 비교적 간단히 올리는 API예요.             |
-| Camera       | 지도에서 바라보는 중심 좌표, 확대 수준, 회전, 기울기, 여백을 묶은 상태예요.            |
-| Viewport     | 고정 카메라, 사용자 위치 추적, 영역 전체 보기처럼 카메라의 목적을 나타내는 추상화예요. |
-| Access Token | Mapbox 리소스를 어떤 권한으로 요청할 수 있는지 나타내는 문자열이에요.                  |
+| 용어                          | 쉬운 뜻                                                  |
+| ----------------------------- | -------------------------------------------------------- |
+| SDK(Software Development Kit) | 앱에 특정 기능을 붙이는 코드와 도구 묶음이에요.          |
+| Style                         | 지도에 무엇을 어떤 모습으로 그릴지 정하는 설계예요.      |
+| Source / Layer                | 지도 데이터의 공급원과 그 데이터를 그리는 규칙이에요.    |
+| Camera                        | 어느 위치를 어느 방향과 크기로 바라볼지 정하는 값이에요. |
+| SwiftUI / UIKit               | Apple 플랫폼의 화면을 만드는 두 UI 프레임워크예요.       |
 
-## Mapbox의 강점은 데이터와 표현을 분리하는 데 있어요
+## 무엇을 만들 수 있나요
 
-장소 세 곳을 지도에 표시한다고 생각해 볼게요. 작은 데이터라면 `PointAnnotation`으로 빠르게 시작할 수 있습니다. 데이터가 커지거나 줌 수준에 따라 모양을 바꾸려면 Source와 Layer를 사용해요.
+공식 개요는 기본 지도 스타일, 앱 데이터 표시, 화면 이동과 상호작용을 소개해요. 지도 디자인은 Mapbox Studio와 연결할 수 있고, 정적 이미지만 필요하다면 `Snapshotter`도 선택지예요.
 
-```swift
-import MapboxMaps
-import SwiftUI
+학습할 때는 “지도에 보여 줄 데이터”와 “지도에서 실행할 업무”를 구분해 보세요. 예를 들어 매장 좌표를 그리는 일과 예약을 처리하는 일은 서로 다른 책임이에요. 지도를 바꾸더라도 예약 모델까지 바꿔야 하는 구조는 피하는 편이 좋아요.
 
-struct StoreMap: View {
-  private let cityHall = CLLocationCoordinate2D(
-    latitude: 37.5666,
-    longitude: 126.9784
-  )
+## 버전과 표시 조건을 먼저 확인해요
 
-  var body: some View {
-    Map(initialViewport: .camera(center: cityHall, zoom: 13)) {
-      PointAnnotation(coordinate: cityHall)
-        .image(named: "store-pin")
-        .iconAnchor(.bottom)
-    }
-    .mapStyle(.standard)
-  }
-}
-```
+2026-08-31 확인 시 공식 개요의 SDK 버전은 **11.29.1**, 최소 환경은 **iOS 14·Swift 5.9·Xcode 16**이며 Xcode 권장 버전은 26.4예요. 이 문서의 기준은 확인 당시의 가이드와 [11.29.1 소스](https://github.com/mapbox/mapbox-maps-ios/tree/11.29.1)예요. 각 기능의 도입 버전과 실험 상태는 별도로 확인해요.
 
-이 예제에서 좌표와 이미지가 바뀌어도 배경 지도 Style은 그대로 둘 수 있어요. 반대로 같은 데이터에 `CircleLayer`, `SymbolLayer`, `HeatmapLayer`를 적용하면 앱 모델을 다시 설계하지 않고 표현 방식을 바꿀 수 있습니다.
+새 예제의 공통 검증 대상은 **iOS 17 이상·Swift 5 언어 모드**예요. SDK의 최소 지원 버전과 예제 UI가 사용하는 Apple API의 가용 버전은 다를 수 있어요. 같은 페이지의 코드 블록은 앞에서 선언한 타입·import를 이어서 사용하는 경우가 있어요. 실제 지도 렌더링에는 유효한 공개 토큰과 실행 환경이 필요하며, 위치·백그라운드 동작과 visionOS 입력은 해당 기기에서 별도로 확인해야 해요.
 
-## Maps SDK와 Apple MapKit은 같은 타입이 아니에요
+Mapbox wordmark, 데이터 attribution, telemetry 선택 해제 경로는 출시 전에 공식 조건과 대조해야 해요. 기본 표시를 없앤다면 대체 UI의 의무도 확인하세요. 예제에서 지도가 보이는 것만으로 출시 준비가 끝나지는 않아요.
 
-두 프레임워크 모두 지도를 표시하지만 타입과 데이터 생태계가 다릅니다. Mapbox의 `Map`, `Viewport`, `PointAnnotation`은 SwiftUI MapKit의 같은 이름과 호환되지 않아요. 한 파일에서 두 프레임워크를 함께 import하면 `Map` 같은 이름이 모호해질 수 있으므로 모듈 접두어를 사용하거나 지도 화면의 import 범위를 좁히세요.
+## 공식 목차와 일대일 대응표
 
-선택할 때는 다음 질문부터 확인합니다.
+좌측 목차는 공식 Guides의 순서와 부모·자식 관계를 따르되 한국어로 표시해요. 펼칠 수 있는 그룹은 기본적으로 닫혀 있어요. Examples, API Reference, 다른 제품의 Tutorial 전체는 이번 38페이지 범위와 별개예요.
 
-- Mapbox Studio로 만든 Style과 Tileset이 필요한가요?
-- Source·Layer·Expression을 사용한 데이터 시각화가 중요한가요?
-- 오프라인 영역을 앱이 직접 내려받아 관리해야 하나요?
-- Search와 Navigation을 포함한 Mapbox 제품군을 함께 사용할 계획인가요?
-- 외부 서비스 비용과 attribution·telemetry 운영 조건을 감당할 수 있나요?
+| 순서 | 공식 항목                         | 한국어 문서                                                      | 출처                                                                                       |
+| ---- | --------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 1    | Maps SDK for iOS                  | [가이드 개요](./index.md)                                        | [원문](https://docs.mapbox.com/ios/maps/guides/)                                           |
+| 2    | Get Started                       | [설치와 시작하기](./install.md)                                  | [원문](https://docs.mapbox.com/ios/maps/guides/install/)                                   |
+| 3    | User Location                     | [사용자 위치](./user-location.md)                                | [원문](https://docs.mapbox.com/ios/maps/guides/user-location/)                             |
+| 4    | Add your Data                     | [데이터 추가](./add-your-data/index.md)                          | [원문](https://docs.mapbox.com/ios/maps/guides/add-your-data/)                             |
+| 5    | ↳ Markers                         | [마커](./add-your-data/markers.md)                               | [원문](https://docs.mapbox.com/ios/maps/guides/add-your-data/markers/)                     |
+| 6    | ↳ Annotations                     | [어노테이션](./add-your-data/annotations.md)                     | [원문](https://docs.mapbox.com/ios/maps/guides/add-your-data/annotations/)                 |
+| 7    | ↳ View annotations                | [뷰 어노테이션](./add-your-data/view-annotations.md)             | [원문](https://docs.mapbox.com/ios/maps/guides/add-your-data/view-annotations/)            |
+| 8    | ↳ Style layers                    | [스타일 레이어로 데이터 표시](./add-your-data/style-layers.md)   | [원문](https://docs.mapbox.com/ios/maps/guides/add-your-data/style-layers/)                |
+| 9    | Map Styles                        | [지도 스타일](./styles/index.md)                                 | [원문](https://docs.mapbox.com/ios/maps/guides/styles/)                                    |
+| 10   | ↳ Set a style                     | [스타일 설정](./styles/set-a-style.md)                           | [원문](https://docs.mapbox.com/ios/maps/guides/styles/set-a-style/)                        |
+| 11   | ↳ Work with sources and layers    | [소스와 레이어 다루기](./styles/work-with-layers.md)             | [원문](https://docs.mapbox.com/ios/maps/guides/styles/work-with-layers/)                   |
+| 12   | ↳ Styling layers with expressions | [표현식으로 레이어 스타일 지정](./styles/style-layers.md)        | [원문](https://docs.mapbox.com/ios/maps/guides/styles/style-layers/)                       |
+| 13   | ↳ Declarative Map Styling         | [선언적 지도 스타일](./styles/declarative-map-styling.md)        | [원문](https://docs.mapbox.com/ios/maps/guides/styles/declarative-map-styling/)            |
+| 14   | SwiftUI                           | [SwiftUI 통합](./swift-ui.md)                                    | [원문](https://docs.mapbox.com/ios/maps/guides/swift-ui/)                                  |
+| 15   | Camera and Animations             | [카메라와 애니메이션](./camera-and-animation/index.md)           | [원문](https://docs.mapbox.com/ios/maps/guides/camera-and-animation/)                      |
+| 16   | ↳ Camera position                 | [카메라 위치](./camera-and-animation/camera.md)                  | [원문](https://docs.mapbox.com/ios/maps/guides/camera-and-animation/camera/)               |
+| 17   | ↳ Animations                      | [애니메이션](./camera-and-animation/animations.md)               | [원문](https://docs.mapbox.com/ios/maps/guides/camera-and-animation/animations/)           |
+| 18   | ↳ Viewport                        | [뷰포트](./camera-and-animation/viewport.md)                     | [원문](https://docs.mapbox.com/ios/maps/guides/camera-and-animation/viewport/)             |
+| 19   | User Interaction                  | [사용자 상호작용](./user-interaction/index.md)                   | [원문](https://docs.mapbox.com/ios/maps/guides/user-interaction/)                          |
+| 20   | ↳ Gestures                        | [제스처](./user-interaction/gestures.md)                         | [원문](https://docs.mapbox.com/ios/maps/guides/user-interaction/gestures/)                 |
+| 21   | ↳ Interactions API                | [상호작용 API](./user-interaction/interactions.md)               | [원문](https://docs.mapbox.com/ios/maps/guides/user-interaction/Interactions/)             |
+| 22   | ↳ Map Content Gestures            | [지도 콘텐츠 제스처](./user-interaction/map-content-gestures.md) | [원문](https://docs.mapbox.com/ios/maps/guides/user-interaction/map-content-gestures/)     |
+| 23   | Geofencing                        | [지오펜싱](./geofencing.md)                                      | [원문](https://docs.mapbox.com/ios/maps/guides/geofencing/)                                |
+| 24   | Indoor mapping                    | [실내 지도](./indoor.md)                                         | [원문](https://docs.mapbox.com/ios/maps/guides/indoor/)                                    |
+| 25   | Offline Maps                      | [오프라인 지도](./offline/index.md)                              | [원문](https://docs.mapbox.com/ios/maps/guides/offline/)                                   |
+| 26   | ↳ Concepts and Constraints        | [개념과 제약](./offline/concepts.md)                             | [원문](https://docs.mapbox.com/ios/maps/guides/offline/concepts/)                          |
+| 27   | ↳ Manage Offline Data             | [오프라인 데이터 관리](./offline/manage-offline-data.md)         | [원문](https://docs.mapbox.com/ios/maps/guides/offline/manage-offline-data/)               |
+| 28   | Cache Management                  | [캐시 관리](./cache-management.md)                               | [원문](https://docs.mapbox.com/ios/maps/guides/cache-management/)                          |
+| 29   | Debugging and Profiling           | [디버깅과 성능 분석](./debugging-and-profiling/index.md)         | [원문](https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/)                   |
+| 30   | ↳ MapRecorder                     | [지도 기록과 재생](./debugging-and-profiling/map-recorder.md)    | [원문](https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/map-recorder/)      |
+| 31   | ↳ Map Debug Options               | [지도 디버그 옵션](./debugging-and-profiling/debug-options.md)   | [원문](https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/debug-options/)     |
+| 32   | ↳ Tracing                         | [트레이싱](./debugging-and-profiling/tracing.md)                 | [원문](https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/tracing/)           |
+| 33   | ↳ Performance Statistics          | [성능 통계](./debugging-and-profiling/performance-stats.md)      | [원문](https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/performance-stats/) |
+| 34   | Work with visionOS                | [visionOS 통합](./work-with-visionos.md)                         | [원문](https://docs.mapbox.com/ios/maps/guides/work-with-visionos/)                        |
+| 35   | Migrate to v11                    | [v11 마이그레이션](./migrate-to-v11.md)                          | [원문](https://docs.mapbox.com/ios/maps/guides/migrate-to-v11/)                            |
+| 36   | Pricing                           | [요금 산정](./pricing.md)                                        | [원문](https://docs.mapbox.com/ios/maps/guides/pricing/)                                   |
+| 37   | Previous versions                 | [이전 버전](./old-versions/index.md)                             | [원문](https://docs.mapbox.com/ios/maps/guides/old-versions/)                              |
+| 38   | ↳ Migrate to v10                  | [v10 마이그레이션](./old-versions/migrate-to-v10.md)             | [원문](https://docs.mapbox.com/ios/maps/guides/old-versions/migrate-to-v10/)               |
 
-플랫폼 기본 지도만으로 요구 사항을 충족한다면 외부 의존성과 토큰 관리가 없는 MapKit이 더 단순할 수 있어요. 반대로 브랜드 전용 지도 스타일과 복잡한 지리 데이터 표현이 핵심이면 Mapbox의 Source·Layer 구조가 잘 맞습니다.
+대응 관계는 `guide-manifest.json`에도 기록했어요. `npm run docs:check-mapbox-guides`는 로컬 대응과 목차를, 뒤에 `-- --online`을 붙이면 공식 문서 색인과의 누락·추가도 검사해요. 온라인 검사는 변경 감지용이며 원문과 번역 문장의 동등성을 검사하는 것은 아니에요.
 
-## 일곱 페이지로 나눈 이유
+## 목적에 따라 읽는 순서가 달라요
 
-토큰, SwiftUI 상태, 렌더링 데이터, 위치 권한, 오프라인 저장은 실패 원인과 수명 주기가 달라요. 다음 순서로 학습하면 각 책임을 분리하기 쉽습니다.
+- 첫 지도: 설치 → 사용자 위치 → 데이터 추가 → SwiftUI
+- 데이터 시각화: 지도 스타일 → 소스와 레이어 → 표현식 → 상호작용
+- 제품 운영: 오프라인 → 캐시 → 성능 분석 → 요금
+- 기존 앱 전환: 이전 버전 → v10 전환 → v11 전환
 
-1. [설치와 Access Token](/guide/mapbox-maps-sdk/installation-and-access-token)에서 SPM과 공개·비밀 Token의 경계를 확인해요.
-2. [SwiftUI 지도와 카메라](/guide/mapbox-maps-sdk/swiftui-map-and-camera)에서 `Map`, `Viewport`, 이벤트를 연결해요.
-3. [스타일·Source·Layer](/guide/mapbox-maps-sdk/styles-sources-and-layers)에서 지도 데이터와 표현 규칙을 나눠요.
-4. [Annotation과 클러스터링](/guide/mapbox-maps-sdk/annotations-and-clustering)에서 적은 핀과 대량 지점을 다르게 다뤄요.
-5. [사용자 위치와 권한](/guide/mapbox-maps-sdk/user-location)에서 `Puck2D`와 위치 추적을 연결해요.
-6. [오프라인 지도](/guide/mapbox-maps-sdk/offline-maps)에서 Style Pack과 Tile Region의 다운로드 수명 주기를 배워요.
+각 경로는 학습 제안이에요. 원문의 목차 순서를 바꾸지 않고도 지금 해결할 문제에 맞춰 읽을 수 있어요.
 
-첫 페이지를 포함해 총 7개 문서예요.
+## 기존 실전 예제도 유지해요
 
-## 버전 숫자는 선택한 패키지와 함께 확인해요
+이전의 묶음 문서는 기존 링크를 위해 남겨 두었어요. 공식 목차 대응은 위 38페이지를 기준으로 하고, 아래 문서는 여러 개념을 이어 읽는 보충 자료로 사용해요.
 
-2026년 8월에 확인한 [공식 시작 페이지](https://docs.mapbox.com/ios/maps/guides/)는 Maps SDK `11.28.2`, iOS 14 이상, Swift 5.9 이상을 안내합니다. 이 숫자를 영구적인 최신 버전으로 외우기보다 프로젝트가 실제로 선택한 패키지 버전의 릴리스 노트와 요구 사항을 확인하세요.
+- [설치와 토큰 상세 예제](./installation-and-access-token.md)
+- [SwiftUI 지도와 카메라 통합 예제](./swiftui-map-and-camera.md)
+- [스타일·소스·레이어 통합 예제](./styles-sources-and-layers.md)
+- [어노테이션과 클러스터링 예제](./annotations-and-clustering.md)
+- [오프라인 다운로드 통합 예제](./offline-maps.md)
 
-v6의 `MGLMapView` 예제와 v10·v11의 `MapView` 예제는 API가 크게 달라요. 검색으로 찾은 코드에 `MGL` 접두어가 보이면 현재 v11 문서인지 먼저 확인합니다.
+## 학습을 마친 뒤 확인해요
 
-## 출시 전에 법적·운영 조건을 확인해요
-
-[공식 조건 안내](https://docs.mapbox.com/ios/maps/guides/#conditions)에 따르면 Mapbox 지도를 사용할 때 wordmark와 attribution을 표시해야 하며, Mapbox 데이터가 전혀 없는 예외를 제외하면 attribution을 임의로 없애면 안 됩니다. 기본 attribution control은 telemetry opt-out 경로도 제공합니다.
-
-기본 control을 숨기거나 커스텀 UI로 바꾼다면 다음을 제품·법무 체크리스트에 포함하세요.
-
-- Mapbox wordmark와 데이터 출처를 읽을 수 있게 유지했나요?
-- attribution에 필요한 링크와 현재 카메라 정보를 제공하나요?
-- 사용자가 telemetry를 개별적으로 끌 수 있는 경로가 있나요?
-- 예상 월간 사용자와 지도 로드, 오프라인 사용량을 현재 가격 정책으로 계산했나요?
-
-가격과 약관은 바뀔 수 있으므로 출시 시점의 [Mapbox 계정·가격 문서](https://docs.mapbox.com/accounts/)와 계약을 다시 확인합니다.
-
-## 시작 전 체크리스트
-
-- [ ] Maps, Search, Navigation SDK의 책임을 구분했나요?
-- [ ] 실제 비밀 Token을 앱 번들이나 저장소에 넣지 않았나요?
-- [ ] Style, Source, Layer와 Annotation 중 데이터 규모에 맞는 표현을 골랐나요?
-- [ ] 카메라 변경 이벤트를 매 프레임 SwiftUI 상태로 복사하지 않나요?
-- [ ] 위치 권한과 오프라인 저장의 사용자 가치를 설명할 수 있나요?
-- [ ] attribution, telemetry와 비용 정책을 출시 전에 검토했나요?
+- [ ] 선택한 SDK 버전과 각 기능의 안정화 상태를 구분했나요?
+- [ ] 화면, 데이터, 카메라, 업무 로직의 책임이 나뉘어 있나요?
+- [ ] 토큰·권한·attribution·비용을 함께 점검했나요?
+- [ ] 네트워크 단절과 화면 재진입에서도 동작을 확인했나요?
 
 ## 면접에서 이어질 수 있는 질문
 
-### Source와 Layer는 왜 분리하나요?
+### 공식 목차와 예제 모음은 어떻게 다른가요
 
-Source는 데이터가 어디에 있고 어떤 지리 정보인지 정의하며, Layer는 그 데이터를 어떻게 그릴지 정합니다. 하나의 Source를 여러 Layer가 공유할 수 있어 같은 데이터를 점, 라벨, 열 지도처럼 서로 다른 방식으로 표현할 수 있어요.
+목차는 개념을 빠짐없이 찾는 색인이에요. 예제 모음은 여러 개념이 실제 화면에서 어떻게 연결되는지 보여 줘요.
 
-### Maps SDK만으로 장소 검색과 길 안내가 가능한가요?
+### Style과 앱의 데이터 모델은 같은가요
 
-Maps SDK의 주 역할은 지도 렌더링과 상호작용입니다. 장소 검색은 Search 제품, 경로와 턴 바이 턴 안내는 Navigation 제품이 담당하며 앱이 결과를 Maps SDK 화면에 연결합니다.
+아니에요. 앱 모델은 업무 의미를, Style은 지도 표현을 맡아요. 모델을 지도 Feature로 바꾸는 경계를 두면 바꾸기 쉬워요.
 
-### 공개 Access Token도 숨겨야 하나요?
+### 오래된 예제는 모두 틀렸나요
 
-공개 `pk` Token은 모바일 클라이언트에서 사용하는 제한된 권한의 값이라 최종 앱에서 추출될 수 있습니다. 저장소 노출은 피하고 환경별 최소 권한 Token을 사용하되, 쓰기 권한이 있는 비밀 `sk` Token은 절대 앱에 포함하지 않아야 해요.
+아니에요. 그 버전에서는 맞을 수 있어요. 지금 선택한 SDK와 같은 세대인지부터 확인해야 해요.
 
 ## 참고 자료
 
-- [Mapbox Maps SDK for iOS 공식 가이드](https://docs.mapbox.com/ios/maps/guides/)
-- [Mapbox Maps SDK for iOS 공식 저장소](https://github.com/mapbox/mapbox-maps-ios)
-- [Mapbox Maps SDK SwiftUI 가이드](https://docs.mapbox.com/ios/maps/guides/swift-ui/)
-- [Mapbox Style Specification](https://docs.mapbox.com/style-spec/)
-- [Mapbox attribution 안내](https://docs.mapbox.com/help/dive-deeper/attribution/)
-- [Mapbox 모바일 앱과 telemetry 안내](https://docs.mapbox.com/help/dive-deeper/mobile-apps/)
+- [Mapbox Maps SDK for iOS](https://docs.mapbox.com/ios/maps/guides/)
+- [공식 전체 문서 색인](https://docs.mapbox.com/ios/maps/llms.txt)
+- [11.29.1 SDK 소스](https://github.com/mapbox/mapbox-maps-ios/tree/11.29.1)

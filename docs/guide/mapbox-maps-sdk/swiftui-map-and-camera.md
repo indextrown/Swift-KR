@@ -7,6 +7,10 @@ outline: false
 
 # Mapbox SwiftUI 지도와 카메라
 
+:::note 기존 실전 예제
+여러 개념을 연결한 기존 보충 자료예요. 공식 가이드별 설명은 [SwiftUI](./swift-ui.md), [카메라 위치](./camera-and-animation/camera.md), [애니메이션](./camera-and-animation/animations.md), [뷰포트](./camera-and-animation/viewport.md)로 나눴어요.
+:::
+
 > 면접용 한 줄 요약: **SwiftUI의 `Map`은 지도 내용을 선언하고 `Viewport`는 카메라의 목적을 표현하며, 연속 카메라 이벤트는 매번 `@State`에 복사하지 않고 필요한 시점에만 축약해야 합니다.**
 
 ## 먼저 알아둘 카메라 용어

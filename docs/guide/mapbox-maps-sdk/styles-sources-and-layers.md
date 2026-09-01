@@ -7,6 +7,10 @@ outline: false
 
 # Mapbox 스타일·Source·Layer
 
+:::note 기존 실전 예제
+스타일과 데이터를 이어 설명하는 보충 자료예요. 공식 목차에 대응하는 [지도 스타일](./styles/index.md)과 [소스와 레이어](./styles/work-with-layers.md)에서 항목별 내용을 확인해요.
+:::
+
 > 면접용 한 줄 요약: **Source는 지도에 그릴 지리 데이터를 제공하고 Layer는 그 데이터를 표현하는 규칙을 정의하며, Style은 배경 지도와 여러 Source·Layer의 전체 구성을 묶습니다.**
 
 ## 먼저 알아둘 렌더링 용어
