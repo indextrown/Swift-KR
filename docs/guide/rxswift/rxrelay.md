@@ -13,6 +13,13 @@ reviewed: '2026-09-06'
 
 이 문서는 **RxSwift 6.10.2의 RxRelay 공식 구현**을 기준으로 해요. UI 출력에 사용하는 `Driver`와 `Signal`은 [RxCocoa UI 바인딩](./rxcocoa)에서 설명해요.
 
+## 이 모듈의 상세 문서
+
+- [Relay 종류와 replay](./relay-types-and-replay): PublishRelay·BehaviorRelay·ReplayRelay의 구독 전후 전달 규칙
+- [상태 Store와 동시성](./relay-state-store-and-concurrency): 변경 경로 캡슐화, Driver·Signal 출력과 경쟁 상태 예방
+
+RxSwift·RxCocoa와 테스트 제품을 포함한 전체 범위는 [공식 API 범위와 학습 순서](./official-api-inventory)에서 확인하세요.
+
 ## 먼저 알아둘 용어
 
 | 용어              | 뜻                                                                                                            |

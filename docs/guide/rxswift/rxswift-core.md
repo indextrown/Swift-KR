@@ -13,6 +13,17 @@ reviewed: '2026-09-06'
 
 이 문서는 **RxSwift 6.10.2** 공식 저장소와 API 문서를 기준으로 코어 모듈의 실행 원리를 설명해요. 개별 연산자의 사용법은 [모든 연산자 문서](./operators-create-convert)에서 이어서 볼 수 있어요.
 
+## 이 모듈의 상세 문서
+
+- [설치와 모듈 구성](./installation-and-modules): 다섯 제품의 의존 관계와 SPM·XCFramework·Carthage 설치 기준
+- [Observable·Observer·Event](./observable-observer-event): 이벤트 문법, 구독, 타입 지우기와 직접 생성
+- [Disposable과 자원](./disposables-and-resources): DisposeBag과 목적별 Disposable, 취소·완료의 차이
+- [Scheduler와 동시성](./schedulers-and-concurrency): 구독·관찰 위치, Scheduler 종류와 Swift Concurrency 브리지
+- [Subject와 Traits](./subjects-and-traits): 네 가지 Subject와 Single·Maybe·Completable·Infallible
+- [디버깅과 사용자 정의 연산자](./debugging-hooks-and-custom-operators): `debug`, `do`, Hooks, Resources와 연산자 확장
+
+공개 API 전체 범위와 문서 대응표는 [공식 API 범위와 학습 순서](./official-api-inventory)에서 확인하세요.
+
 ## 먼저 알아둘 용어
 
 | 용어                   | 뜻                                                                                                |

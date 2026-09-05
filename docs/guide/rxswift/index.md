@@ -1,6 +1,8 @@
 ---
 title: Swift로 시작하는 RxSwift
-description: Observable과 Observer, Disposable, Subject, Trait의 관계부터 RxSwift 6.10.2의 모든 공개 연산자를 고르는 방법까지 단계적으로 설명합니다.
+description: RxSwift 6.10.2의 RxSwift·RxCocoa·RxRelay·RxTest·RxBlocking 공개 API와 모든 연산자를 모듈별 학습 경로로 안내합니다.
+source: https://github.com/ReactiveX/RxSwift/tree/6.10.2
+reviewed: '2026-09-06'
 ---
 
 # Swift로 시작하는 RxSwift
@@ -149,17 +151,24 @@ Subject는 delegate나 콜백을 Rx 경계에 연결할 때 유용하지만, 여
 
 ## RxSwift 생태계 모듈을 구분해요
 
-| 모듈                        | 역할                                                                                  |
-| --------------------------- | ------------------------------------------------------------------------------------- |
-| [`RxSwift`](./rxswift-core) | Observable, 연산자, Subject, Scheduler, Disposable과 코어 Trait을 제공해요.           |
-| [`RxCocoa`](./rxcocoa)      | Apple UI 프레임워크용 바인딩, `Driver`, `Signal`, `ControlProperty` 등을 제공해요.    |
-| [`RxRelay`](./rxrelay)      | 오류나 완료 없이 값만 받는 `PublishRelay`, `BehaviorRelay`, `ReplayRelay`를 제공해요. |
-| `RxTest`                    | 가상 시간 Scheduler와 기록 가능한 Observer로 시간 기반 테스트를 지원해요.             |
-| `RxBlocking`                | 테스트에서 Observable 결과를 동기적으로 기다리는 API를 제공해요.                      |
+| 모듈                         | 역할                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------- |
+| [`RxSwift`](./rxswift-core)  | Observable, 연산자, Subject, Scheduler, Disposable과 코어 Trait을 제공해요.           |
+| [`RxCocoa`](./rxcocoa)       | Apple UI 프레임워크용 바인딩, `Driver`, `Signal`, `ControlProperty` 등을 제공해요.    |
+| [`RxRelay`](./rxrelay)       | 오류나 완료 없이 값만 받는 `PublishRelay`, `BehaviorRelay`, `ReplayRelay`를 제공해요. |
+| [`RxTest`](./rxtest)         | 가상 시간 Scheduler와 기록 가능한 Observer로 시간 기반 테스트를 지원해요.             |
+| [`RxBlocking`](./rxblocking) | 테스트에서 Observable 결과를 동기적으로 기다리는 API를 제공해요.                      |
 
-모듈을 자세히 공부할 때는 [RxSwift 핵심 구조](./rxswift-core)에서 이벤트 계약과 구독 생명 주기를 익힌 뒤, [RxCocoa UI 바인딩](./rxcocoa)에서 UIKit 입력·출력을 연결하고, [RxRelay 상태와 이벤트](./rxrelay)에서 상태와 단발 사건의 소유권을 나눠 보세요.
+전체 공개 범위와 문서의 대응 관계는 [공식 API 범위와 학습 순서](./official-api-inventory)에서 먼저 확인할 수 있어요. 사이드바도 다음 네 묶음으로 나눴어요.
 
-이 섹션의 “모든 연산자”는 **RxSwift 코어 모듈**의 공개 연산자를 뜻해요. RxCocoa의 컨트롤별 바인더는 UI API이므로 범위에 넣지 않았고, `Driver`와 `Signal`의 상세한 공유·스케줄러 계약은 RxCocoa 문서에서 설명해요.
+- **RxSwift:** 설치, Observable·Observer·Event, Disposable, Scheduler, Subject·Trait, 디버깅과 사용자 정의 연산자
+- **RxCocoa:** Reactive·Binder, Control Traits, Driver·Signal, UIKit, 리스트·DelegateProxy, Foundation
+- **RxRelay:** 세 Relay의 재생 규칙, 상태 Store와 동시성
+- **Rx 테스트:** RxTest의 가상 시간과 RxBlocking의 동기 검사
+
+각 묶음은 기본으로 닫혀 있어 필요한 모듈만 펼쳐 볼 수 있어요. [RxSwift 핵심 구조](./rxswift-core)에서 이벤트 계약과 구독 생명 주기를 익힌 뒤, [RxCocoa UI 바인딩](./rxcocoa)에서 UIKit 입력·출력을 연결하고, [RxRelay 상태와 이벤트](./rxrelay)에서 상태와 단발 사건의 소유권을 나눠 보세요.
+
+이 섹션의 “모든 연산자”는 **RxSwift 코어 모듈**에서 확인한 서로 다른 공개 연산자 이름 89개를 뜻해요. RxCocoa의 컨트롤별 바인더는 [UIKit 컨트롤 바인딩](./uikit-control-bindings)과 [Foundation 바인딩](./foundation-bindings)에서 API 계열별로 설명하고, `Driver`와 `Signal`의 상세한 공유·스케줄러 계약은 [Driver·Signal·SharedSequence](./driver-signal-shared-sequence)에서 설명해요.
 
 ## Swift Package Manager로 설치해요
 
