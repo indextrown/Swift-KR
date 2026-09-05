@@ -110,6 +110,8 @@ RxCocoa는 UI 바인딩에 맞춘 `Driver`와 `Signal`을 제공해요.
 
 화면 상태처럼 최근 값이 필요한 흐름은 `Driver`, 탭이나 일회성 알림처럼 과거 값을 다시 보내면 안 되는 흐름은 `Signal`이 잘 맞아요. 두 타입은 RxCocoa의 공유 시퀀스이므로 이 문서의 RxSwift 핵심 Observable 연산자 목록과는 범위가 달라요.
 
+`Binder`, `ControlProperty`, `ControlEvent`와 함께 UI 입력부터 출력까지 연결하는 방법, Driver와 Signal의 정확한 공유 정책은 [RxCocoa로 UIKit 입력과 출력을 바인딩하기](./rxcocoa)에서 자세히 설명해요.
+
 ## 폐기된 이름을 최신 API로 바꿔요
 
 RxSwift 6은 여러 연산자 이름과 인자 레이블을 Swift API Design Guidelines에 맞게 정리했어요. 폐기 API는 당장 컴파일될 수 있어도 경고가 발생하고 이후 버전에서 제거될 수 있으므로 새 코드에서는 최신 이름을 사용하세요.

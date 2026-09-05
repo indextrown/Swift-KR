@@ -6,6 +6,29 @@
   },
   {
     "type": "custom-link",
+    "label": "핵심 모듈",
+    "collapsible": true,
+    "collapsed": true,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "RxSwift 핵심 구조",
+        "link": "/guide/rxswift/rxswift-core"
+      },
+      {
+        "type": "custom-link",
+        "label": "RxCocoa UI 바인딩",
+        "link": "/guide/rxswift/rxcocoa"
+      },
+      {
+        "type": "custom-link",
+        "label": "RxRelay 상태와 이벤트",
+        "link": "/guide/rxswift/rxrelay"
+      }
+    ]
+  },
+  {
+    "type": "custom-link",
     "label": "모든 연산자",
     "collapsible": true,
     "collapsed": true,

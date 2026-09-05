@@ -149,15 +149,17 @@ Subject는 delegate나 콜백을 Rx 경계에 연결할 때 유용하지만, 여
 
 ## RxSwift 생태계 모듈을 구분해요
 
-| 모듈         | 역할                                                                                  |
-| ------------ | ------------------------------------------------------------------------------------- |
-| `RxSwift`    | Observable, 연산자, Subject, Scheduler, Disposable과 코어 Trait을 제공해요.           |
-| `RxCocoa`    | Apple UI 프레임워크용 바인딩, `Driver`, `Signal`, `ControlProperty` 등을 제공해요.    |
-| `RxRelay`    | 오류나 완료 없이 값만 받는 `PublishRelay`, `BehaviorRelay`, `ReplayRelay`를 제공해요. |
-| `RxTest`     | 가상 시간 Scheduler와 기록 가능한 Observer로 시간 기반 테스트를 지원해요.             |
-| `RxBlocking` | 테스트에서 Observable 결과를 동기적으로 기다리는 API를 제공해요.                      |
+| 모듈                        | 역할                                                                                  |
+| --------------------------- | ------------------------------------------------------------------------------------- |
+| [`RxSwift`](./rxswift-core) | Observable, 연산자, Subject, Scheduler, Disposable과 코어 Trait을 제공해요.           |
+| [`RxCocoa`](./rxcocoa)      | Apple UI 프레임워크용 바인딩, `Driver`, `Signal`, `ControlProperty` 등을 제공해요.    |
+| [`RxRelay`](./rxrelay)      | 오류나 완료 없이 값만 받는 `PublishRelay`, `BehaviorRelay`, `ReplayRelay`를 제공해요. |
+| `RxTest`                    | 가상 시간 Scheduler와 기록 가능한 Observer로 시간 기반 테스트를 지원해요.             |
+| `RxBlocking`                | 테스트에서 Observable 결과를 동기적으로 기다리는 API를 제공해요.                      |
 
-이 섹션의 “모든 연산자”는 **RxSwift 코어 모듈**의 공개 연산자를 뜻해요. RxCocoa의 컨트롤별 바인더는 UI API이므로 범위에 넣지 않았고, `Driver`와 `Signal`은 [Trait 문서](./operators-traits-deprecated)에서 역할과 경계를 설명해요.
+모듈을 자세히 공부할 때는 [RxSwift 핵심 구조](./rxswift-core)에서 이벤트 계약과 구독 생명 주기를 익힌 뒤, [RxCocoa UI 바인딩](./rxcocoa)에서 UIKit 입력·출력을 연결하고, [RxRelay 상태와 이벤트](./rxrelay)에서 상태와 단발 사건의 소유권을 나눠 보세요.
+
+이 섹션의 “모든 연산자”는 **RxSwift 코어 모듈**의 공개 연산자를 뜻해요. RxCocoa의 컨트롤별 바인더는 UI API이므로 범위에 넣지 않았고, `Driver`와 `Signal`의 상세한 공유·스케줄러 계약은 RxCocoa 문서에서 설명해요.
 
 ## Swift Package Manager로 설치해요
 
@@ -186,14 +188,14 @@ targets: [
 
 ## Trait으로 값의 규칙을 타입에 담아요
 
-| Trait             | 값과 종료 규칙                                    | 대표 용도                   |
-| ----------------- | ------------------------------------------------- | --------------------------- |
-| `Single<Element>` | 값 하나 또는 오류 하나                            | 네트워크 응답 하나          |
-| `Maybe<Element>`  | 값 하나, 값 없는 정상 완료, 또는 오류             | 있을 수도 없는 캐시 조회    |
-| `Completable`     | 값 없이 정상 완료 또는 오류                       | 저장·삭제 작업의 성공 여부  |
-| `Infallible`      | 오류 없이 값 0개 이상                             | 실패하지 않는 도메인 이벤트 |
-| `Driver`          | 오류 없음, 메인 Scheduler 관찰, 최신 값 1개 공유  | UI 상태 구동, RxCocoa       |
-| `Signal`          | 오류 없음, 메인 Scheduler 관찰, 과거 값 재생 없음 | UI 단발 이벤트, RxCocoa     |
+| Trait                                                             | 값과 종료 규칙                                    | 대표 용도                   |
+| ----------------------------------------------------------------- | ------------------------------------------------- | --------------------------- |
+| `Single<Element>`                                                 | 값 하나 또는 오류 하나                            | 네트워크 응답 하나          |
+| `Maybe<Element>`                                                  | 값 하나, 값 없는 정상 완료, 또는 오류             | 있을 수도 없는 캐시 조회    |
+| `Completable`                                                     | 값 없이 정상 완료 또는 오류                       | 저장·삭제 작업의 성공 여부  |
+| `Infallible`                                                      | 오류 없이 값 0개 이상                             | 실패하지 않는 도메인 이벤트 |
+| [`Driver`](./rxcocoa#driver는-ui-상태를-구동해요)                 | 오류 없음, 메인 Scheduler 관찰, 최신 값 1개 공유  | UI 상태 구동, RxCocoa       |
+| [`Signal`](./rxcocoa#signal은-replay하지-않는-ui-사건을-전달해요) | 오류 없음, 메인 Scheduler 관찰, 과거 값 재생 없음 | UI 단발 이벤트, RxCocoa     |
 
 Trait은 런타임에 완전히 다른 스트림 엔진이 아니라 Observable의 제약과 의미를 타입으로 표현하는 래퍼예요. 값 하나가 보장되는 API를 `Observable`로 노출하기보다 `Single`로 노출하면 호출자가 결과 개수를 추측할 필요가 없어요.
 
@@ -236,7 +238,7 @@ Trait은 런타임에 완전히 다른 스트림 엔진이 아니라 Observable�
 3. 생성, 변환, 결합, 오류 처리, Scheduler 전환을 작은 단계로 연결해요.
 4. cold·hot 여부와 Subscriber마다 작업을 반복할지 공유할지 정해요.
 5. `Disposable`, `DisposeBag`, Task의 소유 수명을 정해요.
-6. UI 갱신은 메인 Scheduler와 RxCocoa Trait 제약을 확인해요.
+6. UI 갱신은 [RxCocoa](./rxcocoa)의 메인 Scheduler와 Trait 제약을 확인해요.
 7. RxTest의 가상 시간으로 시간 기반 연산자와 종료 경로를 테스트해요.
 
 ## 면접에서 이어질 수 있는 질문
