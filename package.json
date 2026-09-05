@@ -10,6 +10,7 @@
     "docs:check-collection-views": "node scripts/check-collection-view-coverage.mjs",
     "docs:check-mapbox-guides": "node scripts/check-mapbox-guide-coverage.mjs",
     "docs:check-rxswift-operators": "node scripts/check-rxswift-operator-coverage.mjs",
+    "docs:check-rxswift-sections": "node scripts/check-rxswift-section-coverage.mjs",
     "format": "prettier --write .",
     "lint": "eslint .",
     "preview": "rspress preview"
