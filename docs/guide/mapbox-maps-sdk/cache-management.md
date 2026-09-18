@@ -2,7 +2,7 @@
 title: Mapbox 지도 캐시 관리
 description: Mapbox 디스크 캐시와 오프라인 저장의 차이, 만료·ETag 재검증, volatile 타일 및 clearData의 범위를 구분하고 안전한 캐시 문제 조사 절차를 정리합니다.
 source: https://docs.mapbox.com/ios/maps/guides/cache-management/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox 지도 캐시 관리
@@ -62,7 +62,7 @@ func printMapCacheLocationForDebugging() {
 
 ## clearData는 모든 지도 데이터의 초기화가 아니에요
 
-`11.29.1`의 `MapboxMap.clearData(completion:)`는 **정적 메서드**예요. 같은 dataPath를 사용하는 지도들의 임시 데이터에 영향을 주며, 오프라인 Style Pack 같은 영구 데이터는 제거하지 않는다고 명시되어 있어요. [MapboxMap 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/MapboxMap.swift)
+`11.31.0`의 `MapboxMap.clearData(completion:)`는 **정적 메서드**예요. 같은 dataPath를 사용하는 지도들의 임시 데이터에 영향을 주며, 오프라인 Style Pack 같은 영구 데이터는 제거하지 않는다고 명시되어 있어요. [MapboxMap 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/MapboxMap.swift)
 
 아래는 사용자가 진단 도구에서 캐시 정리를 선택했을 때 호출할 함수예요. 자동으로 실행하거나 지도 화면 진입마다 호출하지 마세요.
 
@@ -87,7 +87,7 @@ UI를 바꿀 때는 콜백에서 MainActor로 전달하는 단계를 추가하�
 
 `ResourceRequest` 이벤트로 리소스 요청을 관찰할 수 있어요. 로그에는 URL 전체보다 요청 종류·결과·시각처럼 조사에 필요한 정보만 남기는 편이 좋아요. 토큰이나 사용자 좌표를 외부 로그에 실수로 보내지 않도록 주의하세요.
 
-다음 세 설정은 이름이 비슷해도 목적이 달라요. `11.29.1` 소스는 뒤의 두 지연이 진행 중인 애니메이션·제스처에 적용되고, 둘을 지정하면 `tileRequestsDelay`가 우선한다고 설명해요. [VectorSource 정의](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Style/Generated/Sources/VectorSource.swift)
+다음 세 설정은 이름이 비슷해도 목적이 달라요. `11.31.0` 소스는 뒤의 두 지연이 진행 중인 애니메이션·제스처에 적용되고, 둘을 지정하면 `tileRequestsDelay`가 우선한다고 설명해요. [VectorSource 정의](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Style/Generated/Sources/VectorSource.swift)
 
 | 설정                        | 조절하는 것                              | 주의할 점                                          |
 | --------------------------- | ---------------------------------------- | -------------------------------------------------- |
@@ -96,6 +96,8 @@ UI를 바꿀 때는 콜백에서 MainActor로 전달하는 단계를 추가하�
 | `tileNetworkRequestsDelay`  | 네트워크 타일 요청 지연이에요.           | 모든 캐시 읽기를 똑같이 늦추는 값은 아니에요.      |
 
 원문 가이드는 두 delay를 밀리초 값으로 설명해요. 사용 버전의 API 정의와 함께 확인하고, 갱신 간격의 초 단위와 혼용하지 마세요.
+
+타일 요청은 현재 화면뿐 아니라 카메라 이동을 예상한 prefetch도 포함할 수 있어요. 지연 옵션은 빠르게 지나갈 타일 요청을 줄일 수 있지만 새 영역이 늦게 채워질 수 있으므로 네트워크 절감과 체감 공백을 함께 측정해요. 일반 Source마다 캐시 정책이 같다고 가정하지 말고 `volatile`, 최소 갱신 간격과 원본 서버 헤더를 함께 확인해요.
 
 ## 적용 체크리스트
 
@@ -123,5 +125,5 @@ UI를 바꿀 때는 콜백에서 MainActor로 전달하는 단계를 추가하�
 ## 참고 자료
 
 - [Mapbox: Cache Management](https://docs.mapbox.com/ios/maps/guides/cache-management/)
-- [Mapbox 11.29.1: MapboxMap](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/MapboxMap.swift)
-- [Mapbox 11.29.1: VectorSource](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Style/Generated/Sources/VectorSource.swift)
+- [Mapbox 11.31.0: MapboxMap](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/MapboxMap.swift)
+- [Mapbox 11.31.0: VectorSource](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Style/Generated/Sources/VectorSource.swift)

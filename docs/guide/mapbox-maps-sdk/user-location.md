@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox 사용자 위치
 description: Mapbox의 위치 권한·정확도·Puck·카메라 추적을 구분하고 사용자 요청에 따른 위치 표시, 오래된 위치의 처리, 사용자 정의 공급원의 책임을 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/user-location/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox 사용자 위치
@@ -115,6 +115,71 @@ func canSearchNearby(
 
 테스트 위치 공급원으로 바꿀 때도 데이터 생산을 시작·중단하는 주체를 정해요. 실제 기기 위치를 직접 수집하는 custom provider라면 권한 책임이 없어지는 것은 아니에요. 시뮬레이터 재생 경로와 실기기의 권한·정확도 전환은 서로 다른 테스트예요.
 
+### 임시 정밀 위치 요청을 구성해요
+
+iOS 14 이상에서는 사용자가 reduced accuracy를 선택할 수 있어요. 길 안내처럼 특정 기능에만 정밀 위치가 필요하면 `NSLocationTemporaryUsageDescriptionDictionary`에 목적별 key를 두고 같은 key로 임시 권한을 요청해요.
+
+```xml
+<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+<dict>
+    <key>NearbyStoreAccuracy</key>
+    <string>가까운 매장까지의 정확한 거리와 방향을 계산하기 위해 정밀 위치가 필요해요.</string>
+</dict>
+```
+
+```swift
+let provider = AppleLocationProvider()
+provider.requestTemporaryFullAccuracyAuthorization(
+    withPurposeKey: "NearbyStoreAccuracy"
+)
+```
+
+`withPurposeKey`는 plist의 key와 정확히 일치해야 해요. 권한 변경을 직접 처리하기 위해 custom key를 쓴다면 공식 가이드가 자동 prompt에 사용하는 `LocationAccuracyAuthorizationDescription`과 중복되지 않게 설계하세요. 항상 허용이 실제 요구라면 `NSLocationAlwaysAndWhenInUseUsageDescription`과 백그라운드 정책을 별도로 검토해야 해요.
+
+### LocationManager가 다루는 두 입력을 구분해요
+
+`LocationManager`는 지리 위치를 나타내는 `Location` update와 기기 방향을 나타내는 선택적 `Heading` update를 다뤄요. 기본값은 `AppleLocationProvider`지만 활동 유형 같은 Core Location 설정을 바꾸거나 provider 전체를 교체할 수 있어요.
+
+```swift
+let provider = AppleLocationProvider()
+provider.options.activityType = .automotiveNavigation
+mapView.location.override(provider: provider)
+```
+
+완전한 custom source는 `LocationProvider`와 `HeadingProvider`를 각각 구현해 전달해요. SwiftUI에서는 `MapReader`에서 위치 manager에 접근하고 Combine publisher를 Mapbox 내부 `Signal`로 바꿔 공급할 수 있어요. custom provider가 데이터를 만든다고 해도 사용자 권한을 요청하고 중단 시 수집을 끝내는 책임은 앱에 남아요.
+
+## Puck 모양과 방향 원천을 선택해요
+
+| 선택                        | 의미                                    | 대표 용도         |
+| --------------------------- | --------------------------------------- | ----------------- |
+| `Puck2D()`                  | 위치만 표시하고 방향은 기본으로 숨겨요. | 일반 주변 탐색    |
+| `Puck2D(bearing: .heading)` | 기기가 향한 compass 방향을 표시해요.    | 보행 방향 안내    |
+| course 기반 bearing         | 실제 이동 경로 방향을 사용해요.         | 이동 중 경로 화면 |
+| 3D Puck                     | 사용자 정의 3D 모델로 위치를 표현해요.  | 3D 브랜드 경험    |
+
+UIKit에서는 `Puck2DConfiguration.makeDefault(showBearing:)`으로 기본 2D Puck의 방향 표시를 구성하고 `mapView.location.options.puckType`에 넣어요. `LocationOptions`에서는 Puck image·scale·accuracy ring과 bearing source를 더 조정할 수 있어요.
+
+Puck을 보인다고 카메라가 자동으로 따라가지는 않아요. 표시와 카메라 추적을 별도 요구사항으로 다뤄야 사용자가 지도를 드래그할 때 앱이 곧바로 원래 위치로 되돌리는 충돌을 피할 수 있어요.
+
+## 위치 추적 Viewport 상태와 전환을 구분해요
+
+공식 SDK는 UIKit에서 `MapView.viewport`, SwiftUI에서 `Viewport` binding으로 추적 의도를 표현해요.
+
+| Viewport 상태 | 카메라 규칙                                        |
+| ------------- | -------------------------------------------------- |
+| Follow Puck   | Puck 위치와 선택한 bearing·zoom·pitch를 따라가요.  |
+| Overview      | 지정한 geometry 전체가 padding 안에 들어오게 해요. |
+| 사용자 정의   | 앱의 동적 데이터로 카메라 update를 만들어요.       |
+
+| 전환                 | 동작                                       |
+| -------------------- | ------------------------------------------ |
+| Default transition   | 목표 상태까지 애니메이션으로 이동해요.     |
+| Immediate transition | 애니메이션 없이 즉시 목표 상태를 적용해요. |
+
+SwiftUI에서는 `withViewportAnimation`으로 follow-puck 전환을 애니메이션하고, overview 값을 직접 할당하면 즉시 바꿀 수 있어요. UIKit에서는 `makeFollowPuckViewportState`, `makeOverviewViewportState`, `makeDefaultViewportTransition`, `makeImmediateViewportTransition`을 조합해요. 자세한 상태 수명과 idle 의미는 [Viewport 문서](./camera-and-animation/viewport.md)에서 이어서 설명해요.
+
+시뮬레이터에서 Puck이 보이지 않으면 Xcode의 **Debug → Simulate Location**에서 위치를 선택하고, 이미 거부한 권한은 Simulator의 **Settings → Privacy & Security → Location Services**에서 다시 확인하세요.
+
 ## 적용 순서를 정리해요
 
 1. 위치 없이 가능한 수동 탐색 경로를 만들어요.
@@ -141,6 +206,7 @@ func canSearchNearby(
 ## 참고 자료
 
 - [Mapbox User Location](https://docs.mapbox.com/ios/maps/guides/user-location/)
+- [Apple reduced accuracy 위치 권한](https://developer.apple.com/documentation/corelocation/claccuracyauthorization)
 - [Apple CLLocation](https://developer.apple.com/documentation/corelocation/cllocation)
 - [Apple horizontalAccuracy](https://developer.apple.com/documentation/corelocation/cllocation/horizontalaccuracy)
 - [Apple timestamp](https://developer.apple.com/documentation/corelocation/cllocation/timestamp)

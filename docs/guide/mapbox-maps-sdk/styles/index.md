@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox 지도 스타일
 description: Mapbox 지도 스타일의 역할을 이해하고 기본 지도 선택, Source·Layer 관리, Expression과 선언적 스타일링을 어떤 순서로 학습할지 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/styles/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox 지도 스타일

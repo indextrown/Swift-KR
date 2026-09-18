@@ -2,7 +2,7 @@
 title: visionOS에서 Mapbox 지도 사용하기
 description: visionOS용 Mapbox의 설치 경로와 SwiftUI 지도 구성을 확인하고, 네이티브 뷰의 시선 피드백 및 나침반 제한에 맞춰 지도 상호작용을 설계합니다.
 source: https://docs.mapbox.com/ios/maps/guides/work-with-visionos/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # visionOS에서 Mapbox 지도 사용하기

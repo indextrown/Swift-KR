@@ -2,7 +2,7 @@
 title: Mapbox 오프라인 지도의 개념과 제약
 description: Style Pack·Tile Pack·Tile Region·TileStore의 책임을 나누고, 오프라인 영역과 확대 수준이 저장량에 미치는 영향 및 750개 제한을 정리합니다.
 source: https://docs.mapbox.com/ios/maps/guides/offline/concepts/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox 오프라인 지도의 개념과 제약
@@ -40,9 +40,15 @@ Geometry ──────┼─> Tile Region ─> TileStore 안의 Tile Pack
 
 `OfflineManager`로 표현 리소스를 준비하고, descriptor와 geometry를 `TileStore`에 전달해 지역 데이터를 준비해요. 이미 본 타일의 일반 디스크 캐시를 TileStore의 보존 대상으로 생각하면 안 돼요.
 
+Style Pack은 style JSON, sprite, font, 3D 모델 같은 비타일 리소스를 담고 보통 몇 MB 수준이며 같은 스타일을 쓰는 여러 지역에서 한 번만 받으면 돼요. Tile Region은 Geometry·zoom·선택적 metadata로 “무엇이 필요한가”를 기술하고, SDK가 필요한 Tile Pack을 결정해 TileStore에 저장해요. 앱은 Tile Pack을 직접 선택·삭제하지 않아요.
+
+일반 온라인 지도는 보이는 곳 주변을 필요할 때 내려받아 디스크 캐시에 두고, 오프라인 지도는 미리 Style Pack과 Tile Region을 명시적으로 준비해요. 연결이 끊긴 뒤 SDK가 로컬 데이터를 자동 사용하므로 별도 오프라인 렌더링 모드를 켤 필요는 없지만, 준비하지 않은 범위는 빈 화면이 될 수 있어요.
+
 ## 750개는 지역 개수가 아니에요
 
-공식 기본 제한은 여러 Tile Region이 사용하는 **누적 고유 Tile Pack 수 750개**예요. `11.29.1` API 주석도 전체 지역에 걸친 기본 한도를 명시해요. 겹치는 지역이 공유하는 pack이 있으므로, 지역 목록 개수로 남은 한도를 계산할 수 없어요. [TileStore 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Offline/TileStore%2BMapboxMaps.swift)
+공식 기본 제한은 여러 Tile Region이 사용하는 **누적 고유 Tile Pack 수 750개**예요. `11.31.0` API 주석도 전체 지역에 걸친 기본 한도를 명시해요. 겹치는 지역이 공유하는 pack이 있으므로, 지역 목록 개수로 남은 한도를 계산할 수 없어요. [TileStore 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Offline/TileStore%2BMapboxMaps.swift)
+
+SDK는 새 지역이 이 제한을 넘기면 로드를 거절해요. Mapbox 서버에서 받은 오프라인 데이터는 앱에 미리 번들로 넣거나 다른 사용자에게 재배포할 수 없고 각 사용자가 서버에서 받아야 해요.
 
 아래는 제한을 설명하는 가상 집합이에요. SDK의 실제 pack ID를 조회하는 예제는 아니에요.
 
@@ -58,7 +64,9 @@ assert(uniquePackCount == 4)
 
 ## 확대 수준 하나를 더 요구하면 저장량이 뛰기도 해요
 
-`11.29.1`의 descriptor 구현 주석은 기본 pack의 확대 구간을 `0...5`, `6...10`, `11...14`, `15...16`으로 설명해요. 가이드의 `8...15` 요청 예시도 묶음 때문에 `6...16`까지 확대됨을 보여 줘요. 원하는 확대 값만 낱개로 저장한다고 계산하지 마세요. [TilesetDescriptorOptions 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Offline/TilesetDescriptorOptions%2BMapboxMaps.swift)
+`11.31.0`의 descriptor 구현 주석은 기본 pack의 확대 구간을 `0...5`, `6...10`, `11...14`, `15...16`으로 설명해요. 가이드의 `8...15` 요청 예시도 묶음 때문에 `6...16`까지 확대됨을 보여 줘요. 원하는 확대 값만 낱개로 저장한다고 계산하지 마세요. [TilesetDescriptorOptions 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Offline/TilesetDescriptorOptions%2BMapboxMaps.swift)
+
+공식 표의 Tile Pack은 전 지구 0~~5 약 1.4K tiles, 지역 6~~10 약 341, 시가지 11~~14 약 85, 건물 상세 15~~16 약 320 tiles처럼 확대 구간별 묶음이에요. 실제 pack 크기는 범위와 tileset에 따라 수십~수백 MB까지 달라질 수 있어 표의 개수를 다운로드 바이트로 환산하지 않아요.
 
 작성자 권장 검증은 같은 산책로로 다음 세 실험을 하는 거예요.
 
@@ -78,7 +86,7 @@ assert(uniquePackCount == 4)
 
 ## 지도 엔진의 TileStore 사용 정책도 따로 있어요
 
-`MapboxMapsOptions.tileStoreUsageMode`는 지도 엔진이 TileStore를 사용하는 정책이에요. 기본값은 `.readOnly`이며, 이는 앱이 직접 요청하는 지역 다운로드까지 금지한다는 뜻이 아니에요. [기본 설정 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/MapboxMapsOptions.swift)
+`MapboxMapsOptions.tileStoreUsageMode`는 지도 엔진이 TileStore를 사용하는 정책이에요. 기본값은 `.readOnly`이며, 이는 앱이 직접 요청하는 지역 다운로드까지 금지한다는 뜻이 아니에요. [기본 설정 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/MapboxMapsOptions.swift)
 
 | 값               | 지도 엔진의 동작                                                    |
 | ---------------- | ------------------------------------------------------------------- |
@@ -93,6 +101,10 @@ assert(uniquePackCount == 4)
 지원하는 타일 소스와 지도 데이터 재배포에는 제약이 있어요. 원문은 Mapbox 호스팅 타일 중심의 지원 범위와, 내려받은 Mapbox 데이터를 앱에 미리 묶거나 재배포할 수 없다는 조건을 명시해요. 임의 외부 타일 서버나 앱 번들 복사 방식으로 확장하지 마세요.
 
 스타일의 Source는 데이터 공급원을 뜻해요. Source를 바꾸면 이전 다운로드에 없는 데이터를 요구할 수 있어요. 여러 소스를 합치는 compositing도 오프라인 제약이 있으므로, 스타일 배포 전 **이전 앱에서 받은 지역 + 새 스타일** 조합을 별도로 시험하세요.
+
+Tile Region이 지원하는 tiled source는 Mapbox Vector/Raster v4 또는 Raster DEM v1 URL 스키마를 사용하는 Mapbox 호스팅 tileset이에요. 임의 외부 타일 URL이 온라인에서 보인다는 사실만으로 오프라인 다운로드 지원을 가정하지 않아요.
+
+Source compositing은 온라인 요청을 줄일 수 있지만 오프라인에서는 클라이언트가 저장된 Tile Pack 구성 요소를 합쳐요. 서로 다른 최대 zoom을 가진 소스를 합치면 카메라가 한 구성 요소의 최대 zoom을 넘어섰을 때 그 데이터가 렌더링되지 않는 제한이 있어, 오프라인용 스타일은 compositing을 끄라는 공식 권장을 검토해요.
 
 ## 적용 체크리스트
 
@@ -121,6 +133,6 @@ geometry도 함께 검토해야 해요. 필요한 행동을 유지하면서 지�
 
 - [Mapbox: Concepts and Constraints](https://docs.mapbox.com/ios/maps/guides/offline/concepts/)
 - [Mapbox: Manage Offline Data](https://docs.mapbox.com/ios/maps/guides/offline/manage-offline-data/)
-- [Mapbox 11.29.1: TileStore](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Offline/TileStore%2BMapboxMaps.swift)
-- [Mapbox 11.29.1: TilesetDescriptorOptions](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Offline/TilesetDescriptorOptions%2BMapboxMaps.swift)
-- [Mapbox 11.29.1: MapboxMapsOptions](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/MapboxMapsOptions.swift)
+- [Mapbox 11.31.0: TileStore](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Offline/TileStore%2BMapboxMaps.swift)
+- [Mapbox 11.31.0: TilesetDescriptorOptions](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Offline/TilesetDescriptorOptions%2BMapboxMaps.swift)
+- [Mapbox 11.31.0: MapboxMapsOptions](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/MapboxMapsOptions.swift)

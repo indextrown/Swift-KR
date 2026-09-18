@@ -2,7 +2,7 @@
 title: Swift로 이해하는 지도에 데이터 추가하기
 description: Mapbox의 Markers, Annotation, View Annotation, Style Layer를 비교하고 매장 지도 예제로 표시 규모와 상호작용에 맞는 데이터 표현 방식을 선택해요.
 source: https://docs.mapbox.com/ios/maps/guides/add-your-data/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 지도에 데이터 추가하기
@@ -36,7 +36,7 @@ reviewed: '2026-08-31'
 
 ## 화면 위 표시와 지도 내부 표현을 구분해요
 
-“지도 위에 보인다”는 말만으로 렌더링 방식을 판단하면 안 돼요. 실제 `UIView`나 SwiftUI `View`를 올리는 View Annotation과, SDK가 Source·Layer를 관리하는 일반 Annotation은 달라요. 일반 Annotation도 내부 Layer를 사용한다는 점은 [PointAnnotationManager 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Annotations/Generated/PointAnnotationManager.swift)에서 확인할 수 있어요.
+“지도 위에 보인다”는 말만으로 렌더링 방식을 판단하면 안 돼요. 실제 `UIView`나 SwiftUI `View`를 올리는 View Annotation과, SDK가 Source·Layer를 관리하는 일반 Annotation은 달라요. 일반 Annotation도 내부 Layer를 사용한다는 점은 [PointAnnotationManager 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Annotations/Generated/PointAnnotationManager.swift)에서 확인할 수 있어요.
 
 따라서 모든 핀을 독립적인 `UIView`라고 설명하거나, Annotation이면 무조건 느리다고 결론 내리지 않아요.
 
@@ -51,6 +51,22 @@ reviewed: '2026-08-31'
 | 버튼 같은 실제 화면 뷰를 올려요.                                                   | 많은 데이터를 공통 규칙으로 그려요.                                            |
 
 _네 방식은 모양만 다른 것이 아니라 데이터와 화면을 관리하는 경계가 달라요. [공식 Add your data에서 비교 이미지와 선택 기준 보기](https://docs.mapbox.com/ios/maps/guides/add-your-data/)_
+
+## 지도가 그려지는 단계를 기준으로 선택해요
+
+Mapbox 지도는 스타일의 **Source**에서 데이터를 읽고 **Layer**의 규칙으로 GPU에 그려요. Annotation API는 이 Source·Layer 구성을 SDK가 대신 관리하는 상위 인터페이스이고, View Annotation은 그 결과 위에 UIKit·SwiftUI 뷰를 배치해요. Marker는 SwiftUI에서 기본 핀 모양을 빠르게 만드는 더 간단한 선택지예요.
+
+이 렌더링 경계를 알면 “모양은 같은 점인데 왜 API가 여러 개인가요?”라는 질문에 답할 수 있어요.
+
+| 판단 기준            | Marker                   | Annotation                     | View Annotation               | Style Layer                           |
+| -------------------- | ------------------------ | ------------------------------ | ----------------------------- | ------------------------------------- |
+| 화면 기술            | SwiftUI 전용             | SwiftUI·UIKit                  | SwiftUI `View`·UIKit `UIView` | 지도 스타일 렌더러                    |
+| 표현 자유도          | 기본 핀 범위             | 점·원·선·면과 속성             | 임의의 화면 뷰와 컨트롤       | Style Specification 전체              |
+| 많은 데이터          | 100개 이상이면 대안 검토 | 개별 제어가 필요할 때 적합     | 보이는 뷰 수를 작게 유지      | 대량 데이터의 첫 검토 대상            |
+| 클러스터링           | 기본 제공 안 함          | Point Annotation에서 구성 가능 | 기본 제공 안 함               | GeoJSON Source에서 구성 가능          |
+| 데이터와 표시의 결합 | 좌표와 핀 선언           | 개별 Annotation 모델           | Feature 또는 Geometry 연결    | Source와 여러 Layer를 독립적으로 관리 |
+
+공식 문서의 개수는 절대 성능 한계가 아니라 선택을 위한 경고예요. Marker는 100개 이상, 겹침을 허용한 View Annotation은 250개를 넘는 상황에서 특히 다른 방식을 검토하라고 안내하지만, 실제 기준은 뷰 복잡도·기기·갱신 빈도를 함께 측정해 정해요.
 
 ## 매장 지도를 단계적으로 설계해요
 
@@ -94,4 +110,4 @@ _네 방식은 모양만 다른 것이 아니라 데이터와 화면을 관리�
 ## 참고 자료
 
 - [Mapbox — Add your data to the map](https://docs.mapbox.com/ios/maps/guides/add-your-data/)
-- [Mapbox Maps SDK 11.29.1 — PointAnnotationManager](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Annotations/Generated/PointAnnotationManager.swift)
+- [Mapbox Maps SDK 11.31.0 — PointAnnotationManager](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Annotations/Generated/PointAnnotationManager.swift)

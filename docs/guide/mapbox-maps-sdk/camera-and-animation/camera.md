@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox 카메라 위치
 description: Mapbox CameraOptions의 중심·확대·방향·기울기와 padding을 구분하고 여러 장소를 화면에 맞추는 방법, 카메라 조회와 이동 제한을 예제로 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/camera-and-animation/camera/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox 카메라 위치
@@ -23,6 +23,17 @@ reviewed: '2026-08-31'
 | UIKit           | 뷰와 화면 컨트롤러로 iOS 화면을 만드는 Apple 프레임워크예요.          |
 
 `center`와 `anchor`는 대체 관계이므로 의도 없이 동시에 지정하지 않아요. 초기 위치, 현재 위치 조회, 좌표 묶음에 맞추기, 이동 제한은 각각 다른 작업이에요. [공식 카메라 가이드](https://docs.mapbox.com/ios/maps/guides/camera-and-animation/camera/)
+
+## 카메라를 설정하는 시점을 구분해요
+
+| 시점·목적             | 대표 방법                                                       |
+| --------------------- | --------------------------------------------------------------- |
+| 지도 생성 시 첫 화면  | `MapInitOptions(cameraOptions:)` 또는 SwiftUI `initialViewport` |
+| 생성 후 즉시 이동     | `mapboxMap.setCamera(to:)`                                      |
+| 사용자 위치 계속 추적 | `FollowPuckViewportState`                                       |
+| 여러 좌표·도형 맞추기 | 좌표·Geometry용 `camera(for:...)` 계산                          |
+
+초기 옵션은 첫 프레임을 정하고, 생성 뒤 설정은 현재 카메라를 바꿔요. 위치 한 번을 `setCamera`로 반영하는 것과 이후 위치를 계속 따라가는 Viewport 상태는 같지 않아요. 애니메이션이 필요하면 계산한 `CameraOptions`를 [애니메이션 API](./animations.md)에 전달해요.
 
 ## 첫 번째 장소만 보여주면 무엇이 빠질까요?
 
@@ -85,6 +96,10 @@ func showSearchResults(
 ## 현재 값 읽기와 제한 설정을 구분해요
 
 현재 값은 `mapView.mapboxMap.cameraState`에서 읽고, 변화는 `onCameraChanged`로 관찰해요. `setCameraBounds(with:)`는 사용자가 이동 가능한 범위를 제한하는 API예요. 한 번 화면에 맞추는 것만으로 이후 이동까지 금지되지는 않아요. [공식 가이드](https://docs.mapbox.com/ios/maps/guides/camera-and-animation/camera/)
+
+`cameraState`는 읽는 순간의 center·zoom·bearing·pitch·padding 값을 제공해요. `onCameraChanged`는 제스처·애니메이션·프로그램 설정을 모두 관찰할 수 있으므로 원인을 애니메이션 하나로 단정하지 않아요. 구독 토큰은 화면 수명 동안 보관하고, 연속 이벤트에서 검색·저장을 직접 반복하지 않도록 debounce나 명시적 버튼을 사용해요.
+
+카메라 제한은 `CameraBoundsOptions`로 좌표 경계, 최소·최대 zoom, 최대 pitch 등을 설정해요. 제한을 바꾸거나 해제할 때도 오류 가능성을 처리하고, 현재 카메라가 새 제한 밖에 있다면 SDK가 어떻게 보정하는지 실제 화면에서 확인해요.
 
 화면 설계에서는 아래 세 질문을 따로 확인하는 편이 좋아요.
 

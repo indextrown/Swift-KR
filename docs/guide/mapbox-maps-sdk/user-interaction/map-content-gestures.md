@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox 지도 콘텐츠 제스처
 description: Mapbox View Annotation·Layer Annotation·클러스터·레이어의 입력 처리를 비교하고 겹친 콘텐츠의 이벤트 전파와 한 번만 처리하는 탭 정책을 구현해요.
 source: https://docs.mapbox.com/ios/maps/guides/user-interaction/map-content-gestures/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox 지도 콘텐츠 제스처
@@ -88,6 +88,16 @@ struct FirstTapHelpMap: View {
 
 ## 콘텐츠 종류마다 알맞은 입력 경로를 골라요
 
+| 콘텐츠               | 대표 처리 경로                                                      |
+| -------------------- | ------------------------------------------------------------------- |
+| View Annotation      | 내부 SwiftUI `View`·`UIView`의 버튼·탭 동작                         |
+| Layer Annotation     | Annotation 콘텐츠의 tap·long press 핸들러                           |
+| Clustered Annotation | 탭 Feature가 cluster인지 확인하고 children 조회·확대 같은 정책 실행 |
+| 앱 소유 Style Layer  | Interactions의 layer 대상 또는 기존 GestureManager layer handler    |
+| 지도 빈 공간         | map 대상 Interaction                                                |
+
+클러스터를 탭했을 때 무조건 고정 zoom만 더하지 말고 expansion zoom 또는 leaf/children 조회 결과를 사용해 다음 카메라를 정해요. 이미 최대 확대 수준이면 목록이나 선택 UI로 전환하는 대체 동작도 필요해요.
+
 | 콘텐츠                      | 입력을 연결하는 방법                   | 앱에서 먼저 정할 것               |
 | --------------------------- | -------------------------------------- | --------------------------------- |
 | View Annotation             | 내부 Button 또는 네이티브 제스처       | 작은 카드의 버튼과 카드 선택 구분 |
@@ -101,7 +111,7 @@ struct FirstTapHelpMap: View {
 
 ## 기존 제스처 예제와 새 API를 연결해요
 
-공식 가이드에는 `onMapTapGesture`·`onLayerTapGesture`와 UIKit `onMapTap`·`onLayerTap` 예제가 남아 있어요. 11.29.1 코드에는 이 API들의 deprecated 표시가 있으므로 새 코드는 [Interactions API](./interactions.md)로 연결해요. 주석 자체의 `onTapGesture`는 별도 API예요. [SDK 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/SwiftUI/Map+Gestures.swift)
+공식 가이드에는 `onMapTapGesture`·`onLayerTapGesture`와 UIKit `onMapTap`·`onLayerTap` 예제가 남아 있어요. 11.31.0 코드에는 이 API들의 deprecated 표시가 있으므로 새 코드는 [Interactions API](./interactions.md)로 연결해요. 주석 자체의 `onTapGesture`는 별도 API예요. [SDK 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/SwiftUI/Map+Gestures.swift)
 
 UIKit에서 기존 Signal 기반 예제를 유지한다면 취소 토큰을 화면에서 보관하고 종료해야 해요. Interactions 등록의 지도 수명 유지 규칙을 모든 Signal 구독에 똑같이 적용하지 않도록 주의하세요.
 
@@ -130,4 +140,4 @@ UIKit에서 기존 Signal 기반 예제를 유지한다면 취소 토큰을 화�
 ## 참고 자료
 
 - [Mapbox Map Content Gestures](https://docs.mapbox.com/ios/maps/guides/user-interaction/map-content-gestures/)
-- [Mapbox SwiftUI 제스처 구현 · 11.29.1](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/SwiftUI/Map+Gestures.swift)
+- [Mapbox SwiftUI 제스처 구현 · 11.31.0](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/SwiftUI/Map+Gestures.swift)

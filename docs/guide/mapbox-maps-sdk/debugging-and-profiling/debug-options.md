@@ -2,7 +2,7 @@
 title: Mapbox 지도 디버그 옵션
 description: 카메라·여백·타일·라벨 충돌·겹쳐 그리기 디버그 표시를 문제 유형별로 선택하고 SwiftUI와 UIKit에서 개발용으로만 적용하는 방법을 정리합니다.
 source: https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/debug-options/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox 지도 디버그 옵션

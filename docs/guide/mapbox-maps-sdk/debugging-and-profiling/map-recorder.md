@@ -2,7 +2,7 @@
 title: Mapbox MapRecorder로 지도 문제 재현하기
 description: MapRecorder의 지도 API 기록·재생을 화면 녹화와 구분하고, 제한된 시간 창과 동일 SDK 버전으로 시각 오류 및 성능 회귀를 조사합니다.
 source: https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/map-recorder/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox MapRecorder로 지도 문제 재현하기
@@ -24,7 +24,9 @@ reviewed: '2026-08-31'
 
 공식 가이드는 MapRecorder를 개발 전용 실험 기능으로 안내하며, 기록한 SDK 버전에서의 재생만 신뢰할 수 있다고 설명해요. SDK 버전을 바꾼 뒤 오래된 기록이 계속 호환된다고 가정하지 마세요. [공식 MapRecorder 가이드](https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/map-recorder/)
 
-`11.29.1` 소스에서 `makeRecorder()`는 던질 수 있는 함수이고, `stop()`은 기록된 `Data`를 반환해요. 기본 시간 창은 제한이 없으므로 아래에서는 최근 30초로 제한해요. [MapRecorder 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/MapRecorder.swift), [기록 옵션](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/MapRecorderOptions.swift)
+`11.31.0` 소스에서 `makeRecorder()`는 던질 수 있는 함수이고, `stop()`은 기록된 `Data`를 반환해요. 기본 시간 창은 제한이 없으므로 아래에서는 최근 30초로 제한해요. [MapRecorder 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/MapRecorder.swift), [기록 옵션](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/MapRecorderOptions.swift)
+
+기록은 압축된 JSON으로 세션 metadata, 초기 camera·projection·terrain·style 상태와 `PitchBy`, 대기 시간 같은 지도 API 호출 순서를 담아요. 화면 픽셀이나 앱의 모든 네트워크·업무 상태를 저장하는 포맷은 아니므로 영상·앱 로그와 함께 사용해요.
 
 ## 개발용 소유 객체에서 기록을 시작하고 끝내요
 
@@ -98,6 +100,10 @@ final class DebugMapRecording {
 
 SDK를 업그레이드하는 실험은 기록 호환성 제한을 먼저 확인해야 해요. 호환된다는 근거 없이 서로 다른 버전에 같은 기록을 적용한 결과를 정량 비교하지 마세요. 카메라 동작이 같아도 네트워크·캐시·기기 온도까지 같아지는 것은 아니에요.
 
+공식 성능 예시는 새 POI Layer를 추가한 상태와 없는 상태에 같은 카메라 기록을 재생하고 Instruments Tracing으로 frame time을 비교해요. 성능 저하가 확인되면 pitch·화면 중심까지의 거리 같은 조건으로 Feature를 필터링한 뒤 다시 같은 기록을 재생해요. 한 번에 스타일 조건 하나만 바꿔야 개선 원인을 설명할 수 있어요.
+
+기록 재생은 수동 탐색이 흔들리는 navigation·빠른 zoom 시나리오를 고정하는 데 유용해요. 재생 데이터를 회귀 테스트 입력으로 보존할 수 있지만 동일 SDK 버전 제한, 네트워크·캐시 준비 상태와 기대 결과 판정은 테스트 코드가 별도로 관리해야 해요.
+
 ## 적용 체크리스트
 
 - [ ] SDK 버전과 기록 형식을 함께 보관했나요?
@@ -124,5 +130,5 @@ SDK를 업그레이드하는 실험은 기록 호환성 제한을 먼저 확인�
 ## 참고 자료
 
 - [Mapbox: MapRecorder](https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/map-recorder/)
-- [Mapbox 11.29.1: MapRecorder 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/MapRecorder.swift)
-- [Mapbox 11.29.1: MapRecorderOptions](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/MapRecorderOptions.swift)
+- [Mapbox 11.31.0: MapRecorder 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/MapRecorder.swift)
+- [Mapbox 11.31.0: MapRecorderOptions](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/MapRecorderOptions.swift)

@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox 스타일 설정
 description: Mapbox Standard와 사용자 정의 스타일의 로딩 방법을 구분하고 SwiftUI 상태와 UIKit 설정 예제로 스타일 변경, 공개 설정 범위와 복원 책임을 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/styles/set-a-style/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox 스타일 설정
@@ -30,6 +30,8 @@ reviewed: '2026-08-31'
 | `.standardSatellite` | 위성 영상 기반 기본 지도  |
 | `MapStyle(uri:)`     | 게시한 사용자 정의 스타일 |
 | `MapStyle(json:)`    | 직접 구성한 스타일 JSON   |
+
+SDK가 제공하는 다른 상수 스타일에는 Streets, Outdoors, Light, Dark, Satellite, Satellite Streets가 있어요. 새 앱의 기본 출발점은 Standard·Standard Satellite를 우선 검토하고, 기존 상수와 사용자 정의 스타일은 제품의 디자인·데이터 요구에 따라 선택해요.
 
 | Standard                                                                                | Outdoors                                                                   | 3D Terrain                                                                         |
 | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -97,6 +99,20 @@ URI 생성 성공은 실제 리소스 접근 성공을 보장하지 않아요. �
 
 처음부터 로딩을 미루려면 빈 스타일을 사용할 수 있어요. 다만 “빈 지도”, “로딩 중”, “로딩 실패”를 같은 화면으로 처리하지 않는 편이 좋아요. [스타일 로딩 선택지](https://docs.mapbox.com/ios/maps/guides/styles/set-a-style/#load-a-style)
 
+`MapInitOptions`에 스타일을 넣으면 지도 생성과 함께 로딩하고, 지도를 먼저 만든 뒤 `mapStyle`을 설정하면 로딩 시점을 늦출 수 있어요. 사용자 정의 스타일은 다음 세 입력을 구분해요.
+
+- Mapbox Studio에서 게시한 스타일은 `mapbox://styles/{username}/{style_id}` 형식의 URI를 사용해요.
+- SDK가 제공하는 스타일 상수는 오타를 줄이고 지원되는 기본 스타일을 명시해요.
+- Style Specification JSON은 앱 번들·서버 등 원본과 오류 처리 책임을 앱이 가져요.
+
+## 스타일 종류에 맞는 설정 API를 사용해요
+
+Standard·Standard Satellite는 `lightPreset`, POI·교통·도로·3D 객체 표시처럼 공개된 import 설정을 사용해요. SwiftUI는 `.mapStyle(.standard(...))`, UIKit은 `MapStyle.standard(...)` 값을 `mapStyle`에 대입해 같은 의도를 표현해요.
+
+사용자 정의 스타일은 Layer·Source·Terrain·Light 같은 Style Specification 항목을 직접 구성할 수 있지만, 존재하지 않는 Layer ID나 타입이 다른 속성을 수정하면 오류가 나요. Style Studio에서 만든 설계와 런타임 코드가 같은 리소스 ID 계약을 사용하도록 관리해요.
+
+스타일을 다른 값으로 바꾸는 작업은 비동기 리소스 로딩을 다시 시작해요. style loaded 이벤트 전에는 새 스타일의 Layer를 찾을 수 없고, 이전 스타일에만 명령형으로 추가한 리소스는 사라질 수 있어요. 화면에 이전 지도와 새 지도가 잠시 섞인다고 가정하지 말고 성공·실패·복원 순서를 정의해요.
+
 ## 스타일 교체 후 복원할 내용을 정해요
 
 명령형으로 추가한 일반 Layer는 스타일 교체 뒤 재추가가 필요할 수 있어요. `addPersistentLayer` 또는 [선언적 스타일링](./declarative-map-styling.md)도 검토하되, “스타일을 바꿔도 앱의 모든 상태가 자동 복원된다”로 일반화하지 않아요.
@@ -128,4 +144,4 @@ URI 생성 성공은 실제 리소스 접근 성공을 보장하지 않아요. �
 ## 참고 자료
 
 - [Mapbox — Set a style](https://docs.mapbox.com/ios/maps/guides/styles/set-a-style/)
-- [Mapbox Maps SDK 11.29.1 — Standard 설정 API](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Style/Generated/MapStyle%2BStandard.swift)
+- [Mapbox Maps SDK 11.31.0 — Standard 설정 API](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Style/Generated/MapStyle%2BStandard.swift)

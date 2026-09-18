@@ -2,14 +2,14 @@
 title: Swift로 이해하는 선언적 지도 스타일링
 description: MapStyleContent와 setMapStyleContent로 지도 상태를 선언하고 SwiftUI·UIKit에서 재사용하는 예제를 통해 전체 콘텐츠 소유권, 갱신 비용과 Layer 순서를 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/styles/declarative-map-styling/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 선언적 지도 스타일링
 
 > **면접 답변 한 줄 요약:** 선언적 지도 스타일링은 추가·삭제 명령을 직접 맞추는 대신 현재 필요한 Source·Layer 구성을 선언하고 SDK가 변경분을 반영하도록 하는 방식이에요.
 
-공식 [Declarative Map Styling](https://docs.mapbox.com/ios/maps/guides/styles/declarative-map-styling/)에 대응해요. 11.4.0부터 도입된 방식이며 이 문서는 SDK 11.29.1 기준으로 읽어요.
+공식 [Declarative Map Styling](https://docs.mapbox.com/ios/maps/guides/styles/declarative-map-styling/)에 대응해요. 11.4.0부터 도입된 방식이며 이 문서는 SDK 11.31.0 기준으로 읽어요.
 
 ## 먼저 알아둘 용어
 
@@ -54,6 +54,10 @@ struct StoreStyleContent: MapStyleContent {
 
 구성 요소는 데이터를 입력받기만 해요. 앱의 선택 상태를 직접 저장하거나 `MapView`를 소유하지 않아요.
 
+Style Primitive에는 Source·Layer뿐 아니라 Atmosphere, Terrain, Light, Snow·Rain 같은 스타일 구성도 포함될 수 있어요. `if`, `if let`, `switch`, `ForEvery`로 현재 상태에 필요한 Primitive만 만들 수 있지만 Source를 빼면서 그것을 참조하는 Layer만 남기지 않도록 같은 조건 경계에 둬요.
+
+반복되는 구성을 `MapStyleContent` 타입으로 추출하면 UIKit과 SwiftUI에서 같은 규칙을 재사용할 수 있어요. 사용자 정의 구성 요소의 입력은 값으로 전달하고, 내부에 별도 `@State`를 두지 않아야 상위 화면의 상태가 유일한 정답이 돼요.
+
 ## UIKit에서는 전체 선언을 전달해요
 
 앞에서 만든 구성 요소를 전달하는 함수예요. 이 예제 지도에는 매장 외의 선언적 콘텐츠가 없다고 가정해요.
@@ -76,7 +80,7 @@ func renderStoreStyle(
 }
 ```
 
-`setMapStyleContent`는 “이번에 바뀐 Layer만 추가”하는 호출이 아니에요. 매번 **현재 필요한 전체 선언적 구성**을 포함해야 해요. 서로 다른 기능이 각자 호출하면 다른 기능의 선언을 빠뜨릴 수 있어요. [StyleManager 계약](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Style/StyleManager.swift)
+`setMapStyleContent`는 “이번에 바뀐 Layer만 추가”하는 호출이 아니에요. 매번 **현재 필요한 전체 선언적 구성**을 포함해야 해요. 서로 다른 기능이 각자 호출하면 다른 기능의 선언을 빠뜨릴 수 있어요. [StyleManager 계약](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Style/StyleManager.swift)
 
 ## SwiftUI에서는 화면 상태를 입력으로 줘요
 
@@ -107,6 +111,8 @@ struct DeclarativeStoreMap: View {
 
 Layer는 Slot 위치를 먼저 고려하고 같은 Slot 안에서는 선언 순서를 따라요. 더 세밀한 삽입에는 `SlotLayer`를 사용할 수 있어요. 실제 뷰인 View Annotation은 Layer와 같은 삽입 모델이 아니에요. [콘텐츠 위치](https://docs.mapbox.com/ios/maps/guides/styles/declarative-map-styling/#content-positioning)
 
+Standard의 `bottom`·`middle`·`top` 위치에는 `slot`을 지정하고, 슬롯 안에서는 선언 순서를 사용해요. 사용자 정의 스타일처럼 기존 Layer를 기준으로 해야 할 때는 `layerPosition`으로 `above`·`below`·`at` 위치를 표현해요. 선언 순서만 보고 Standard 내부 레이어보다 항상 앞이라고 가정하지 않아요.
+
 전체 구성을 선언해도 모든 항목을 매번 제거하고 다시 추가하는 것은 아니에요. 다만 큰 GeoJSON과 잦은 상태 변경은 비교 비용을 만들 수 있어요. 공식 가이드는 작은 구성 요소로 나누는 최적화를 설명해요.
 
 설계 제안으로 검색 결과 데이터와 단순 토글 상태를 구분해서 측정해요. “선언적이므로 공짜”나 “함수 호출마다 지도 전체 재생성”이라는 두 극단을 모두 피해야 해요.
@@ -136,5 +142,5 @@ Layer는 Slot 위치를 먼저 고려하고 같은 Slot 안에서는 선언 순�
 ## 참고 자료
 
 - [Mapbox — Declarative Map Styling](https://docs.mapbox.com/ios/maps/guides/styles/declarative-map-styling/)
-- [Mapbox Maps SDK 11.29.1 — StyleManager](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Style/StyleManager.swift)
-- [Mapbox Maps SDK 11.29.1 — MapStyleContent](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/ContentBuilders/MapStyleContent/MapStyleContent.swift)
+- [Mapbox Maps SDK 11.31.0 — StyleManager](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Style/StyleManager.swift)
+- [Mapbox Maps SDK 11.31.0 — MapStyleContent](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/ContentBuilders/MapStyleContent/MapStyleContent.swift)

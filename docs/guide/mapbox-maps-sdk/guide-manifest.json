@@ -1,6 +1,6 @@
 {
-  "reviewed": "2026-08-31",
-  "sdkVersion": "11.29.1",
+  "reviewed": "2026-09-19",
+  "sdkVersion": "11.31.0",
   "officialIndex": "https://docs.mapbox.com/ios/maps/llms.txt",
   "scope": "Guides; includes overview and all child guides; excludes separate Examples/API Reference and other products",
   "pages": [
@@ -9,266 +9,304 @@
       "label": "가이드 개요",
       "original": "Maps SDK for iOS",
       "source": "https://docs.mapbox.com/ios/maps/guides/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "bc3c2dd241f69d4e"
     },
     {
       "slug": "install",
       "label": "설치와 시작하기",
       "original": "Get Started",
       "source": "https://docs.mapbox.com/ios/maps/guides/install/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "6e4fd75c51b563eb"
     },
     {
       "slug": "user-location",
       "label": "사용자 위치",
       "original": "User Location",
       "source": "https://docs.mapbox.com/ios/maps/guides/user-location/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "1bb077abb07a3cdc"
     },
     {
       "slug": "add-your-data/index",
       "label": "데이터 추가",
       "original": "Add your Data",
       "source": "https://docs.mapbox.com/ios/maps/guides/add-your-data/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "444927fefd43d1fb"
     },
     {
       "slug": "add-your-data/markers",
       "label": "마커",
       "original": "Markers",
       "source": "https://docs.mapbox.com/ios/maps/guides/add-your-data/markers/",
-      "parent": "add-your-data/index"
+      "parent": "add-your-data/index",
+      "outlineDigest": "8eaf0704b85cf960"
     },
     {
       "slug": "add-your-data/annotations",
       "label": "어노테이션",
       "original": "Annotations",
       "source": "https://docs.mapbox.com/ios/maps/guides/add-your-data/annotations/",
-      "parent": "add-your-data/index"
+      "parent": "add-your-data/index",
+      "outlineDigest": "9311ec19e7376cf5"
     },
     {
       "slug": "add-your-data/view-annotations",
       "label": "뷰 어노테이션",
       "original": "View annotations",
       "source": "https://docs.mapbox.com/ios/maps/guides/add-your-data/view-annotations/",
-      "parent": "add-your-data/index"
+      "parent": "add-your-data/index",
+      "outlineDigest": "20dc0de2a9e35cf5"
     },
     {
       "slug": "add-your-data/style-layers",
       "label": "스타일 레이어로 데이터 표시",
       "original": "Style layers",
       "source": "https://docs.mapbox.com/ios/maps/guides/add-your-data/style-layers/",
-      "parent": "add-your-data/index"
+      "parent": "add-your-data/index",
+      "outlineDigest": "02d184a991178cb4"
     },
     {
       "slug": "styles/index",
       "label": "지도 스타일",
       "original": "Map Styles",
       "source": "https://docs.mapbox.com/ios/maps/guides/styles/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "e3b0c44298fc1c14"
     },
     {
       "slug": "styles/set-a-style",
       "label": "스타일 설정",
       "original": "Set a style",
       "source": "https://docs.mapbox.com/ios/maps/guides/styles/set-a-style/",
-      "parent": "styles/index"
+      "parent": "styles/index",
+      "outlineDigest": "43c050de2b0f3a15"
     },
     {
       "slug": "styles/work-with-layers",
       "label": "소스와 레이어 다루기",
       "original": "Work with sources and layers",
       "source": "https://docs.mapbox.com/ios/maps/guides/styles/work-with-layers/",
-      "parent": "styles/index"
+      "parent": "styles/index",
+      "outlineDigest": "b3e721f3c75fbe19"
     },
     {
       "slug": "styles/style-layers",
       "label": "표현식으로 레이어 스타일 지정",
       "original": "Styling layers with expressions",
       "source": "https://docs.mapbox.com/ios/maps/guides/styles/style-layers/",
-      "parent": "styles/index"
+      "parent": "styles/index",
+      "outlineDigest": "1c710b329a73a9bc"
     },
     {
       "slug": "styles/declarative-map-styling",
       "label": "선언적 지도 스타일",
       "original": "Declarative Map Styling",
       "source": "https://docs.mapbox.com/ios/maps/guides/styles/declarative-map-styling/",
-      "parent": "styles/index"
+      "parent": "styles/index",
+      "outlineDigest": "d11baf8844eedd93"
     },
     {
       "slug": "swift-ui",
       "label": "SwiftUI 통합",
       "original": "SwiftUI",
       "source": "https://docs.mapbox.com/ios/maps/guides/swift-ui/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "2b9db3f9ebdd1afd"
     },
     {
       "slug": "camera-and-animation/index",
       "label": "카메라와 애니메이션",
       "original": "Camera and Animations",
       "source": "https://docs.mapbox.com/ios/maps/guides/camera-and-animation/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "e3b0c44298fc1c14"
     },
     {
       "slug": "camera-and-animation/camera",
       "label": "카메라 위치",
       "original": "Camera position",
       "source": "https://docs.mapbox.com/ios/maps/guides/camera-and-animation/camera/",
-      "parent": "camera-and-animation/index"
+      "parent": "camera-and-animation/index",
+      "outlineDigest": "40d5602429c3f430"
     },
     {
       "slug": "camera-and-animation/animations",
       "label": "애니메이션",
       "original": "Animations",
       "source": "https://docs.mapbox.com/ios/maps/guides/camera-and-animation/animations/",
-      "parent": "camera-and-animation/index"
+      "parent": "camera-and-animation/index",
+      "outlineDigest": "1d522b5684685a69"
     },
     {
       "slug": "camera-and-animation/viewport",
       "label": "뷰포트",
       "original": "Viewport",
       "source": "https://docs.mapbox.com/ios/maps/guides/camera-and-animation/viewport/",
-      "parent": "camera-and-animation/index"
+      "parent": "camera-and-animation/index",
+      "outlineDigest": "7ddf660db1df8e37"
     },
     {
       "slug": "user-interaction/index",
       "label": "사용자 상호작용",
       "original": "User Interaction",
       "source": "https://docs.mapbox.com/ios/maps/guides/user-interaction/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "e3b0c44298fc1c14"
     },
     {
       "slug": "user-interaction/gestures",
       "label": "제스처",
       "original": "Gestures",
       "source": "https://docs.mapbox.com/ios/maps/guides/user-interaction/gestures/",
-      "parent": "user-interaction/index"
+      "parent": "user-interaction/index",
+      "outlineDigest": "414b44c16ca78bac"
     },
     {
       "slug": "user-interaction/interactions",
       "label": "상호작용 API",
       "original": "Interactions API",
       "source": "https://docs.mapbox.com/ios/maps/guides/user-interaction/Interactions/",
-      "parent": "user-interaction/index"
+      "parent": "user-interaction/index",
+      "outlineDigest": "c12882f37d66e721"
     },
     {
       "slug": "user-interaction/map-content-gestures",
       "label": "지도 콘텐츠 제스처",
       "original": "Map Content Gestures",
       "source": "https://docs.mapbox.com/ios/maps/guides/user-interaction/map-content-gestures/",
-      "parent": "user-interaction/index"
+      "parent": "user-interaction/index",
+      "outlineDigest": "c6b6da95a72c75ba"
     },
     {
       "slug": "geofencing",
       "label": "지오펜싱",
       "original": "Geofencing",
       "source": "https://docs.mapbox.com/ios/maps/guides/geofencing/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "da2b778b2a8e551e"
     },
     {
       "slug": "indoor",
       "label": "실내 지도",
       "original": "Indoor mapping",
       "source": "https://docs.mapbox.com/ios/maps/guides/indoor/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "58fc53c779b44226"
     },
     {
       "slug": "offline/index",
       "label": "오프라인 지도",
       "original": "Offline Maps",
       "source": "https://docs.mapbox.com/ios/maps/guides/offline/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "0cc474074c3143ca"
     },
     {
       "slug": "offline/concepts",
       "label": "개념과 제약",
       "original": "Concepts and Constraints",
       "source": "https://docs.mapbox.com/ios/maps/guides/offline/concepts/",
-      "parent": "offline/index"
+      "parent": "offline/index",
+      "outlineDigest": "1910fff13c5994c8"
     },
     {
       "slug": "offline/manage-offline-data",
       "label": "오프라인 데이터 관리",
       "original": "Manage Offline Data",
       "source": "https://docs.mapbox.com/ios/maps/guides/offline/manage-offline-data/",
-      "parent": "offline/index"
+      "parent": "offline/index",
+      "outlineDigest": "849bf034a3136033"
     },
     {
       "slug": "cache-management",
       "label": "캐시 관리",
       "original": "Cache Management",
       "source": "https://docs.mapbox.com/ios/maps/guides/cache-management/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "f0aa3e105e482257"
     },
     {
       "slug": "debugging-and-profiling/index",
       "label": "디버깅과 성능 분석",
       "original": "Debugging and Profiling",
       "source": "https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "e3b0c44298fc1c14"
     },
     {
       "slug": "debugging-and-profiling/map-recorder",
       "label": "지도 기록과 재생",
       "original": "MapRecorder",
       "source": "https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/map-recorder/",
-      "parent": "debugging-and-profiling/index"
+      "parent": "debugging-and-profiling/index",
+      "outlineDigest": "5bf55fae3257f5f5"
     },
     {
       "slug": "debugging-and-profiling/debug-options",
       "label": "지도 디버그 옵션",
       "original": "Map Debug Options",
       "source": "https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/debug-options/",
-      "parent": "debugging-and-profiling/index"
+      "parent": "debugging-and-profiling/index",
+      "outlineDigest": "6a8505c872b3b633"
     },
     {
       "slug": "debugging-and-profiling/tracing",
       "label": "트레이싱",
       "original": "Tracing",
       "source": "https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/tracing/",
-      "parent": "debugging-and-profiling/index"
+      "parent": "debugging-and-profiling/index",
+      "outlineDigest": "bf64e1e32405ae7a"
     },
     {
       "slug": "debugging-and-profiling/performance-stats",
       "label": "성능 통계",
       "original": "Performance Statistics",
       "source": "https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/performance-stats/",
-      "parent": "debugging-and-profiling/index"
+      "parent": "debugging-and-profiling/index",
+      "outlineDigest": "084c3a6c7cac7e29"
     },
     {
       "slug": "work-with-visionos",
       "label": "visionOS 통합",
       "original": "Work with visionOS",
       "source": "https://docs.mapbox.com/ios/maps/guides/work-with-visionos/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "2ad4c971f1b8a142"
     },
     {
       "slug": "migrate-to-v11",
       "label": "v11 마이그레이션",
       "original": "Migrate to v11",
       "source": "https://docs.mapbox.com/ios/maps/guides/migrate-to-v11/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "8a759dcca9c19612"
     },
     {
       "slug": "pricing",
       "label": "요금 산정",
       "original": "Pricing",
       "source": "https://docs.mapbox.com/ios/maps/guides/pricing/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "e25f6eead4adb244"
     },
     {
       "slug": "old-versions/index",
       "label": "이전 버전",
       "original": "Previous versions",
       "source": "https://docs.mapbox.com/ios/maps/guides/old-versions/",
-      "parent": null
+      "parent": null,
+      "outlineDigest": "bfda3c7521e0b9a7"
     },
     {
       "slug": "old-versions/migrate-to-v10",
       "label": "v10 마이그레이션",
       "original": "Migrate to v10",
       "source": "https://docs.mapbox.com/ios/maps/guides/old-versions/migrate-to-v10/",
-      "parent": "old-versions/index"
+      "parent": "old-versions/index",
+      "outlineDigest": "c25b105785c1fe11"
     }
   ],
   "legacyPages": [

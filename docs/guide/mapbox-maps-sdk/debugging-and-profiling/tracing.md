@@ -2,7 +2,7 @@
 title: Mapbox Tracing과 Instruments 분석
 description: Mapbox core·platform 추적을 코드와 환경 변수로 설정하고, Xcode Instruments의 signpost 시간축에서 지도 로딩·렌더링 지연을 조사합니다.
 source: https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/tracing/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox Tracing과 Instruments 분석
@@ -52,7 +52,7 @@ Scheme의 **Profile** 동작에 전달되는 환경 변수를 확인해 다음 �
 값: core,platform
 ```
 
-`1`은 전체 활성화, `0` 또는 `disabled`는 비활성화예요. `DEBUG` 조건 안에만 코드 설정을 넣으면 Release 기반 Profile 실행에서 빠질 수 있으므로, 실제 프로파일 프로세스에 설정이 전달되는지 확인하세요. [Tracing 설정 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/Tracing.swift)
+`1`은 전체 활성화, `0` 또는 `disabled`는 비활성화예요. `DEBUG` 조건 안에만 코드 설정을 넣으면 Release 기반 Profile 실행에서 빠질 수 있으므로, 실제 프로파일 프로세스에 설정이 전달되는지 확인하세요. [Tracing 설정 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/Tracing.swift)
 
 ## Instruments에서 짧은 재현 구간을 기록해요
 
@@ -111,4 +111,4 @@ Tracing은 사건의 위치를 찾는 출발점이지, CPU 사용률이나 모�
 ## 참고 자료
 
 - [Mapbox: Tracing](https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/tracing/)
-- [Mapbox 11.29.1: Tracing 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/Tracing.swift)
+- [Mapbox 11.31.0: Tracing 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/Tracing.swift)
