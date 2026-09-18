@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox 카메라와 애니메이션
 description: Mapbox 카메라의 좌표·확대 수준, 애니메이션, Viewport가 해결하는 문제를 나누고 검색 결과·경로·내 위치 화면에 맞는 제어 방식을 선택해요.
 source: https://docs.mapbox.com/ios/maps/guides/camera-and-animation/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox 카메라와 애니메이션

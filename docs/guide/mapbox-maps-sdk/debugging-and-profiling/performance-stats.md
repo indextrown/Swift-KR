@@ -2,7 +2,7 @@
 title: Mapbox 렌더링 성능 통계
 description: Mapbox의 실험용 PerformanceStatistics를 수집하고 프레임 시간·레이어 비용·누적 지표를 해석하며, Metal에서 제공되지 않는 값과 비교 조건을 구분합니다.
 source: https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/performance-stats/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox 렌더링 성능 통계
@@ -25,7 +25,9 @@ reviewed: '2026-08-31'
 
 공식 가이드는 `.perFrame`과 `.cumulative` 수집을 제공하며, 모니터링이 오버헤드를 만들 수 있다고 설명해요. 호출 옵션의 `samplingDurationMillis`는 수집 간격 설정이고, 결과의 `collectionDurationMillis`는 실제 수집 구간을 설명하는 값이에요. 두 이름을 바꿔 쓰지 마세요. [공식 성능 통계](https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/performance-stats/)
 
-`11.29.1` 소스는 수집 간격 0이면 매 프레임 수집하고, 음수는 유효하지 않다고 명시해요. 처음에는 몇 초 단위의 구간으로 시작해 필요한 범위만 줄이는 편이 좋아요. [통계 옵션 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/PerformanceStatisticsOptions.swift)
+`11.31.0` 소스는 수집 간격 0이면 매 프레임 수집하고, 음수는 유효하지 않다고 명시해요. 처음에는 몇 초 단위의 구간으로 시작해 필요한 범위만 줄이는 편이 좋아요. [통계 옵션 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/PerformanceStatisticsOptions.swift)
+
+공식 문서는 측정 자체가 오버헤드를 만들므로 개발·프로파일링에만 제한하고 기본 probe는 모두 꺼져 있다고 설명해요. 2분 시나리오 전체를 하나의 결과로 비교하려면 120,000ms처럼 구간 전체를 덮고, 프레임별 변동이 필요할 때만 더 짧게 나눠요.
 
 ## UIKit 지도에서 수집 수명을 소유해요
 
@@ -60,11 +62,23 @@ final class MapPerformanceProbe {
 }
 ```
 
-개발 도구의 소유 객체가 `MapPerformanceProbe`를 보관하고, 측정 종료 때 `stop()`을 호출해요. 반환 핸들의 취소는 수집을 중단하는 API 계약이에요. 로그 출력을 실제 측정 파일 저장으로 바꿀 때도 매 프레임 UI 갱신은 피하세요. [수집 API 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/MapboxMap.swift)
+개발 도구의 소유 객체가 `MapPerformanceProbe`를 보관하고, 측정 종료 때 `stop()`을 호출해요. 반환 핸들의 취소는 수집을 중단하는 API 계약이에요. 로그 출력을 실제 측정 파일 저장으로 바꿀 때도 매 프레임 UI 갱신은 피하세요. [수집 API 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/MapboxMap.swift)
+
+## 결과 형식을 질문에 맞춰 읽어요
+
+| 결과                          | 의미와 사용법                                                    |
+| ----------------------------- | ---------------------------------------------------------------- |
+| `mapRenderDurationStatistics` | 구간의 지도 렌더링 max·median 등                                 |
+| `cumulativeStatistics`        | draw calls, graphics program, texture·vertex 같은 누적 자원 상태 |
+| `topRenderGroups`             | 비용이 큰 렌더 그룹 후보                                         |
+| `topRenderLayers`             | 비용이 큰 Style Layer 후보                                       |
+| shadow·upload duration        | 그림자 지도·GPU 업로드 같은 세부 렌더 단계 시간                  |
+
+여러 프레임 구간의 per-frame 결과는 각 프레임 원본 배열이 아니라 집계예요. 특정 Layer가 상위에 보이면 그 Layer의 Feature 수·filter·zoom 범위를 바꾼 실험을 만들고, 단독 숫자보다 기준 대비 백분율 차이를 봐요.
 
 ## 제공되지 않은 값은 0이 아니에요
 
-오래된 가이드 예제에는 `textureBytes`와 `vertexBytes` 숫자가 나오지만, `11.29.1` 구현 주석은 **Metal 렌더러에서는 두 값이 nil**이라고 명시해요. nil을 0으로 바꾸면 “GPU 자원 사용이 없다”는 잘못된 차트를 만들어요. [현행 지표 정의](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/PerformanceStatisticsOptions.swift)
+오래된 가이드 예제에는 `textureBytes`와 `vertexBytes` 숫자가 나오지만, `11.31.0` 구현 주석은 **Metal 렌더러에서는 두 값이 nil**이라고 명시해요. nil을 0으로 바꾸면 “GPU 자원 사용이 없다”는 잘못된 차트를 만들어요. [현행 지표 정의](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/PerformanceStatisticsOptions.swift)
 
 아래는 통계 화면의 표시 정책을 검증하는 독립적인 Swift 예제예요.
 
@@ -102,6 +116,8 @@ _공식 가이드는 장면 복잡도가 다른 세 카메라를 예시로 들�
 
 중앙값이 줄어도 최악의 지연은 늘 수 있어요. 최댓값과 반복 실행의 분포도 함께 보세요. 지도 렌더링 구간의 역수만으로 사용자가 보는 실제 FPS를 확정하지 마세요. 앱의 다른 작업과 화면 표시 일정까지 모두 측정한 값이 아니에요.
 
+navigation처럼 카메라와 route·Puck이 계속 갱신되는 실험은 [MapRecorder](./map-recorder.md)로 같은 움직임을 재생해요. 자주 업데이트하는 Layer의 갱신 주기를 줄였을 때 시각적 품질과 통계가 모두 허용되는지 비교하고, 최소 지원 기기에서 반복해요.
+
 ## 적용 체크리스트
 
 - [ ] 실험용 API와 SDK 버전을 기록했나요?
@@ -128,5 +144,5 @@ _공식 가이드는 장면 복잡도가 다른 세 카메라를 예시로 들�
 ## 참고 자료
 
 - [Mapbox: Performance Statistics](https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/performance-stats/)
-- [Mapbox 11.29.1: PerformanceStatisticsOptions](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/PerformanceStatisticsOptions.swift)
-- [Mapbox 11.29.1: MapboxMap](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Foundation/MapboxMap.swift)
+- [Mapbox 11.31.0: PerformanceStatisticsOptions](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/PerformanceStatisticsOptions.swift)
+- [Mapbox 11.31.0: MapboxMap](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Foundation/MapboxMap.swift)

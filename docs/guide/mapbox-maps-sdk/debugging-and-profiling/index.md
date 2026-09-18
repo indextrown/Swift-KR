@@ -2,7 +2,7 @@
 title: Mapbox 디버깅과 성능 분석 시작하기
 description: 시각 오류 확인, 지도 동작 재현, 렌더링 통계 수집과 Instruments 추적을 목적별로 구분해 Mapbox 성능 문제를 조사하는 순서를 정리합니다.
 source: https://docs.mapbox.com/ios/maps/guides/debugging-and-profiling/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox 디버깅과 성능 분석 시작하기

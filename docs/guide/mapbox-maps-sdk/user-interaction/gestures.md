@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox 기본 제스처
 description: Mapbox GestureOptions로 이동·확대·회전·기울기 조작을 조정하고 제스처 종료와 관성 애니메이션 종료, 직접 만든 제스처의 충돌을 구분해요.
 source: https://docs.mapbox.com/ios/maps/guides/user-interaction/gestures/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox 기본 제스처
@@ -22,6 +22,15 @@ reviewed: '2026-08-31'
 | Gesture recognizer | 손가락 입력이 어떤 제스처인지 판별하는 객체예요.    |
 
 기본 제스처에는 이동·기울기·확대·회전·더블 탭 확대·두 손가락 탭 축소·빠른 확대가 있어요. `GestureOptions`로 허용 여부, 이동 방향, 감속을 조정해요. 조작을 막아도 코드의 카메라 변경은 막히지 않아요. [공식 가이드](https://docs.mapbox.com/ios/maps/guides/user-interaction/gestures/)
+
+| 기본 입력             | 지도 반응                               |
+| --------------------- | --------------------------------------- |
+| 한 손가락 드래그      | 상하좌우 pan                            |
+| 두 손가락 세로 드래그 | pitch 조절                              |
+| 두 손가락 pinch·회전  | 연속 zoom·bearing 조절                  |
+| 한 손가락 두 번 탭    | 탭 위치를 향해 한 단계 확대             |
+| 두 손가락 한 번 탭    | 두 손가락 중점을 기준으로 한 단계 축소  |
+| 두 번 탭한 채 드래그  | 위로 끌면 축소, 아래로 끌면 빠르게 확대 |
 
 ## 모든 제스처를 끄기 전에 문제를 좁혀요
 
@@ -64,7 +73,7 @@ struct FlatStoreMap: View {
 
 문구는 “최근 이벤트”이지 모든 카메라 움직임을 합친 상태가 아니에요. 여러 제스처가 겹치거나 앱 코드로 카메라가 움직일 수 있으므로 한 콜백만으로 “지도는 완전히 멈춤”이라고 단정하지 않아요.
 
-SwiftUI의 `gestureHandlers`와 UIKit의 `GestureManagerDelegate`는 시작·종료·관성 종료를 나누어 제공해요. UIKit delegate는 약하게 보관되므로 별도 객체를 사용한다면 화면 소유자가 유지해야 해요. [11.29.1 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Gestures/GestureManager.swift)
+SwiftUI의 `gestureHandlers`와 UIKit의 `GestureManagerDelegate`는 시작·종료·관성 종료를 나누어 제공해요. UIKit delegate는 약하게 보관되므로 별도 객체를 사용한다면 화면 소유자가 유지해야 해요. [11.31.0 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Gestures/GestureManager.swift)
 
 ## UIKit에서도 같은 목적의 설정을 적용해요
 
@@ -88,11 +97,15 @@ func configureStoreMapGestures(
 
 회전을 막는 정책은 사용자 입력에만 적용돼요. “북쪽이 위”인 화면이 요구라면 초기 bearing과 이후 코드의 카메라 설정도 같은 정책을 따라야 해요. 사용자 조작 설정만 바꿔서는 이전 화면의 회전을 바로잡지 못할 수 있어요.
 
+pan을 특정 방향으로 제한하려면 `panMode`를 사용하고, 손을 뗀 뒤 감속은 `panDecelerationFactor`로 조절해요. 감속 계수는 매 밀리초 속도 벡터에 곱해져 작은 차이도 체감 거리를 크게 바꿀 수 있으므로 `UIScrollView.DecelerationRate`의 raw value를 시작점으로 실제 기기에서 측정해요.
+
 ## 콘텐츠 탭과 카메라 조작을 섞지 않아요
 
-매장 선택은 [Interactions API](./interactions.md), 주석 선택은 [지도 콘텐츠 제스처](./map-content-gestures.md)를 참고해요. 11.29.1의 기존 `onMapTap`·`onLayerTap` 계열에는 deprecated 표시가 있으므로 새 예제에서는 Interactions를 사용해요. [GestureManager 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Gestures/GestureManager.swift)
+매장 선택은 [Interactions API](./interactions.md), 주석 선택은 [지도 콘텐츠 제스처](./map-content-gestures.md)를 참고해요. 11.31.0의 기존 `onMapTap`·`onLayerTap` 계열에는 deprecated 표시가 있으므로 새 예제에서는 Interactions를 사용해요. [GestureManager 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Gestures/GestureManager.swift)
 
 사용자 정의 recognizer를 추가한다면 기본 recognizer의 delegate나 target/action을 바꾸지 말고 충돌 관계를 설계해요. [공식 가이드](https://docs.mapbox.com/ios/maps/guides/user-interaction/gestures/)
+
+내 `UIGestureRecognizer`는 MapView에 추가하고 `require(toFail:)` 또는 내 recognizer의 delegate에서 동시 인식 관계를 설정해요. SDK 기본 recognizer의 target/action을 제거하거나 delegate를 교체하면 내부 카메라 동작을 깨뜨릴 수 있어 권장되지 않아요. 새 제스처가 카메라를 움직여야 한다면 공개 `MapboxMap` 카메라 API를 호출해요.
 
 예를 들어 지도 위 하단 시트와 pan이 충돌한다면 “세로 드래그는 항상 지도 소유”라는 가정부터 확인해요. 손가락 시작 위치, 시트 펼침 상태, 지도 확대 제스처를 나눠 재현하면 어느 입력이 가로채지는지 찾기 쉬워요.
 
@@ -121,5 +134,5 @@ func configureStoreMapGestures(
 ## 참고 자료
 
 - [Mapbox Gestures](https://docs.mapbox.com/ios/maps/guides/user-interaction/gestures/)
-- [Mapbox GestureManager · 11.29.1](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Gestures/GestureManager.swift)
-- [Mapbox SwiftUI 제스처 · 11.29.1](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/SwiftUI/Map+Gestures.swift)
+- [Mapbox GestureManager · 11.31.0](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Gestures/GestureManager.swift)
+- [Mapbox SwiftUI 제스처 · 11.31.0](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/SwiftUI/Map+Gestures.swift)

@@ -2,7 +2,7 @@
 title: RxSwift 공식 API 범위와 학습 순서
 description: RxSwift 6.10.2의 RxSwift·RxCocoa·RxRelay·RxTest·RxBlocking 공개 API를 문서별로 연결하고 포함 범위와 권장 학습 순서를 안내합니다.
 source: https://github.com/ReactiveX/RxSwift/tree/6.10.2
-reviewed: '2026-09-06'
+reviewed: '2026-09-19'
 ---
 
 # RxSwift 공식 API 범위와 학습 순서
@@ -10,6 +10,8 @@ reviewed: '2026-09-06'
 > **면접 답변 한 줄 요약:** RxSwift 생태계는 코어 스트림을 담당하는 RxSwift, Apple UI 연결을 담당하는 RxCocoa, 종료 없는 값 통로인 RxRelay, 가상 시간과 동기 검사를 제공하는 RxTest·RxBlocking으로 나뉘어요.
 
 RxSwift 문서가 몇 개인지만 세면 실제 범위를 판단하기 어려워요. 한 문서에 개념을 모두 넣으면 찾기 힘들고, API 이름만 나열하면 왜 쓰는지 알기 어려워요. 이 페이지는 **RxSwift 6.10.2 공식 저장소의 공개 제품과 API 계열**을 기준으로 각 내용을 어느 문서에서 설명하는지 연결해요.
+
+2026년 9월 19일에는 6.10.2 태그의 다섯 제품 소스에서 `public` 타입·프로토콜·타입 별칭을 다시 추출해 문서 전체와 대조했어요. 자주 쓰는 API뿐 아니라 라이브러리 확장용 공개 계약도 이름, 역할, 직접 사용 여부를 찾을 수 있도록 보충했어요.
 
 ## 먼저 알아둘 용어
 
@@ -48,6 +50,7 @@ RxRelay ───▶ RxSwift ◀── RxTest
 | 공식 API 계열                             | 다루는 내용                                                               | 상세 문서                                                                                 |
 | ----------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | `ObservableType`, `ObserverType`, `Event` | 생성, 구독, 이벤트 문법, 타입 지우기, 이벤트를 값으로 바꾸기              | [Observable·Observer·Event](./observable-observer-event)                                  |
+| 공개 프로토콜과 타입 별칭                 | Cancelable, Scheduler·Subject 계약, Trait 이벤트, 시간 별칭, DataDecoder  | [공개 프로토콜과 타입 별칭](./rxswift-public-contracts)                                   |
 | `Disposable`과 구현 타입                  | DisposeBag, 교체·복합·참조 카운트·예약 폐기, 취소와 자원 수명             | [Disposable과 자원](./disposables-and-resources)                                          |
 | `SchedulerType`과 구현 타입               | 구독 위치, 관찰 위치, 직렬·병렬·메인·가상 시간, async 브리지              | [Scheduler와 동시성](./schedulers-and-concurrency)                                        |
 | 네 가지 Subject와 코어 Trait              | Publish·Behavior·Replay·AsyncSubject, Single·Maybe·Completable·Infallible | [Subject와 Traits](./subjects-and-traits)                                                 |
@@ -62,6 +65,7 @@ RxRelay ───▶ RxSwift ◀── RxTest
 | 공식 API 계열                              | 다루는 내용                                                        | 상세 문서                                                          |
 | ------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
 | `Reactive`, `ReactiveCompatible`, `Binder` | `.rx` 네임스페이스, source와 sink, 안전한 UI 출력                  | [Reactive·Binder·Control Traits](./reactive-binder-control-traits) |
+| 공개 프로토콜과 오류                       | Control·SharedSequence·DelegateProxy·data source 계약과 오류 계층  | [공개 프로토콜과 오류](./rxcocoa-public-contracts)                 |
 | `ControlProperty`, `ControlEvent`          | UI 입력의 읽기·쓰기 계약과 컨트롤 사건                             | [Reactive·Binder·Control Traits](./reactive-binder-control-traits) |
 | `SharedSequence`, `Driver`, `Signal`       | 메인 Scheduler, 오류 없는 UI 출력, replay와 공유 범위              | [Driver·Signal·SharedSequence](./driver-signal-shared-sequence)    |
 | UIKit 확장                                 | 버튼·텍스트·스크롤·내비게이션·웹 뷰·애플리케이션 이벤트            | [UIKit 컨트롤 바인딩](./uikit-control-bindings)                    |

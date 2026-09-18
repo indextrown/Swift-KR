@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox 어노테이션
 description: Mapbox Point·Circle·Polyline·Polygon Annotation을 구분하고 SwiftUI의 조건부 선언과 UIKit AnnotationManager의 생성·갱신·제거 수명 주기를 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/add-your-data/annotations/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox 어노테이션
@@ -42,6 +42,8 @@ reviewed: '2026-08-31'
 _Point·Circle은 위치 중심의 표시이고, Polyline·Polygon은 여러 좌표의 순서와 경계를 표현해요. [공식 Annotations에서 유형별 이미지 보기](https://docs.mapbox.com/ios/maps/guides/add-your-data/annotations/)_
 
 일반 Annotation을 모두 `UIView`라고 생각하면 안 돼요. UIKit Manager도 내부 Source·Layer를 관리해요. 실제 카드 뷰는 [View Annotation](./view-annotations.md)에서 다뤄요.
+
+각 타입의 좌표 의미도 달라요. Point·Circle은 중심 좌표 한 개를 받고, Polyline은 선을 따라갈 좌표 순서가 중요해요. Polygon은 외곽 고리와 선택적인 내부 고리를 가진 면이므로 경계가 올바른지 확인해요. 표현 속성은 타입에 맞춰 `iconImage`, `circleRadius`, `lineWidth`, `fillColor`처럼 나뉘어요.
 
 ## SwiftUI에서는 현재 목록을 선언해요
 
@@ -107,6 +109,18 @@ func installPickupAnnotation(
 
 탭 처리의 반환값은 아래 콘텐츠로 이벤트를 전달할지에 영향을 줘요. 중첩된 표시의 전파는 [지도 콘텐츠 제스처](../user-interaction/map-content-gestures.md)에서 이어서 확인해요.
 
+SwiftUI의 Annotation 콘텐츠에는 `onTapGesture`를 연결할 수 있고 UIKit Manager에는 클릭 핸들러를 등록할 수 있어요. 드래그가 필요한 Annotation은 draggable 상태와 drag begin/change/end 이벤트를 함께 설계해요. 이벤트에서 도메인 모델의 ID를 찾을 수 있도록 Annotation의 안정적인 `id`를 유지하고, 콜백 안에서 전체 목록을 즉시 재생성해 같은 제스처를 흔들지 않게 해요.
+
+## 제거 범위를 구분해요
+
+| 원하는 결과              | SwiftUI                                   | UIKit                                      |
+| ------------------------ | ----------------------------------------- | ------------------------------------------ |
+| 항목 하나 제거           | `ForEvery` 입력 컬렉션에서 해당 항목 제거 | Manager의 `annotations`에서 해당 항목 제거 |
+| 같은 타입 표시 모두 제거 | 콘텐츠 조건을 끄거나 빈 컬렉션 전달       | `manager.annotations.removeAll()`          |
+| 관리 리소스까지 종료     | `MapContent` 선언에서 제거                | `removeAnnotationManager(withId:)`         |
+
+Manager를 제거한 뒤 오래된 참조의 배열을 바꿔도 지도에는 반영되지 않아요. 다시 쓸 화면이라면 Manager는 보관하고 목록만 비우고, 기능 자체가 끝났다면 Manager까지 제거해요.
+
 ## 적용 체크리스트
 
 - [ ] 이미지가 필요 없는 모양에 불필요한 자산을 만들지 않았나요?
@@ -132,4 +146,4 @@ func installPickupAnnotation(
 ## 참고 자료
 
 - [Mapbox — Annotations](https://docs.mapbox.com/ios/maps/guides/add-your-data/annotations/)
-- [Mapbox Maps SDK 11.29.1 — PointAnnotationManager](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Annotations/Generated/PointAnnotationManager.swift)
+- [Mapbox Maps SDK 11.31.0 — PointAnnotationManager](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Annotations/Generated/PointAnnotationManager.swift)

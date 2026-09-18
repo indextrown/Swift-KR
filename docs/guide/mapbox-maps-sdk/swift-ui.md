@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox SwiftUI 지도
 description: Mapbox의 SwiftUI Map과 Viewport 바인딩, 지도 콘텐츠 선언, MapReader의 역할을 나누고 상태 갱신과 지도 수명 주기를 안전하게 설계하는 방법을 설명해요.
 source: https://docs.mapbox.com/ios/maps/guides/swift-ui/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox SwiftUI 지도
@@ -22,6 +22,19 @@ reviewed: '2026-08-31'
 | MapReader  | 내부 지도의 API를 읽거나 호출할 수 있는 proxy를 제공하는 컨테이너예요.       |
 
 가이드의 지원 범위에는 카메라·주석·클러스터·Puck·이벤트·스타일이 포함돼요. 다만 모든 UIKit API가 같은 형태로 노출되지는 않으며 Layer Annotation의 `isDraggable`·`isSelected`와 사용자 정의 카메라 애니메이션 같은 차이를 확인해야 해요. [공식 지원 표](https://docs.mapbox.com/ios/maps/guides/swift-ui/#feature-support)
+
+| 기능               | SwiftUI에서의 진입점                           |
+| ------------------ | ---------------------------------------------- |
+| 지도 스타일        | `.mapStyle(...)`                               |
+| Source·Layer       | `Map` 콘텐츠의 선언적 Style Primitive          |
+| 사용자 위치        | `Puck2D`·`Puck3D`와 위치 권한·Provider         |
+| 카메라             | `initialViewport` 또는 `viewport` 바인딩       |
+| 카메라 전환        | `withViewportAnimation`과 제공 전환            |
+| View Annotation    | `MapViewAnnotation` 안의 일반 SwiftUI `View`   |
+| Layer Annotation   | Point·Circle·Polyline·Polygon 콘텐츠           |
+| 직접 지도 API 접근 | `MapReader`가 제공하는 optional `MapProxy.map` |
+
+Layer Annotation의 일부 선택·드래그 기능과 저수준 카메라 애니메이터처럼 UIKit API와 동일하게 노출되지 않는 항목은 지원 표와 설치한 SDK 버전을 확인해요. 선언형 API가 없는 한 지점 때문에 전체 지도를 UIKit 래퍼로 되돌리기 전에 MapReader로 필요한 API만 좁혀 접근할 수 있는지도 검토해요.
 
 ## 지도의 초기 위치와 반복되는 명령을 구분해요
 
@@ -77,6 +90,8 @@ struct SelectedStoreMap: View {
 
 선언형 스타일 콘텐츠는 스타일을 다시 불러올 때 재적용되며, `ForEvery`는 지도 콘텐츠의 반복 선언에 사용해요. View Annotation은 지도 위의 네이티브 뷰인 반면 Layer Annotation은 지도 렌더링 콘텐츠라는 차이가 있어요. [공식 SwiftUI 가이드](https://docs.mapbox.com/ios/maps/guides/swift-ui/)
 
+Map의 `mapStyle`은 배경 설계도를 고르고, MapContent의 Source·Layer는 앱 데이터를 그 위에 선언해요. Puck을 선언했다고 권한 요청까지 자동으로 완료되는 것은 아니며, 위치 권한과 Provider 상태를 따로 처리해야 해요. `Viewport.followPuck`은 Puck 표시와도 별개의 카메라 의도예요.
+
 학습 화면에서는 “선택된 매장 하나의 풍부한 카드”와 “전체 매장 위치 수천 개”를 같은 UI 방식으로 만들 필요가 없어요. 두 표현의 요구를 나눈 뒤 데이터 수와 제스처를 기준으로 검증해 보세요.
 
 ## MapReader는 필요한 순간에만 사용해요
@@ -106,7 +121,7 @@ struct InspectMapCenter: View {
 }
 ```
 
-`proxy.map`은 optional이므로 지도가 준비되지 않은 상황을 처리해요. proxy 자체를 장기 보관하는 앱 전역 모델로 옮기기보다, 화면이 존재하는 범위에서 API를 사용하는 식으로 경계를 좁혀요. [MapProxy 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/SwiftUI/MapProxy.swift)
+`proxy.map`은 optional이므로 지도가 준비되지 않은 상황을 처리해요. proxy 자체를 장기 보관하는 앱 전역 모델로 옮기기보다, 화면이 존재하는 범위에서 API를 사용하는 식으로 경계를 좁혀요. [MapProxy 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/SwiftUI/MapProxy.swift)
 
 ## 상태가 서로를 갱신하는 순환을 피하세요
 
@@ -140,4 +155,4 @@ struct InspectMapCenter: View {
 ## 참고 자료
 
 - [Mapbox SwiftUI](https://docs.mapbox.com/ios/maps/guides/swift-ui/)
-- [Mapbox MapProxy 구현 · 11.29.1](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/SwiftUI/MapProxy.swift)
+- [Mapbox MapProxy 구현 · 11.31.0](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/SwiftUI/MapProxy.swift)

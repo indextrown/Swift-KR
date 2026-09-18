@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Source와 Layer 관리
 description: Mapbox Source와 Layer의 연결·생성·수정·제거 순서를 살펴보고 UIKit 예제로 리소스 ID, Standard 슬롯, 지형 렌더링 순서와 데이터 유형을 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/styles/work-with-layers/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Source와 Layer 관리
@@ -96,11 +96,54 @@ func setStoreEmphasis(
 
 매장 좌표가 바뀌는 상황이라면 Source 데이터를 갱신해야 해요. 반지름 변경 때문에 좌표를 다시 내려받을 이유는 없어요.
 
-제거할 때는 참조하는 Layer부터 제거하고, 다른 Layer가 사용하지 않는 Source를 정리해요. `removeLayer(withId:)`와 `removeSource(withId:)`는 별도 호출이에요. [StyleManager API 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Style/StyleManager.swift)
+제거할 때는 참조하는 Layer부터 제거하고, 다른 Layer가 사용하지 않는 Source를 정리해요. `removeLayer(withId:)`와 `removeSource(withId:)`는 별도 호출이에요. [StyleManager API 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Style/StyleManager.swift)
+
+## 런타임 추가·수정·제거 순서를 완성해요
+
+공식 가이드의 명령형 흐름을 한 사이클로 정리하면 다음과 같아요.
+
+1. 스타일 로딩 완료 뒤 Source ID와 Layer ID 충돌을 확인해요.
+2. `addSource`로 데이터를 먼저 등록해요.
+3. `addLayer`로 그 Source를 참조하는 표현을 추가하고 위치를 지정해요.
+4. 데이터가 바뀌면 GeoJSON Source를, 표현이 바뀌면 `updateLayer`를 갱신해요.
+5. 제거할 때는 참조 Layer를 먼저 제거하고 더 이상 공유되지 않는 Source를 제거해요.
+
+한 속성만 바꾸려 해도 먼저 Layer의 구체 타입을 알아야 해요. `CircleLayer`를 `LineLayer.self`로 갱신하려 하면 실패해요. 스타일이 교체되면 같은 ID라도 이전 객체가 아니라 새 스타일의 리소스이므로 style loaded 이후 다시 확인해요.
+
+## Source 종류의 입력 계약을 확인해요
+
+| Source     | 입력 계약과 대표 용도                                           |
+| ---------- | --------------------------------------------------------------- |
+| Vector     | Mapbox Tileset·TileJSON과 내부 `source-layer`; 큰 지리 데이터   |
+| GeoJSON    | URL·FeatureCollection·Geometry; 앱이 만드는 점·선·면과 클러스터 |
+| Raster     | 이미지 타일 URL·TileJSON; 위성·스캔 지도                        |
+| Raster DEM | 고도 타일; Hillshade와 Terrain                                  |
+| Image      | 이미지 한 장과 네 모서리 좌표; 과거 지도·평면도 오버레이        |
+
+Vector Source ID와 타일 안의 `source-layer` 이름은 다르며 둘 다 맞아야 해요. GeoJSON은 편리하지만 큰 전체 문서를 자주 교체하면 직렬화·전송 비용이 커질 수 있어 부분 갱신이나 타일 기반 전환을 검토해요.
+
+## Layer 종류를 표현 목적에 맞춰요
+
+| Layer         | 그리는 대상                            |
+| ------------- | -------------------------------------- |
+| Fill          | Polygon 면                             |
+| Line          | 경로·경계선                            |
+| Symbol        | 아이콘·텍스트                          |
+| Circle        | Point를 화면 픽셀 반지름의 원으로 표시 |
+| FillExtrusion | 높이 있는 3D Polygon                   |
+| Hillshade     | Raster DEM의 음영                      |
+| Heatmap       | Point 밀도를 열 분포로 표시            |
+| Raster        | 이미지 타일·Image Source               |
+| Sky           | 지평선 위 하늘 표현                    |
+| Background    | 지도 전체 배경색·패턴                  |
+
+Layer마다 지원하는 Source·속성·최소/최대 줌이 달라요. 데이터 모양만 맞추는 데서 끝내지 않고 Style Specification의 해당 Layer 항목을 확인해요.
 
 ## 겹치는 순서는 Slot과 렌더링 조건을 함께 봐요
 
 Standard에서는 `bottom`, `middle`, `top` 슬롯과 슬롯 안의 상대 순서를 사용해요. 배경 지도의 내부 ID에 의존하지 않는 것이 핵심이에요. 지구본이나 지형을 사용하는 경우 표면에 붙는 Layer들이 Symbol 아래로 묶여 그려질 수 있어요. [렌더링 순서](https://docs.mapbox.com/ios/maps/guides/styles/work-with-layers/#rendering-order)
+
+Standard·Standard Satellite에서는 `slot`을 우선 사용하고, 슬롯 밖 사용자 Layer끼리만 `above`·`below` 상대 위치를 안정적으로 사용해요. 다른 스타일에서는 `LayerPosition`의 `at`, `above`, `below`로 기존 Layer를 기준 삼을 수 있어요. 드레이핑이 적용되는 Globe·Terrain에서는 Fill·Line·Background·Hillshade·Raster가 최적화를 위해 다른 순서로 묶일 수 있다는 제한도 함께 테스트해요.
 
 보이지 않는다고 바로 색을 바꾸기보다 다음 순서로 원인을 좁혀봐요.
 
@@ -135,4 +178,4 @@ Standard에서는 `bottom`, `middle`, `top` 슬롯과 슬롯 안의 상대 순�
 ## 참고 자료
 
 - [Mapbox — Work with sources and layers](https://docs.mapbox.com/ios/maps/guides/styles/work-with-layers/)
-- [Mapbox Maps SDK 11.29.1 — StyleManager](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Style/StyleManager.swift)
+- [Mapbox Maps SDK 11.31.0 — StyleManager](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Style/StyleManager.swift)

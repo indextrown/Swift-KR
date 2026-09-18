@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox Interactions API
 description: Mapbox Interactions API로 레이어·Standard featureset·지도 전체의 탭을 처리하고 선택 상태, 이벤트 전파, UIKit 등록 토큰의 수명과 취소를 구분해요.
 source: https://docs.mapbox.com/ios/maps/guides/user-interaction/Interactions/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox Interactions API
@@ -22,6 +22,14 @@ reviewed: '2026-08-31'
 | Cancelable    | 등록한 동작을 취소할 수 있는 토큰의 인터페이스예요.                |
 
 API는 v11.13.0부터 안정 API이며, `TapInteraction`과 `LongPressInteraction`을 제공해요. SwiftUI에서는 Map 내부에 선언하고 UIKit에서는 `mapboxMap.addInteraction`으로 등록해요. Standard의 POI·장소 라벨·건물 featureset은 각각 맞는 타입의 결과를 제공해요. [공식 가이드](https://docs.mapbox.com/ios/maps/guides/user-interaction/Interactions/)
+
+| 대상                | 선택 기준                                                     |
+| ------------------- | ------------------------------------------------------------- |
+| 내 Style Layer      | 앱이 소유한 Layer ID의 Feature를 탭·길게 누르기               |
+| Standard featureset | POI·장소 라벨·건물처럼 Standard가 공개한 안정된 상호작용 경계 |
+| 지도 전체           | 위 대상이 처리하지 않은 빈 지도 입력이나 좌표 기반 동작       |
+
+Interaction은 입력 종류와 대상을 함께 나타내요. 레이어 대상은 렌더링된 Feature와 제스처 문맥을 받고, 지도 대상은 Feature 없이 좌표·화면 지점을 받아요.
 
 ## 장소 선택과 빈 지도 선택을 나눠요
 
@@ -105,6 +113,10 @@ final class PoiSelectionRegistration {
 
 건물 선택 강조처럼 지도 객체의 표현을 바꾸는 기능은 해당 타입의 feature state를 사용해요. 다만 앱의 영속적인 즐겨찾기와 렌더링용 강조 상태는 같지 않아요. 즐겨찾기를 저장하려면 앱 데이터 모델을 따로 두고 화면 진입 시 표현을 복원하는 기준이 필요해요.
 
+Feature state는 원본 Source 데이터를 다시 만들지 않고 hover·선택 같은 짧은 표현 상태를 갱신해요. 대상 Feature에 안정적인 ID가 필요하고, Expression이 그 state를 읽어 색·투명도 등을 바꾸도록 Layer도 구성해야 해요. state 설정만으로 자동 강조 모양이 생기는 것은 아니에요.
+
+지도 전체 Interaction은 레이어·featureset 핸들러가 `false`를 반환한 경우까지 도달할 수 있어요. 화면 앞쪽 Feature부터, 같은 대상에서는 최근 등록한 Interaction부터 평가되므로 선택·해제 핸들러의 등록 순서와 반환 정책을 테스트해요. 지도에 Interaction을 추가하는 일과 GestureManager의 pan·pinch 설정은 별개예요.
+
 ![Mapbox Standard 지도에서 선택된 건물 Feature](../assets/interaction-standard-features.png)
 
 _Standard가 공개한 건물 featureset을 선택하고 feature state로 강조한 예시예요. 내부 레이어 이름을 추측하는 대신 공개된 상호작용 경계를 사용해요. [공식 Interactions API에서 이미지와 예제 보기](https://docs.mapbox.com/ios/maps/guides/user-interaction/Interactions/)_
@@ -134,4 +146,4 @@ Interactions 등록은 지도 수명 동안 유지할 수 있어요. 더 짧은 
 ## 참고 자료
 
 - [Mapbox Interactions API](https://docs.mapbox.com/ios/maps/guides/user-interaction/Interactions/)
-- [Mapbox Interaction 구현 · 11.29.1](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Interactions/Interactions.swift)
+- [Mapbox Interaction 구현 · 11.31.0](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Interactions/Interactions.swift)

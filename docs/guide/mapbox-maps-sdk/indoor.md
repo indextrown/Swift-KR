@@ -2,7 +2,7 @@
 title: Mapbox 실내 지도와 층 선택
 description: Mapbox Standard의 실내 지도 기능을 활성화하고 층 선택 UI와 실내 상태 관찰을 연결하며 실험 API, 데이터 가용성과 위치 측위의 차이를 구분해요.
 source: https://docs.mapbox.com/ios/maps/guides/indoor/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox 실내 지도와 층 선택
@@ -26,6 +26,8 @@ reviewed: '2026-08-31'
 ## 데이터 표시와 층 선택은 별도 설정이에요
 
 Standard의 실내 표현은 기본적으로 꺼져 있어요. `showIndoor`를 켜면 지원 데이터가 있는 건물과 적절한 확대 수준에서 표시돼요. 층 선택기는 `ornaments.options.indoorSelector`로 구성해요.
+
+UIKit에서는 `mapStyle = .standard(showIndoor: true)`를 사용하거나 `setStyleImportConfigProperty(for: "basemap", config: "showIndoor", value: true)`로 현재 Standard import 설정을 바꿀 수 있어요. 전자는 스타일 선택까지 포함하고 후자는 이미 로드한 스타일의 설정을 바꿔요. 둘을 같은 시점에 중복 호출하지 않아요.
 
 ![층 선택기가 표시된 Mapbox 실내 지도](./assets/indoor-overview.png)
 
@@ -61,6 +63,10 @@ SwiftUI에서는 `Map().mapStyle(.standard(showIndoor: true))`처럼 표현을 �
 ## 층 상태는 이벤트로 관찰해요
 
 `mapboxMap.indoor.onIndoorUpdated`에서 층 목록과 `selectedFloorId`를 읽을 수 있어요. 구독 토큰은 관찰이 필요한 동안 보관하고 종료 시 해제해요. 층 ID를 화면에 복사한다면 건물이 바뀌어 이전 선택이 무효가 되는 경우도 처리하세요.
+
+기본 selector ornament는 실내 데이터가 있는 건물로 이동하면 가능한 층을 채우고 사용자의 층 선택을 반영해요. 다른 지도 컨트롤과 겹치지 않도록 margins를 조절해요. 사용자 정의 층 UI를 만들면 `onIndoorUpdated`의 층 목록·선택 ID를 표시하되, 현재 Experimental API가 향후 확장·변경될 수 있음을 격리해요.
+
+기능을 끌 때는 `showIndoor = false`와 selector의 `.hidden`을 모두 적용해요. 스타일만 끄면 빈 selector UI가 남을 수 있고, ornament만 숨기면 실내 Layer는 계속 렌더링될 수 있어요.
 
 학습용 상태 모델은 다음처럼 생각할 수 있어요.
 
@@ -101,5 +107,5 @@ SwiftUI에서는 `Map().mapStyle(.standard(showIndoor: true))`처럼 표현을 �
 ## 참고 자료
 
 - [Indoor mapping](https://docs.mapbox.com/ios/maps/guides/indoor/)
-- [11.29.1 실내 지도 예제](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/Examples/All%20Examples/Lab/IndoorExample.swift)
-- [11.29.1 OrnamentOptions](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Ornaments/OrnamentOptions.swift)
+- [11.31.0 실내 지도 예제](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/Examples/All%20Examples/Lab/IndoorExample.swift)
+- [11.31.0 OrnamentOptions](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Ornaments/OrnamentOptions.swift)

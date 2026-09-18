@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox 사용자 상호작용
 description: Mapbox 지도 이동 제스처와 지리 객체 선택을 구분하고 GestureOptions, Interactions API, 지도 콘텐츠 이벤트의 학습 순서와 화면 책임을 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/user-interaction/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox 사용자 상호작용

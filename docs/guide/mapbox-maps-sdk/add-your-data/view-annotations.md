@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox 뷰 어노테이션
 description: MapViewAnnotation과 ViewAnnotation으로 지도 좌표에 SwiftUI·UIKit 카드를 올리고 우선순위, 가변 앵커, 표시 상태, 크기 갱신과 수명 주기를 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/add-your-data/view-annotations/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox 뷰 어노테이션
@@ -19,6 +19,8 @@ reviewed: '2026-08-31'
 | Anchor           | 좌표에 뷰의 어느 쪽을 맞출지 정하는 기준점이에요. |
 | Priority         | 뷰들이 겹칠 때 표시 순서에 사용하는 우선순위예요. |
 | AnnotatedFeature | 뷰를 연결할 지도 Feature를 지정하는 값이에요.     |
+
+공식 문서는 합리적으로 단순한 뷰를 **100개 미만** 사용하는 경우를 일반적인 성능 범위로 설명하고, `allowOverlap`을 켠 채 250개보다 많은 Feature를 표시하는 방식은 성능이 좋지 않을 수 있다고 경고해요. 숫자는 보장된 한계가 아니며 뷰 계층과 기기에 따라 달라져요. View Annotation에는 기본 클러스터링도 없어요.
 
 ## 모든 매장을 카드로 만들 필요는 없어요
 
@@ -126,6 +128,28 @@ _겹침을 없애는 것과 어떤 뷰를 앞에 둘지는 다른 문제예요. 
 
 Feature에 연결하면 해당 표시와 가시성을 연동할 수 있지만, 예약 상태나 선택 해제 같은 앱의 업무 규칙까지 자동으로 처리하는 것은 아니에요.
 
+## 카메라·겹침·가시성 옵션을 나눠요
+
+| 옵션·콜백              | 해결하는 문제                                                |
+| ---------------------- | ------------------------------------------------------------ |
+| `variableAnchors`      | 화면 경계와 다른 뷰를 고려해 후보 앵커 중 적절한 위치를 고름 |
+| `onAnchorChanged`      | 실제로 고른 앵커에 맞춰 말풍선 꼬리 같은 UI를 갱신           |
+| `allowOverlap`         | 다른 View Annotation과 겹쳐도 표시할지 결정                  |
+| `allowOverlapWithPuck` | 사용자 위치 Puck과 겹침을 허용할지 결정                      |
+| `allowZElevate`        | 3D 지형·건물의 높이를 배치에 반영할지 결정                   |
+| `visible`              | 레이아웃 계산까지 포함해 SDK가 가시성을 관리                 |
+| `onVisibilityChanged`  | 화면 밖 이동이나 충돌로 실제 가시성이 바뀐 시점을 관찰       |
+| `setNeedsUpdateSize()` | UIKit 콘텐츠의 intrinsic size가 바뀌었음을 SDK에 알림        |
+
+뷰는 지도와 함께 회전·기울기·확대되지 않아요. 픽셀 오프셋과 크기는 `ViewAnnotationAnchorConfig`로 조절하고, 지도 밖으로 나간 뷰는 자동으로 숨겨질 수 있어요. `UIView.isHidden`을 직접 바꾸면 배치 엔진은 여전히 공간을 예약할 수 있으므로 `visible`을 사용해요.
+
+## 연결 대상을 사용 사례에 맞춰요
+
+- 빈 지도를 탭한 위치에 잠깐 표시할 때는 탭 좌표로 Geometry 기반 View Annotation을 만들어요.
+- 경로의 보이는 구간을 따라 ETA를 보여줄 때는 LineString 같은 Geometry에 연결해요.
+- Point Annotation이나 Style Layer Feature가 충돌로 사라질 때 카드도 함께 숨기려면 `AnnotatedFeature.layerFeature`에 연결해요. 지원 대상은 Line·Fill·FillExtrusion·Circle·Symbol Layer예요.
+- 선택된 Feature의 팝업을 열고 닫는 업무 규칙은 앱 상태가 맡아요. Feature 연결은 가시성 연동이지 팝업 상태 머신이 아니에요.
+
 ## 적용 체크리스트
 
 - [ ] 카드가 필요한 선택 항목만 뷰로 만들었나요?
@@ -151,3 +175,4 @@ SDK의 배치 계산과 뷰 상태가 달라질 수 있어요. 제공하는 Anno
 ## 참고 자료
 
 - [Mapbox — View annotations](https://docs.mapbox.com/ios/maps/guides/add-your-data/view-annotations/)
+- [Mapbox — ViewAnnotation API](https://docs.mapbox.com/ios/maps/api/latest/documentation/mapboxmaps/viewannotation/)

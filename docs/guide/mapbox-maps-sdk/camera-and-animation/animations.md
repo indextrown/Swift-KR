@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox 카메라 애니메이션
 description: Mapbox의 fly·ease와 저수준 카메라 애니메이터를 구분하고 연속 장소 선택, 완료와 취소, 화면 종료 때의 제어권을 안전하게 설계하는 방법을 설명해요.
 source: https://docs.mapbox.com/ios/maps/guides/camera-and-animation/animations/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox 카메라 애니메이션
@@ -21,6 +21,14 @@ reviewed: '2026-08-31'
 | 소유자     | 어떤 화면 기능이 애니메이션을 시작하고 끝낼 책임이 있는지 나타내요.           |
 
 `fly`는 확대와 이동을 결합하고 `ease`는 값의 변화를 부드럽게 연결해요. `setCamera(to:)`는 즉시 적용해요. 고수준 애니메이션은 하나만 실행되며 새 고수준 명령이 이전 것을 취소해요. 저수준에서도 같은 카메라 속성을 동시에 제어할 수 없어요. [공식 가이드](https://docs.mapbox.com/ios/maps/guides/camera-and-animation/animations/)
+
+| 수준   | API와 사용 시점                                                         |
+| ------ | ----------------------------------------------------------------------- |
+| 고수준 | `fly`, `ease`; 목적 카메라와 시간만으로 일반적인 이동을 빠르게 구성     |
+| 저수준 | `BasicCameraAnimator`; center·zoom·bearing·pitch·padding 등을 따로 제어 |
+| 즉시   | `setCamera`; 전환 효과가 필요 없거나 동작 줄이기를 적용                 |
+
+`fly`는 먼 위치를 비행하듯 이동하고 `ease`는 현재 값에서 목표 값으로 보간해요. 저수준 API는 여러 속성의 타이밍을 다르게 하거나 애니메이션을 연결해야 할 때만 선택해요.
 
 ## 먼저 애니메이션이 꼭 필요한지 결정해요
 
@@ -102,6 +110,14 @@ final class StoreZoomAnimation {
 
 이 객체는 자신이 만든 애니메이터만 중단해요. 다른 기능이 시작한 지도 애니메이션 전체를 지우지 않도록 범위를 좁힌 예제예요. 화면이 사라질 때 호출할 책임은 자동으로 생기지 않으므로 컨트롤러 수명 주기에 연결해야 해요.
 
+여러 저수준 애니메이터는 서로 다른 카메라 속성을 맡을 때 함께 실행할 수 있지만, 같은 속성을 제어하면 새 애니메이터가 기존 것을 취소할 수 있어요. 연결 실행은 앞 애니메이션이 `.end`까지 정상 완료됐는지 확인한 뒤 다음 것을 시작하고, 취소·현재 위치 재선택·화면 종료 경로를 따로 둬요.
+
+## 애니메이션 소유자와 이벤트를 관찰해요
+
+SDK는 애니메이션에 소유자를 연결해 어떤 기능이 카메라를 움직이는지 구분해요. 앱 기능별 owner를 일관되게 정하면 사용자 제스처, Viewport 전환, 앱 명령 중 무엇이 기존 애니메이션을 끝냈는지 추적하기 쉬워져요.
+
+카메라 애니메이션 시작·종료 이벤트는 화면 로깅과 디버깅에 사용할 수 있지만, 장소 선택 같은 업무 완료 신호로 쓰지 않아요. 시작 이벤트 전에 이미 앱 상태를 갱신하고, 종료 이벤트의 이유가 취소일 수 있음을 처리해요.
+
 ## 종료를 성공으로 단정하지 않아요
 
 완료 콜백은 취소에도 호출될 수 있어요. `BasicCameraAnimator`에는 실행 상태와 종료 관련 API가 있고, 연결된 애니메이션은 정상 완료 여부를 확인한 뒤 시작해야 해요. 지도 변경 이벤트는 애니메이션 외의 원인으로도 발생해요. [공식 가이드](https://docs.mapbox.com/ios/maps/guides/camera-and-animation/animations/)
@@ -133,4 +149,4 @@ final class StoreZoomAnimation {
 ## 참고 자료
 
 - [Mapbox Animations](https://docs.mapbox.com/ios/maps/guides/camera-and-animation/animations/)
-- [Mapbox BasicCameraAnimator 구현 · 11.29.1](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Camera/BasicCameraAnimator.swift)
+- [Mapbox BasicCameraAnimator 구현 · 11.31.0](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Camera/BasicCameraAnimator.swift)

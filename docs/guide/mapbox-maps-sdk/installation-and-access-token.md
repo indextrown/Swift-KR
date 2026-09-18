@@ -31,7 +31,7 @@ outline: false
 - Swift 5.9 이상
 - Maps SDK v11에는 Xcode 16 이상
 
-2026-08-31 확인한 공식 문서의 버전은 `11.29.1`이지만, 새 버전이 배포되면 달라질 수 있어요. 프로젝트가 선택한 버전의 [changelog](https://github.com/mapbox/mapbox-maps-ios/blob/main/CHANGELOG.md)와 Package Resolution을 기준으로 실제 지원 범위를 확인합니다.
+2026-09-19 확인한 공식 문서의 버전은 `11.31.0`이지만, 새 버전이 배포되면 달라질 수 있어요. 프로젝트가 선택한 버전의 [changelog](https://github.com/mapbox/mapbox-maps-ios/blob/main/CHANGELOG.md)와 Package Resolution을 기준으로 실제 지원 범위를 확인합니다.
 
 ## 2단계: SPM으로 패키지를 추가해요
 

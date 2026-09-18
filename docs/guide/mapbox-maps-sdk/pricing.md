@@ -2,7 +2,7 @@
 title: Mapbox 지도 SDK의 요금 산정
 description: Mapbox Maps SDK for iOS의 월간 활성 사용자 기준과 청구 주기, 재설치와 서비스 범위를 구분하고 실제 계정 사용량으로 비용을 검토하는 절차를 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/pricing/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox 지도 SDK의 요금 산정

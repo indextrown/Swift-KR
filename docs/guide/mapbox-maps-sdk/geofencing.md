@@ -2,7 +2,7 @@
 title: Mapbox 지오펜싱과 영역 이벤트
 description: Mapbox GeofencingService의 영역 등록과 진입·이탈·체류 이벤트를 이해하고 GeoJSON 식별자, 위치 권한, 관찰 수명과 앱 업무 처리의 경계를 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/geofencing/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox 지오펜싱과 영역 이벤트
@@ -30,6 +30,8 @@ _세 이미지는 같은 영역을 기준으로 위치가 바뀌는 과정을 �
 ## 영역 등록과 알림 발송을 구분해요
 
 `GeofencingFactory.getOrCreate()`로 서비스를 얻고 구성·관찰자를 연결해요. `GeofencingObserver`는 진입·이탈·체류, 오류와 동의 변경을 받아요. 백그라운드 이벤트가 필요하면 그 용도에 맞는 위치 권한과 장기적인 관찰자 수명을 준비해야 해요.
+
+서비스의 시작 순서는 `getOrCreate` → `configure(options:)` → `addObserver` → Feature 등록·관찰이에요. `GeofencingOptions.maximumMonitoredFeatures`는 제품 요구와 기기 비용을 고려해 정하고, 각 비동기 콜백의 성공을 확인한 뒤 다음 단계로 넘어가요. 백그라운드에서 이벤트가 필요하면 화면 객체가 아니라 AppDelegate처럼 앱 수명에 맞는 객체가 Observer를 소유해야 해요.
 
 이벤트를 받았다고 곧바로 할인 쿠폰이나 알림을 반복 발송하면 제품 문제가 생길 수 있어요. SDK는 영역 이벤트를 전달하고, 중복 방지·사용자 설정·알림 승인 확인은 앱 정책으로 분리하는 편이 좋아요.
 
@@ -86,6 +88,8 @@ func registerMuseumFence(
 ```
 
 `throws`는 동기 디코딩 실패만 전달해요. 서비스의 등록 성공은 콜백에서 확인해야 해요. 이 함수는 사용자 알림을 만들거나 관찰자의 수명을 관리하는 완성 앱이 아니에요.
+
+Observer의 `onEntry`, `onExit`, `onDwell`은 이벤트의 Feature ID와 timestamp를 제공하고 `onError`, `onUserConsentChanged`도 별도로 처리해요. Dwell 이벤트가 필요하면 Feature 속성 `GeofencingPropertiesKeys.dwellTimeKey`에 **분 단위** 값을 지정해야 해요. Point Geometry는 `pointRadiusKey`로 원 반경을 함께 제공해요.
 
 ## 추가·수정·제거의 의미를 나눠요
 

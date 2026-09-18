@@ -2,7 +2,7 @@
 title: Mapbox 설치와 첫 지도
 description: Mapbox Maps SDK를 Swift Package Manager로 연결하고 공개 토큰을 구성한 뒤 SwiftUI와 UIKit에서 첫 지도를 표시하며 설치 실패를 구분하는 방법을 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/install/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox 설치와 첫 지도
@@ -28,7 +28,7 @@ Xcode의 **File → Add Package Dependencies…**에서 공식 소스 패키지�
 https://github.com/mapbox/mapbox-maps-ios.git
 ```
 
-확인일의 버전은 `11.29.1`이에요. 업데이트를 자동 수용할지 정확한 버전을 고정할지는 팀 정책으로 정해요. 공식 binary 패키지 `mapbox-maps-ios-binary.git`은 소스 빌드 시간을 줄이는 대안이에요.
+확인일의 최신 안정 버전은 `11.31.0`이에요. 공식 가이드는 `11.0.0` 이상을 **Up to Next Major Version**으로 선택하거나, 재현 가능한 빌드가 더 중요하면 정확한 버전을 고정하도록 안내해요. 공식 binary 패키지 `mapbox-maps-ios-binary.git`은 `11.20.0`부터 제공되며 소스 빌드 시간을 줄이는 대안이에요.
 
 :::warning 배포 방식의 수명이 달라요
 공식 가이드는 2026년 12월 CocoaPods 지원 종료를 예고해요. 기존 프로젝트는 SPM 전환 일정을 확인하세요. 직접 다운로드 방식은 프레임워크 추가·임베딩·서명 설정을 직접 관리해야 해요.
@@ -44,6 +44,35 @@ Mapbox 계정에서 준비한 공개 토큰을 앱의 `Info.plist`에 연결해�
 ```
 
 코드로 설정한다면 첫 `Map`·`MapView` 생성 전에 `MapboxOptions.accessToken`을 지정해요. 공개 토큰을 빌드 설정으로 옮기는 것은 환경 분리 방법이지, 최종 앱에서 추출을 막는 방법은 아니에요. 비밀 다운로드 토큰은 앱에 넣지 않아요. 자세한 구성은 [기존 토큰 가이드](./installation-and-access-token.md)에서 이어 볼 수 있어요.
+
+공식 설치 절차의 기본 경로는 다음과 같아요.
+
+1. Mapbox 계정의 **Tokens** 페이지에서 기본 공개 토큰을 복사해요.
+2. 앱 Target의 `Info.plist`에 `MBXAccessToken` 키로 연결해요.
+3. 토큰을 회전하거나 앱 외부에서 공급해야 한다면 별도 서버와 런타임 설정을 설계해요.
+4. 런타임 토큰은 첫 `Map` 또는 `MapView`를 만들기 전에 설정해요.
+
+공개 토큰도 scope와 URL 제한을 필요한 범위로 좁혀요. 모바일 앱 바이너리 안의 값은 완전한 비밀로 만들 수 없으므로 서버 전용 secret token을 포함해서는 안 돼요.
+
+## 설치 방식을 비교해요
+
+| 방식          | 공식 절차                                                          | 확인할 항목                                    |
+| ------------- | ------------------------------------------------------------------ | ---------------------------------------------- |
+| SPM source    | `mapbox-maps-ios.git`을 추가해 소스에서 빌드해요.                  | 버전 규칙, 앱 Target의 `MapboxMaps` 제품 연결  |
+| SPM binary    | `mapbox-maps-ios-binary.git`에서 미리 빌드한 XCFramework를 받아요. | `11.20.0` 이상, source 패키지와 같은 버전 번호 |
+| CocoaPods     | `pod 'MapboxMaps', '11.31.0'`을 추가하고 workspace를 열어요.       | 2026년 12월 공식 지원 종료 예정                |
+| 직접 다운로드 | 계정에서 archive를 받고 네 XCFramework를 프로젝트에 추가해요.      | Copy items, Embed & Sign, 수동 업데이트        |
+
+SPM 설치가 끝나면 Package Dependencies에 `MapboxCommon`, `MapboxCoreMaps`, `MapboxMaps`, `Turf`가 보이는지 확인하고, 앱 Target의 **Frameworks, Libraries, and Embedded Content**에 `MapboxMaps`가 연결됐는지 확인해요.
+
+직접 다운로드는 압축을 푼 `artifacts` 폴더를 프로젝트에 복사한 뒤 다음 네 바이너리를 **Embed & Sign**으로 설정해요.
+
+- `MapboxCommon.xcframework`
+- `MapboxCoreMaps.xcframework`
+- `MapboxMaps.xcframework`
+- `Turf.xcframework`
+
+한 프로젝트에서 source SPM, binary SPM, CocoaPods, 직접 다운로드가 동시에 같은 모듈을 공급하지 않게 해요. 중복 연결은 duplicate symbol이나 서로 다른 타입 identity 문제를 만들 수 있어요.
 
 ## SwiftUI에서는 지도를 화면 값으로 선언해요
 
@@ -113,6 +142,17 @@ _패키지와 토큰 설정을 마치면 위와 같은 기본 지도를 기준�
 
 위 순서는 학습용 진단 제안이에요. 실패했다고 바로 토큰을 다시 발급하기 전에 어떤 단계가 성공했는지 기록하세요.
 
+공식 Troubleshooting 항목까지 포함하면 다음 순서로 좁힐 수 있어요.
+
+1. `MapboxMaps`를 import하지 못하면 네 라이브러리와 Target 연결을 확인해요.
+2. 직접 받은 프레임워크라면 네 XCFramework가 모두 **Embed & Sign**인지 확인해요.
+3. SPM metadata가 맞는데도 import가 실패하면 패키지를 제거한 뒤 같은 저장소 하나만 다시 추가해요.
+4. CocoaPods는 `.xcodeproj`가 아니라 생성된 `.xcworkspace`를 열어요.
+5. 시뮬레이터는 `My Mac`이나 `Any iOS Device`가 아니라 구체적인 iPhone 실행 대상을 선택해요.
+6. 지도 뷰는 보이지만 tile이 없다면 `MBXAccessToken`, 네트워크, style load error를 차례로 확인해요.
+
+설치 성공 뒤에는 [사용자 위치](./user-location.md), [데이터 추가](./add-your-data/index.md), [카메라와 애니메이션](./camera-and-animation/index.md)으로 이어가세요. 설치만으로 위치 권한·Puck·annotation이 자동 설정되는 것은 아니에요.
+
 ## 적용 체크리스트
 
 - [ ] SDK·Xcode·배포 대상을 함께 기록했나요?
@@ -138,4 +178,5 @@ _패키지와 토큰 설정을 마치면 위와 같은 기본 지도를 기준�
 
 - [Get Started](https://docs.mapbox.com/ios/maps/guides/install/)
 - [지원 환경](https://docs.mapbox.com/ios/maps/guides/)
-- [11.29.1 Package.swift](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Package.swift)
+- [Mapbox iOS 설치 문제 해결](https://docs.mapbox.com/help/troubleshooting/ios-sdk-installation/)
+- [11.31.0 Package.swift](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Package.swift)

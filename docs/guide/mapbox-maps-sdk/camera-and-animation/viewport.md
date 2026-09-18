@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox Viewport
 description: Mapbox Viewport의 추적·전체 보기·대기 상태를 구분하고 SwiftUI 바인딩과 UIKit ViewportManager로 카메라 제어권과 화면 수명을 관리하는 방법을 설명해요.
 source: https://docs.mapbox.com/ios/maps/guides/camera-and-animation/viewport/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox Viewport
@@ -22,6 +22,8 @@ reviewed: '2026-08-31'
 | 바인딩 | 화면과 지도 양쪽에서 상태 변경을 주고받는 SwiftUI 연결이에요. |
 
 `ViewportManager`는 추적과 geometry 전체 보기 상태를 제공해요. 상태는 실행 중·전환 중·idle로 구분하며 다른 카메라 API를 사용할 때는 idle로 제어권을 넘기는 편이 좋아요. 즉시 전환과 기본 애니메이션 전환도 제공해요. [공식 가이드](https://docs.mapbox.com/ios/maps/guides/camera-and-animation/viewport/)
+
+Viewport 상태값은 단순 enum 한 개가 아니라 카메라를 계속 계산하는 객체일 수 있어요. Manager의 상태는 `idle`, `transition`, `state`로 구분해 현재 제어권이 어디에 있는지 나타내고, 상태 관찰자는 그 변화의 스냅샷을 받아요.
 
 ![Idle과 Overview와 FollowPuck Viewport 상태 관계](../assets/viewport-states.png)
 
@@ -106,6 +108,19 @@ func stopWalkingFollow(
 ```
 
 앱이 경로 전체 보기 버튼도 제공한다면 목표 geometry를 가진 overview 상태를 사용해요. 상태의 이름을 버튼 이름처럼 늘리기보다 “좌표 고정·추적·전체 보기 중 어떤 카메라 동작이 필요한가?”로 분류해 보세요.
+
+## 기본 상태와 전환을 조합해요
+
+| 구성 요소                  | 역할                                                      |
+| -------------------------- | --------------------------------------------------------- |
+| Overview Viewport State    | Geometry와 padding을 계속 반영해 전체 경로·영역을 보여 줌 |
+| Follow Puck Viewport State | 위치·방향 입력을 따라 center·zoom·bearing·pitch를 갱신    |
+| Immediate Transition       | 애니메이션 없이 새 상태의 카메라로 즉시 전환              |
+| Default Transition         | SDK 기본 카메라 애니메이션으로 상태 사이를 이동           |
+
+전환 완료 콜백은 새 상태가 시작되었는지 확인하는 경계이고, 위치 권한이나 Puck 데이터의 유효성을 보장하지 않아요. 전환 중 다른 전환이 들어오면 기존 전환이 취소될 수 있으므로 버튼 연타도 시험해요.
+
+기본 상태로 표현할 수 없는 카메라 목표는 `ViewportState`와 `ViewportTransition`을 사용자 정의할 수 있어요. 상태는 카메라 옵션 스트림을 제공하고, 전환은 현재 카메라에서 새 상태로 넘기는 방법을 담당해요. 커스텀 구현이 구독하는 위치·경로 데이터는 상태 종료와 함께 해제하고, 먼저 Overview·FollowPuck 조합으로 해결할 수 없는지 확인해요.
 
 ## 관찰자와 데이터 공급원의 수명을 정해요
 

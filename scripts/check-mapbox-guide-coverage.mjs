@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -54,6 +55,16 @@ async function markdownSlugs(relative = '') {
 
 function assertUnique(values, name) {
   assert.equal(new Set(values).size, values.length, `${name}: 중복 항목`);
+}
+
+function outlineDigest(content) {
+  const outline = [...content.matchAll(/^#{2,5}\s+(.+)$/gm)].map(
+    ([, heading]) => heading.trim().replace(/\s+/g, ' '),
+  );
+  return createHash('sha256')
+    .update(outline.join('\n'))
+    .digest('hex')
+    .slice(0, 16);
 }
 
 function imageReference(page, file) {
@@ -162,6 +173,29 @@ async function checkOnline(manifest) {
     '공식 Guides 페이지와 대응표가 다릅니다. 추가·삭제된 항목을 검토하세요.',
   );
   console.log(`공식 Guides 색인 대조: ${sources.length}개 일치`);
+
+  for (let offset = 0; offset < manifest.pages.length; offset += 6) {
+    const batch = manifest.pages.slice(offset, offset + 6);
+    await Promise.all(
+      batch.map(async (page) => {
+        const markdownURL = `${page.source.slice(0, -1)}.md`;
+        const pageResponse = await fetch(markdownURL, {
+          signal: AbortSignal.timeout(30_000),
+        });
+        assert.ok(
+          pageResponse.ok,
+          `${page.slug}: 공식 문서 요청 실패 ${pageResponse.status}`,
+        );
+        const digest = outlineDigest(await pageResponse.text());
+        assert.equal(
+          digest,
+          page.outlineDigest,
+          `${page.slug}: 공식 문서 목차가 검토 시점과 달라졌습니다. 내용을 다시 대조하세요.`,
+        );
+      }),
+    );
+  }
+  console.log(`공식 문서 목차 지문 대조: ${manifest.pages.length}개 일치`);
 }
 
 async function main() {
@@ -185,6 +219,13 @@ async function main() {
     manifest.pages.map((page) => page.source),
     '공식 원문 URL',
   );
+  for (const page of manifest.pages) {
+    assert.match(
+      page.outlineDigest,
+      /^[a-f0-9]{16}$/,
+      `${page.slug}: 공식 문서 목차 지문 누락`,
+    );
+  }
   assertUnique([...slugs, ...manifest.legacyPages], '공식·보충 문서');
   assert.deepEqual(
     flattenSidebar(meta),

@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Expression 기반 스타일링
 description: Mapbox Expression으로 매장 상태별 색상과 줌별 원 크기를 계산하는 예제를 만들고 값의 타입, 기본값, 조명 영향과 렌더링 규칙의 검증 방법을 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/styles/style-layers/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Expression 기반 스타일링
@@ -26,6 +26,16 @@ reviewed: '2026-08-31'
 모든 원에 같은 색을 주면 예약 가능 매장과 혼잡한 매장을 구별할 수 없어요. 상태마다 Source를 복제하기 전에, 동일한 데이터 안의 속성으로 색을 계산할 수 있는지 살펴봐요.
 
 [공식 가이드](https://docs.mapbox.com/ios/maps/guides/styles/style-layers/)는 `Exp(.get)`으로 속성을 읽고 `match`로 값을 분기하며, `interpolate`와 `zoom`으로 크기를 변화시키는 방법을 설명해요.
+
+Expression은 JSON 배열과 같은 트리 구조예요. 첫 항목은 연산자이고 뒤 항목은 인수예요. Swift DSL의 `Exp(.match) { ... }`도 같은 Style Specification 표현을 타입에 맞게 구성해요. 문자열·숫자·불리언·색·배열 같은 출력 타입은 값을 받을 Layer 속성 타입과 맞아야 해요.
+
+| 입력 종류 | 대표 연산자                          | 용도                              |
+| --------- | ------------------------------------ | --------------------------------- |
+| 데이터    | `get`, `has`, `id`, `geometry-type`  | Feature 속성과 종류를 읽음        |
+| 카메라    | `zoom`                               | 확대 수준에 따라 크기·두께를 변경 |
+| 조건      | `match`, `case`, 비교 연산자         | 범주·조건별 결과를 선택           |
+| 변환      | `to-number`, `to-string`, `coalesce` | 입력을 명시적으로 변환하거나 대체 |
+| 보간      | `interpolate`, `step`                | 연속 또는 단계별 값 변화를 표현   |
 
 ## 상태와 줌에 두 규칙을 적용해요
 
@@ -108,6 +118,8 @@ Standard의 야간 조명은 사용자 Layer에도 영향을 줘요. 예제의 `
 _`emissive-strength`가 높을수록 조명의 영향을 덜 받아 밝게 보일 수 있지만, 실제 읽기 쉬움은 배경과 색 대비까지 함께 검증해야 해요. [공식 조명 기반 스타일링에서 이미지 보기](https://docs.mapbox.com/ios/maps/guides/styles/style-layers/#light-driven-styling-in-standard-and-standard-satellite)_
 
 줌 식은 Style Specification의 배치 제약이 있고, paint와 layout 속성은 줌 변경 평가 시점도 달라요. 복잡한 식을 만들기 전에 해당 속성의 지원 범위를 확인해요. [Camera expressions](https://docs.mapbox.com/style-spec/reference/expressions/#camera-expressions)
+
+공식 문서는 데이터 기반, 줌 기반, 조명 기반 스타일링을 별도 축으로 설명해요. 하나의 속성에서 데이터와 줌을 조합할 수 있지만 `zoom`은 최상위 `step` 또는 `interpolate` 입력으로 쓰는 등 문법 제약이 있어요. 조명 기반 표현은 Standard·Standard Satellite의 야간 프리셋에서도 사용자 Layer가 읽히도록 `*-emissive-strength` 계열 속성을 조절하는 문제이며, 밝기 값을 Feature 업무 상태로 저장하는 문제와는 달라요.
 
 ## 적용 체크리스트
 

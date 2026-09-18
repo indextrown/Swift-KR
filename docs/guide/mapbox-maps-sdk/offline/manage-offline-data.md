@@ -2,7 +2,7 @@
 title: Mapbox 오프라인 데이터 다운로드·갱신·삭제
 description: OfflineManager와 TileStore의 다운로드 API를 연결하고 완료·취소·목록·갱신·삭제를 구분해 오프라인 지도 관리 화면을 설계합니다.
 source: https://docs.mapbox.com/ios/maps/guides/offline/manage-offline-data/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox 오프라인 데이터 다운로드·갱신·삭제
@@ -58,7 +58,7 @@ func makeCityHallRegionOptions(
 }
 ```
 
-이 옵션과 `.outdoors` Style Pack을 짝지어 요청해요. `11.29.1`의 초기화 시그니처에 맞춰 추가 tileset 목록은 `nil`로 전달했어요. 다운로드에 사용한 TileStore와 지도에서 읽는 TileStore의 설정도 일치해야 해요. 실제 앱에서는 사용자가 선택한 면이나 경로로 geometry를 바꿔야 해요. [TilesetDescriptorOptions 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Offline/TilesetDescriptorOptions%2BMapboxMaps.swift)
+이 옵션과 `.outdoors` Style Pack을 짝지어 요청해요. `11.31.0`의 초기화 시그니처에 맞춰 추가 tileset 목록은 `nil`로 전달했어요. 다운로드에 사용한 TileStore와 지도에서 읽는 TileStore의 설정도 일치해야 해요. 실제 앱에서는 사용자가 선택한 면이나 경로로 geometry를 바꿔야 해요. [TilesetDescriptorOptions 구현](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Offline/TilesetDescriptorOptions%2BMapboxMaps.swift)
 
 ## 요청을 보내는 순서와 상태를 분리해요
 
@@ -73,6 +73,22 @@ func makeCityHallRegionOptions(
 | 제거           | `removeStylePack`, `removeTileRegion`                    | 다른 지역과 공유하는 자원·삭제 결과예요.           |
 
 초보 단계에서는 Style Pack 성공 후 Tile Region을 요청하면 실패 경로를 읽기 쉬워요. 나중에 병렬로 받아도 사용 가능 상태의 조건은 동일해야 해요.
+
+### Style Pack의 전체 수명
+
+- `StylePackLoadOptions(glyphsRasterizationMode:metadata:acceptExpired:)`로 글리프 처리·메타데이터·만료 허용 정책을 정하고 `loadStylePack`을 호출해요.
+- 진행률에는 완료 리소스와 예상 리소스가 들어오지만 최종 성공은 completion의 `Result`로 판단해요.
+- 앱 재실행 뒤 `allStylePacks`로 SDK가 실제 보유한 목록을 읽어요.
+- 같은 Style URI로 다시 load하면 누락·만료 리소스를 갱신해요. 최신화하려면 `acceptExpired`를 `false`로 둬요.
+- `removeStylePack`은 관리 대상에서 해제하며 공유·캐시 정리 때문에 파일이 즉시 사라지지 않을 수 있어요.
+
+### Tile Region의 전체 수명
+
+- Geometry, descriptors, metadata, `acceptExpired`를 `TileRegionLoadOptions`로 묶어요.
+- 안정적인 Region ID로 `loadTileRegion`을 호출하고 progress·completion·Cancelable을 함께 관리해요.
+- `allTileRegions`로 실제 목록과 metadata를 복원해요.
+- 같은 Region ID와 새 옵션으로 다시 load해 범위·zoom·만료 리소스를 갱신해요.
+- `removeTileRegion` 뒤 공유하지 않는 Tile Pack은 일반 정리 과정에서 제거될 수 있어요.
 
 아래는 SDK 콜백을 UI 모델에 전달한 **후** 적용할 수 있는 순수 Swift 상태예요.
 
@@ -111,6 +127,16 @@ remove API가 관리 대상에서 리소스를 해제해도 실제 디스크 정
 
 ## 실패를 분리해서 테스트해요
 
+성능을 위해 큰 다운로드는 Wi-Fi·충전 상태와 사용자 선택을 고려하고, 저장 공간을 확인하며, 의미 있는 작은 지역으로 점진적으로 나누는 방법을 검토해요. SDK 비동기 콜백이 곧 iOS 백그라운드 실행 보장을 뜻하지 않으므로 앱 수명 정책을 별도로 설계해요.
+
+문제가 생기면 증상별로 범위를 좁혀요.
+
+| 증상                 | 먼저 확인할 항목                                                                |
+| -------------------- | ------------------------------------------------------------------------------- |
+| 실패·시간 초과       | 연결, Access Token, Geometry·zoom, 저장 공간, 750 Tile Pack 제한                |
+| 오프라인에서 빈 지도 | Style Pack과 Tile Region 둘 다 성공했는지, 같은 Style URI인지, 범위·zoom 안인지 |
+| 저장 공간 과다 사용  | 사용하지 않는 Region, 과도한 zoom, 큰 사각형 Geometry, disk quota               |
+
 - [ ] Style Pack만 성공한 상태에서는 준비 완료로 표시하지 않나요?
 - [ ] 취소 버튼이 두 작업의 핸들을 처리하나요?
 - [ ] 재시도 전에 이전 요청의 결과를 무시할 기준이 있나요?
@@ -137,4 +163,4 @@ remove API가 관리 대상에서 리소스를 해제해도 실제 디스크 정
 
 - [Mapbox: Manage Offline Data](https://docs.mapbox.com/ios/maps/guides/offline/manage-offline-data/)
 - [Mapbox: Concepts and Constraints](https://docs.mapbox.com/ios/maps/guides/offline/concepts/)
-- [Mapbox 11.29.1: TilesetDescriptorOptions](https://github.com/mapbox/mapbox-maps-ios/blob/11.29.1/Sources/MapboxMaps/Offline/TilesetDescriptorOptions%2BMapboxMaps.swift)
+- [Mapbox 11.31.0: TilesetDescriptorOptions](https://github.com/mapbox/mapbox-maps-ios/blob/11.31.0/Sources/MapboxMaps/Offline/TilesetDescriptorOptions%2BMapboxMaps.swift)

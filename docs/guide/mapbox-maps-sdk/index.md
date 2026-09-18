@@ -2,14 +2,14 @@
 title: Mapbox Maps SDK 공식 가이드 학습 목차
 description: Mapbox Maps SDK for iOS 공식 Guides의 38개 페이지를 한국어 문서와 일대일로 연결하고 지도 데이터, 스타일, 카메라, 운영과 버전 전환의 학습 순서를 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox Maps SDK 공식 가이드 학습 목차
 
 > **면접 답변 한 줄 요약:** Mapbox Maps SDK는 앱의 지도 화면과 지리 데이터 표현을 담당하며, 데이터·스타일·카메라·사용자 입력을 나눠 구성할 수 있는 지도 개발 도구예요.
 
-공식 [Maps SDK for iOS — Guides](https://docs.mapbox.com/ios/maps/guides/)에 대응하는 학습 섹션이에요. **공식 개요 1개와 메뉴·하위 가이드 37개를 각각 한 페이지로 연결**했어요. 원문 전체 번역이 아니라 항목별 개념, 사용법과 주의점을 직접 정리했으며, 아래 대응표에서 원문으로 이동할 수 있어요.
+공식 [Maps SDK for iOS — Guides](https://docs.mapbox.com/ios/maps/guides/)에 대응하는 학습 섹션이에요. **공식 개요 1개와 메뉴·하위 가이드 37개를 각각 한 페이지로 연결**했어요. 공식 페이지의 핵심 개념·절차·제약을 빠뜨리지 않도록 대조하고, Swift-KR에서는 선택 기준과 실수 패턴을 덧붙였어요. 아래 대응표에서 원문으로 이동할 수 있어요.
 
 ## 먼저 알아둘 용어
 
@@ -37,11 +37,39 @@ _같은 Standard 스타일도 탐색·운전·장소 안내처럼 목적에 따�
 
 ## 버전과 표시 조건을 먼저 확인해요
 
-2026-08-31 확인 시 공식 개요의 SDK 버전은 **11.29.1**, 최소 환경은 **iOS 14·Swift 5.9·Xcode 16**이며 Xcode 권장 버전은 26.4예요. 이 문서의 기준은 확인 당시의 가이드와 [11.29.1 소스](https://github.com/mapbox/mapbox-maps-ios/tree/11.29.1)예요. 각 기능의 도입 버전과 실험 상태는 별도로 확인해요.
+2026-09-19 확인 시 공식 개요의 SDK 버전은 **11.31.0**, 최소 환경은 **iOS 14·Swift 5.9·Xcode 16**이며 Xcode 권장 버전은 26.4예요. 이 문서의 기준은 확인 당시의 가이드와 [11.31.0 소스](https://github.com/mapbox/mapbox-maps-ios/tree/11.31.0)예요. 각 기능의 도입 버전과 실험 상태는 별도로 확인해요.
 
 새 예제의 공통 검증 대상은 **iOS 17 이상·Swift 5 언어 모드**예요. SDK의 최소 지원 버전과 예제 UI가 사용하는 Apple API의 가용 버전은 다를 수 있어요. 같은 페이지의 코드 블록은 앞에서 선언한 타입·import를 이어서 사용하는 경우가 있어요. 실제 지도 렌더링에는 유효한 공개 토큰과 실행 환경이 필요하며, 위치·백그라운드 동작과 visionOS 입력은 해당 기기에서 별도로 확인해야 해요.
 
 Mapbox wordmark, 데이터 attribution, telemetry 선택 해제 경로는 출시 전에 공식 조건과 대조해야 해요. 기본 표시를 없앤다면 대체 UI의 의무도 확인하세요. 예제에서 지도가 보이는 것만으로 출시 준비가 끝나지는 않아요.
+
+## 다른 Mapbox 도구와 역할을 나눠요
+
+공식 개요는 Maps SDK와 함께 사용할 수 있는 도구를 다음처럼 나눠 소개해요.
+
+| 요구사항                                         | 공식 도구                         | 선택 기준                                             |
+| ------------------------------------------------ | --------------------------------- | ----------------------------------------------------- |
+| 앱 안에서 상호작용 가능한 지도를 표시해요        | Maps SDK for iOS                  | 카메라·제스처·런타임 데이터와 스타일 변경이 필요해요. |
+| 현재 지도를 정적 이미지로 만들어요               | `Snapshotter`                     | 같은 앱에서 지도 뷰 없이 raster snapshot이 필요해요.  |
+| watchOS·tvOS companion 앱에 정적 지도를 표시해요 | `MapboxStatic.swift`와 Static API | 대화형 SDK 대신 서버 기반 정적 이미지가 맞아요.       |
+| 브랜드와 데이터가 반영된 스타일을 설계해요       | Mapbox Studio                     | 웹에서 style을 만들고 앱이 style URL로 사용해요.      |
+
+`Snapshotter`는 현재 SDK 안에서 이미지를 렌더링하고, Static API는 별도 웹 서비스 요청으로 이미지를 받아요. 둘을 “스크린샷”이라는 이름만으로 같은 비용·네트워크 모델로 취급하면 안 돼요.
+
+## Attribution과 telemetry 조건을 지켜요
+
+Mapbox 데이터를 사용하는 지도에는 Mapbox wordmark를 표시해야 하고, 데이터가 전부 비 Mapbox source에서 온 경우가 아니라면 attribution도 표시해야 해요. 위치·배경색은 조정할 수 있지만 다음 조건을 지켜야 해요.
+
+- wordmark와 attribution은 지도에서 계속 보여야 해요.
+- attribution의 배경색·글자색을 바꾸더라도 모든 정보가 읽혀야 해요.
+- wordmark나 attribution 문구 자체를 임의로 바꾸면 안 돼요.
+- 기본 attribution control을 숨기면 사용자가 Mapbox telemetry를 개별적으로 끌 수 있는 대체 경로를 앱이 제공해야 해요.
+
+telemetry는 호스트 앱이 수집하도록 만든 비식별 위치·사용 데이터를 기본으로 전송할 수 있어요. 실제 출시 판단은 최신 [Mapbox 서비스 약관](https://www.mapbox.com/tos/)과 [attribution 가이드](https://docs.mapbox.com/help/how-mapbox-works/attribution/)를 함께 확인하세요.
+
+## 이전 버전의 출발점을 확인해요
+
+공식 개요는 현재 v11과 함께 [v10 API Reference](https://docs.mapbox.com/ios/maps/api/10.16.2/)와 [v6 문서](https://docs.mapbox.com/ios/legacy/maps/guides/)를 연결해요. 기존 앱을 전환한다면 현재 코드가 v6인지 v10인지 먼저 확인하고 [이전 버전](./old-versions/index.md), [v10 마이그레이션](./old-versions/migrate-to-v10.md), [v11 마이그레이션](./migrate-to-v11.md) 순서를 선택하세요.
 
 ## 공식 목차와 일대일 대응표
 
@@ -134,4 +162,5 @@ Mapbox wordmark, 데이터 attribution, telemetry 선택 해제 경로는 출시
 
 - [Mapbox Maps SDK for iOS](https://docs.mapbox.com/ios/maps/guides/)
 - [공식 전체 문서 색인](https://docs.mapbox.com/ios/maps/llms.txt)
-- [11.29.1 SDK 소스](https://github.com/mapbox/mapbox-maps-ios/tree/11.29.1)
+- [Mapbox attribution 가이드](https://docs.mapbox.com/help/how-mapbox-works/attribution/)
+- [11.31.0 SDK 소스](https://github.com/mapbox/mapbox-maps-ios/tree/11.31.0)

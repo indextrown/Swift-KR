@@ -2,7 +2,7 @@
 title: Mapbox 이전 버전 문서 읽기
 description: Mapbox Maps SDK의 v6·v10·v11 문서를 구분하고 오래된 예제의 API와 지원 조건을 확인하며 단계적으로 마이그레이션 자료를 선택하는 방법을 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/old-versions/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Mapbox 이전 버전 문서 읽기

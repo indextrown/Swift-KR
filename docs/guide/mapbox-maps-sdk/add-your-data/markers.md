@@ -2,7 +2,7 @@
 title: Swift로 이해하는 Mapbox 기본 마커
 description: SwiftUI 전용 Mapbox Marker의 실험적 API 상태와 색상·텍스트 설정을 살펴보고 조건부 표시 예제로 상태 관리와 대량 데이터 전환 기준을 정리해요.
 source: https://docs.mapbox.com/ios/maps/guides/add-your-data/markers/
-reviewed: '2026-08-31'
+reviewed: '2026-09-19'
 ---
 
 # Swift로 이해하는 Mapbox 기본 마커
@@ -24,7 +24,7 @@ reviewed: '2026-08-31'
 
 확인한 [공식 가이드](https://docs.mapbox.com/ios/maps/guides/add-your-data/markers/)는 `@_spi(Experimental) import MapboxMaps`를 요구해요. SwiftUI 전용이며 UIKit용 기본 Marker API로 설명하지 않아요.
 
-실험적 API를 채택하면 SDK 업데이트 때 다시 검토해야 해요. 이 예제는 Mapbox SDK 11.29.1 기준의 학습 코드이며, 일반 공개 API만 허용하는 프로젝트라면 [Annotation](./annotations.md)을 먼저 검토해요.
+실험적 API를 채택하면 SDK 업데이트 때 다시 검토해야 해요. 이 예제는 Mapbox SDK 11.31.0 기준의 학습 코드이며, 일반 공개 API만 허용하는 프로젝트라면 [Annotation](./annotations.md)을 먼저 검토해요.
 
 ## 이미지 없이 픽업 장소를 표시해요
 
@@ -72,7 +72,29 @@ struct PickupMarkerMap: View {
 
 _Marker 하나에서도 외부 색·내부 색·테두리·텍스트를 조합할 수 있지만, 사진과 버튼이 있는 카드가 되는 것은 아니에요. [공식 Markers에서 커스터마이징 이미지 보기](https://docs.mapbox.com/ios/maps/guides/add-your-data/markers/)_
 
+`color`는 바깥 핀, `innerColor`는 안쪽 원, `stroke`는 테두리를 바꿔요. 테두리를 없앨 때는 투명색 대신 `.stroke(nil)`을 사용해요. `text`는 핀 아래에 짧은 레이블을 붙이므로 Dynamic Type과 긴 이름도 확인해요.
+
+## 여러 마커의 추가와 제거를 상태로 표현해요
+
 여러 마커는 `ForEvery`로 구성할 수 있어요. 이때 매장 ID는 데이터가 갱신되어도 같은 매장을 가리켜야 해요. 화면을 다시 계산할 때마다 `UUID()`를 생성하는 방식은 피하는 편이 좋아요.
+
+```swift
+struct PickupLocation: Identifiable {
+    let id: String
+    let name: String
+    let coordinate: CLLocationCoordinate2D
+}
+
+Map {
+    ForEvery(locations) { location in
+        Marker(coordinate: location.coordinate)
+            .color(.red)
+            .text(location.name)
+    }
+}
+```
+
+배열에서 항목을 제거하면 대응하는 Marker도 사라지고, `if` 조건이 `false`가 되면 조건부 Marker가 제거돼요. UIKit 객체처럼 별도의 `remove` 명령을 찾기보다 현재 컬렉션이 화면의 정답이 되게 만들어요.
 
 ## 요구 사항이 늘어나면 책임을 나눠요
 
@@ -82,7 +104,7 @@ _Marker 하나에서도 외부 색·내부 색·테두리·텍스트를 조합�
 - 카드에 예약 버튼을 넣으려면 선택한 매장만 View Annotation으로 보여줘요.
 - 수많은 지점의 색과 크기를 공통 규칙으로 바꾸려면 Style Layer를 검토해요.
 
-공식 문서는 많은 Marker가 성능에 부담을 줄 수 있다고 안내해요. 특정 개수를 절대 한계로 외우기보다 실제 기기에서 밀집 지역과 업데이트 상황을 측정해요.
+공식 문서는 Marker가 각각 SwiftUI 뷰를 만들기 때문에 **100개 이상**이면 Point Annotation이나 Style Layer를 검토하라고 안내해요. 100은 강제 제한이 아니므로 특정 개수를 절대 한계로 외우기보다 실제 기기에서 밀집 지역과 업데이트 상황을 측정해요.
 
 ## 적용 체크리스트
 
