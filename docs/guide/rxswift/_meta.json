@@ -27,6 +27,11 @@
       },
       {
         "type": "custom-link",
+        "label": "공개 프로토콜과 타입 별칭",
+        "link": "/guide/rxswift/rxswift-public-contracts"
+      },
+      {
+        "type": "custom-link",
         "label": "Observable·Observer·Event",
         "link": "/guide/rxswift/observable-observer-event"
       },
@@ -62,6 +67,11 @@
         "type": "custom-link",
         "label": "RxCocoa 시작하기",
         "link": "/guide/rxswift/rxcocoa"
+      },
+      {
+        "type": "custom-link",
+        "label": "공개 프로토콜과 오류",
+        "link": "/guide/rxswift/rxcocoa-public-contracts"
       },
       {
         "type": "custom-link",

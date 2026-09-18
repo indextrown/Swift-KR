@@ -1,8 +1,8 @@
 ---
 title: RxTest로 가상 시간 테스트하기
-description: TestScheduler, hot·cold Observable, Recorded Event와 Subscription을 사용해 debounce·구독·폐기 시점을 실제 대기 없이 검증하는 방법을 설명합니다.
+description: TestScheduler, TestableObservable, 가상 시간 변환, hot·cold Observable과 Recorded Event를 사용해 비동기 Rx 흐름을 검증하는 방법을 설명합니다.
 source: https://github.com/ReactiveX/RxSwift/blob/6.10.2/Documentation/UnitTests.md
-reviewed: '2026-09-06'
+reviewed: '2026-09-19'
 ---
 
 # RxTest로 가상 시간 테스트하기
@@ -13,14 +13,28 @@ reviewed: '2026-09-06'
 
 ## RxTest의 핵심 타입
 
-| 타입                       | 역할                                                 |
-| -------------------------- | ---------------------------------------------------- |
-| `TestScheduler`            | 정수 tick 기반 가상 시간 Scheduler예요.              |
-| `Recorded<Event<Element>>` | 특정 시각의 next·error·completed를 기록해요.         |
-| `HotObservable`            | 구독 여부와 관계없이 절대 가상 시각에 사건을 보내요. |
-| `ColdObservable`           | 각 구독 시점으로부터 상대 시각에 사건을 보내요.      |
-| `TestableObserver`         | 받은 Event와 시각을 `events`에 기록해요.             |
-| `Subscription`             | source가 구독되고 폐기된 가상 시각을 기록해요.       |
+| 타입                       | 역할                                                  |
+| -------------------------- | ----------------------------------------------------- |
+| `TestScheduler`            | 정수 tick 기반 가상 시간 Scheduler예요.               |
+| `Recorded<Event<Element>>` | 특정 시각의 next·error·completed를 기록해요.          |
+| `HotObservable`            | 구독 여부와 관계없이 절대 가상 시각에 사건을 보내요.  |
+| `ColdObservable`           | 각 구독 시점으로부터 상대 시각에 사건을 보내요.       |
+| `TestableObservable`       | hot·cold 구현의 기반이며 사건과 구독 수명을 기록해요. |
+| `TestableObserver`         | 받은 Event와 시각을 `events`에 기록해요.              |
+| `Subscription`             | source가 구독되고 폐기된 가상 시각을 기록해요.        |
+
+`TestTime`은 RxTest 가상 시각을 나타내는 `Int` 타입 별칭이에요. `TestSchedulerVirtualTimeConverter`는 이 정수 tick을 `Date`와 `TimeInterval` 표현으로 변환해 `VirtualTimeScheduler`에 연결해요. 변환기의 이니셜라이저는 모듈 내부용이므로 앱 테스트에서는 이를 직접 만들지 않고 `TestScheduler(initialClock:)`를 사용해요.
+
+```text
+TestScheduler
+├─ 상위 타입: VirtualTimeScheduler<TestSchedulerVirtualTimeConverter>
+├─ 입력 기록: TestableObservable
+│  ├─ HotObservable
+│  └─ ColdObservable
+└─ 출력 기록: TestableObserver
+```
+
+이 타입 관계를 알면 `subscriptions`가 hot·cold source에 기록되고, `events`는 Observer에 기록되는 이유를 구분할 수 있어요.
 
 ## TestScheduler의 기본 시각
 
@@ -238,6 +252,8 @@ hot은 Subscriber와 무관한 절대 가상 시각에 사건을 보내고, cold
 
 - [RxSwift Unit Tests 공식 문서](https://github.com/ReactiveX/RxSwift/blob/6.10.2/Documentation/UnitTests.md)
 - [TestScheduler 구현](https://github.com/ReactiveX/RxSwift/blob/6.10.2/RxTest/Schedulers/TestScheduler.swift)
+- [TestSchedulerVirtualTimeConverter 구현](https://github.com/ReactiveX/RxSwift/blob/6.10.2/RxTest/Schedulers/TestSchedulerVirtualTimeConverter.swift)
+- [TestableObservable 구현](https://github.com/ReactiveX/RxSwift/blob/6.10.2/RxTest/TestableObservable.swift)
 - [HotObservable 구현](https://github.com/ReactiveX/RxSwift/blob/6.10.2/RxTest/HotObservable.swift)
 - [ColdObservable 구현](https://github.com/ReactiveX/RxSwift/blob/6.10.2/RxTest/ColdObservable.swift)
 - [TestableObserver 구현](https://github.com/ReactiveX/RxSwift/blob/6.10.2/RxTest/TestableObserver.swift)
