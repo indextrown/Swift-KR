@@ -30,6 +30,11 @@
   },
   {
     "type": "custom-link",
+    "label": "HTTP·SSE·UDP·TCP 실시간 통신",
+    "link": "/guide/network/realtime-device-communication"
+  },
+  {
+    "type": "custom-link",
     "label": "Bonjour와 로컬 네트워크",
     "link": "/guide/network/bonjour-and-local-network"
   }
